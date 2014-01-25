@@ -2,13 +2,17 @@
   "name": "dogewand",
   "version": "0.0.0",
   "description": "Oauth dogecoin tipbot",
-  "main": "app.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Jehan Tremback",
   "license": "AGPL",
   "dependencies": {
-    "mongoose": "~3.8.5"
+    "mongoose": "~3.8.5",
+    "passport": "~0.1.18",
+    "passport-facebook": "~1.0.2",
+    "express": "~3.4.8",
+    "connect-mongo": "~0.4.0"
   }
 }

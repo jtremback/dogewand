@@ -1,5 +1,16 @@
 plan
 
+todo:
+  login
+  bookmarklet comms
+  bookmarklet interface
+  bookmarklet dom stuff
+  test db api
+  tip page
+  talk to jae api
+  
+
+
 Database Schema:
 
 user:
@@ -58,5 +69,5 @@ extension interaction:
 
 
     <input type="hidden" autocomplete="off" class="mentionsHidden" value="@[100000469584188:Jamie Schwettmann] dogewand " data-reactid=".p.1:4.0.$right.0.0.0.0.2" name="add_comment_text">
- 
+
 
