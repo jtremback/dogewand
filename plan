@@ -48,3 +48,15 @@ possible states upon viewing tip page
     "x has tipped u y doges, click here to sign in"
   signed in
     "x has tipped u y doges"
+
+
+extension interaction:
+  click button
+    searches for tip string in input field
+    if not found: tip string syntax error popup
+    if string syntax error: tip string syntax error popup
+
+
+    <input type="hidden" autocomplete="off" class="mentionsHidden" value="@[100000469584188:Jamie Schwettmann] dogewand " data-reactid=".p.1:4.0.$right.0.0.0.0.2" name="add_comment_text">
+ 
+
