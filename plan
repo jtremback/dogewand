@@ -1,0 +1,50 @@
+plan
+
+Database Schema:
+
+user:
+  auth stuff etc
+  jae creds
+tips:
+  amount
+  from_user 
+  to_user
+
+
+API calls:
+
+new user
+  blah blah auth
+sign in
+  blah blah auth
+sign out
+  blah blah auth
+
+
+generate tip
+  receive id_info of tipee and amount
+  check for user with id_info
+    if no user: make new user with id_info
+      gen wallet id
+      new entry in db
+    call jae: move to wallet
+      if insufficient balance: send back to extension
+      if success: 
+        add tip_page record
+        send url back to extension
+
+tip page
+  parse url for tip id
+  get tip record from db
+  gen tip page with tip amount, user etc.
+
+view balance
+  call jae: get wallet balance
+
+
+
+possible states upon viewing tip page
+  not signed in
+    "x has tipped u y doges, click here to sign in"
+  signed in
+    "x has tipped u y doges"
