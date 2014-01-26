@@ -2,14 +2,35 @@
 
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
+var urlTools = require('url-tools');
+
 
 var UserSchema = new Schema({
-  wallet_id: { type: String, default: '' },
-  name: { type: String, default: '' },
-  email: { type: String, default: '' },
-  username: { type: String, default: '' },
-  provider: { type: String, default: '' },
-  facebook: {}
+  username: String,
+  wallet_id: String,
+  provider: String,
+  sani_url: { type: String, set: urlSanitize },
+  profile: {}
 });
+
+function urlSanitize (url_str) {
+  var options = {
+    lowercase: true,
+    removeWWW: true,
+    removeTrailingSlash: true,
+    forceTrailingSlash: false,
+    removeSearch: false,
+    removeHash: true,
+    removeHashbang: true,
+    removeProtocol: true
+  };
+
+  return urlTools.normalize(url_str, options);
+};
+
+
+UserSchema.methods = {
+  urlSanitize: urlSanitize
+};
 
 mongoose.model('User', UserSchema);

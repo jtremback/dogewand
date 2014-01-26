@@ -3,7 +3,9 @@
 var mongoose = require('mongoose')
   , FacebookStrategy = require('passport-facebook').Strategy
   , User = mongoose.model('User')
+  , randomString = require('randomstring')
 ;
+
 
 module.exports = function (passport, config) {
 
@@ -29,11 +31,11 @@ module.exports = function (passport, config) {
         if (err) { return done(err); }
         if (!user) {
           user = new User({
-            name: profile.displayName,
-            email: profile.emails[0].value,
             username: profile.username,
+            wallet_id: 'foohammer',
+            sani_url: profile.profileUrl,
             provider: 'facebook',
-            facebook: profile._json
+            facebook: profile
           });
           user.save(function (err) {
             if (err) console.log(err);
