@@ -1,10 +1,11 @@
 plan
 
 todo:
-  login
+  - login -
+  - bookmarklet dom stuff -
+  - bookmarklet loading -
   bookmarklet comms
   bookmarklet interface
-  bookmarklet dom stuff
   test db api
   tip page
   talk to jae api

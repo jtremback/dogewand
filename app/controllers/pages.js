@@ -2,9 +2,13 @@
 
 
 var mongoose = require('mongoose')
-  , User = mongoose.model('User');
+  , User = mongoose.model('User')
+  , bookmarklet = require('./bookmarklet-loader');
 
 
 exports.login = function(req, res) {
-  res.render('login', {});
-}
+  console.log(bookmarklet)
+  res.render('login', {
+    bookmarklet: bookmarklet
+  });
+};

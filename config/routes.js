@@ -10,9 +10,6 @@ module.exports = function (app, passport) {
     res.json({ user: req.user });
   });
 
-  app.get('/account', ensureAuthenticated, function(req, res){
-    res.json({ user: req.user });
-  });
 
   app.get('/login', pages.login);
 

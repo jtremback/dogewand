@@ -6,7 +6,7 @@
 
 var express = require('express')
   , mongoStore = require('connect-mongo')(express)
-  , config = require('./config')();
+;
 
 
 module.exports = function (app, config, passport) {
@@ -22,7 +22,7 @@ module.exports = function (app, config, passport) {
   }));
 
   app.use(express.favicon());
-  app.use(express.static('../public'));
+  app.use(express.static('./public'));
 
   // set views path, template engine and default layout
   app.set('views', './app/views');
@@ -60,6 +60,23 @@ module.exports = function (app, config, passport) {
         next();
       });
     }
+
+
+    /**
+     * CORS support.
+     */
+
+    app.all('*', function(req, res, next){
+      if (!req.get('Origin')) return next();
+      // use "*" here to accept any origin
+      res.set('Access-Control-Allow-Origin', 'http://localhost:3700', 'https://facebook.com');
+      res.set('Access-Control-Allow-Methods', 'GET, POST');
+      res.set('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type');
+      // res.set('Access-Control-Allow-Max-Age', 3600);
+      if ('OPTIONS' == req.method) return res.send(200);
+      next();
+    });
+
 
     // routes should be at the last
     app.use(app.router);
