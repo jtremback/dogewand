@@ -11,6 +11,16 @@ todo:
   talk to jae api
   
 
+Bookmarklet interface:
+  popup "click on someone's profile link to tip them with the dogewand"
+  link for explanitory image
+  close button
+  on click on profile link:
+    pop amount dialog
+    enter amount
+    click tip button:
+      "you have tipped x y dogecoins. if they do not claim their tip, you can cancel it in 1 week. paste this message into a comment to let them know about it"
+
 
 Database Schema:
 
