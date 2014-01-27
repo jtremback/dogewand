@@ -15,6 +15,7 @@
     "express": "~3.4.8",
     "connect-mongo": "~0.4.0",
     "url-tools": "0.0.1",
-    "randomstring": "~1.0.2"
+    "randomstring": "~1.0.2",
+    "jade": "~1.1.5"
   }
 }

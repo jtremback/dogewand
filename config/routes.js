@@ -1,4 +1,8 @@
-var users
+'use strict';
+
+var api = require('../app/controllers/api'),
+  pages = require('../app/controllers/pages')
+;
 
 module.exports = function (app, passport) {
 
@@ -10,9 +14,7 @@ module.exports = function (app, passport) {
     res.json({ user: req.user });
   });
 
-  app.get('/login', function(req, res){
-    res.json({ user: req.user });
-  });
+  app.get('/login', pages.login);
 
   // GET /auth/facebook
   //   Use passport.authenticate() as route middleware to authenticate the

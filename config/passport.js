@@ -4,7 +4,24 @@ var mongoose = require('mongoose')
   , FacebookStrategy = require('passport-facebook').Strategy
   , User = mongoose.model('User')
   , randomString = require('randomstring')
+  , urlTools = require('url-tools')
 ;
+
+
+function urlSanitize (url_str) {
+  var options = {
+    lowercase: true,
+    removeWWW: true,
+    removeTrailingSlash: true,
+    forceTrailingSlash: false,
+    removeSearch: false,
+    removeHash: true,
+    removeHashbang: true,
+    removeProtocol: true
+  };
+
+  return urlTools.normalize(url_str, options);
+}
 
 
 module.exports = function (passport, config) {
@@ -24,16 +41,18 @@ module.exports = function (passport, config) {
   passport.use(new FacebookStrategy({
       clientID: config.facebook.clientID,
       clientSecret: config.facebook.clientSecret,
-      callbackURL: config.ur +  '/auth/facebook/callback'
+      callbackURL: config.url +  '/auth/facebook/callback'
     },
     function (accessToken, refreshToken, profile, done) {
-      User.findOne({ 'facebook.id': profile.id }, function (err, user) {
+      //Sanitize profile url for foolproofing
+      var sani_url = urlSanitize(profile.profileUrl);
+      User.findOne({ 'sani_url': sani_url }, function (err, user) {
         if (err) { return done(err); }
         if (!user) {
           user = new User({
             username: profile.username,
             wallet_id: 'foohammer',
-            sani_url: profile.profileUrl,
+            sani_url: sani_url,
             provider: 'facebook',
             facebook: profile
           });
