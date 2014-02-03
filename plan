@@ -1,15 +1,17 @@
 plan
 
 todo:
-  - login -
-  - bookmarklet dom stuff -
-  - bookmarklet loading -
+  X get grunt making js with templates
+  X login
+  X bookmarklet dom stuff
+  X bookmarklet loading
   bookmarklet comms
   bookmarklet interface
   test db api
   tip page
   talk to jae api
   
+
 
 Bookmarklet interface:
   popup "click on someone's profile link to tip them with the dogewand"
@@ -20,6 +22,7 @@ Bookmarklet interface:
     enter amount
     click tip button:
       "you have tipped x y dogecoins. if they do not claim their tip, you can cancel it in 1 week. paste this message into a comment to let them know about it"
+
 
 
 Database Schema:
