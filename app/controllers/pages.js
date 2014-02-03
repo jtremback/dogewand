@@ -1,6 +1,5 @@
 'use strict';
 
-
 var mongoose = require('mongoose')
   , User = mongoose.model('User')
   , bookmarklet = require('./bookmarklet-loader');

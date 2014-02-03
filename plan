@@ -1,7 +1,7 @@
 plan
 
 todo:
-  X get grunt making js with templates
+  X get gulp making js with templates
   X login
   X bookmarklet dom stuff
   X bookmarklet loading

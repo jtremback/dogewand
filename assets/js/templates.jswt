@@ -1,0 +1,16 @@
+var floater = str `
+
+  <div class="floater"></div>
+
+`
+
+
+
+
+var styles = str `
+  
+  .floater {
+    width: 
+  }
+
+`

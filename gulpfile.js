@@ -2,22 +2,22 @@
 
 // Load plugins
 var gulp = require('gulp'),
-    // sass = require('gulp-ruby-sass'),
-    stylus = require('gulp-stylus'),
-    autoprefixer = require('gulp-autoprefixer'),
-    minifycss = require('gulp-minify-css'),
-    sweetjs = require('gulp-sweetjs'),
-    jshint = require('gulp-jshint'),
-    uglify = require('gulp-uglify'),
-    imagemin = require('gulp-imagemin'),
-    rename = require('gulp-rename'),
-    clean = require('gulp-clean'),
-    concat = require('gulp-concat'),
-    notify = require('gulp-notify'),
-    cache = require('gulp-cache'),
-    livereload = require('gulp-livereload'),
-    lr = require('tiny-lr'),
-    server = lr();
+  // sass = require('gulp-ruby-sass'),
+  stylus = require('gulp-stylus'),
+  autoprefixer = require('gulp-autoprefixer'),
+  minifycss = require('gulp-minify-css'),
+  sweetjs = require('gulp-sweetjs'),
+  jshint = require('gulp-jshint'),
+  uglify = require('gulp-uglify'),
+  imagemin = require('gulp-imagemin'),
+  rename = require('gulp-rename'),
+  clean = require('gulp-clean'),
+  concat = require('gulp-concat'),
+  notify = require('gulp-notify'),
+  cache = require('gulp-cache'),
+  livereload = require('gulp-livereload'),
+  lr = require('tiny-lr'),
+  server = lr();
  
 // Styles
 gulp.task('styles', function() {
@@ -34,8 +34,8 @@ gulp.task('styles', function() {
  
 // Scripts
 gulp.task('scripts', function() {
-  return gulp.src(['assets/js/macros.js', 'assets/js/sweet-test.js', 'assets/js/loader.js'])
-    .pipe(concat('main.js'))
+  return gulp.src(['assets/js/macros.jsw', 'assets/js/templates.jswt', 'assets/js/presenters.jsw'])
+    .pipe(concat('bookmarklet.js'))
     .pipe(sweetjs())
     .pipe(jshint('.jshintrc'))
     .pipe(jshint.reporter('jshint-stylish'))
@@ -62,9 +62,15 @@ gulp.task('clean', function() {
     .pipe(clean());
 });
  
+// Listen
+gulp.task('reload', function () {
+  return gulp.src('app/*')
+    .pipe(livereload(server));
+});
+
 // Default task
 gulp.task('default', ['clean'], function() {
-    gulp.start('images', 'styles', 'scripts');
+   gulp.start('images', 'styles', 'scripts');
 });
  
 // Watch
@@ -75,15 +81,13 @@ gulp.task('watch', function() {
     if (err) {
       return console.log(err);
     }
- 
-    // Watch .scss files
+
     gulp.watch('assets/stylus/*', ['styles']);
- 
-    // Watch .js files
+
     gulp.watch('assets/js/*', ['scripts']);
  
-    // Watch image files
     gulp.watch('assets/img/*', ['images']);
  
+    gulp.watch('app/views/*', ['reload']);
   });
 });
