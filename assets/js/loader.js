@@ -6,3 +6,6 @@ exports.loader =
   'jsCode.setAttribute("src", "' + config.url + '");' +
   'document.body.appendChild(jsCode);' +
 '}();';
+
+console.log(poopen);
+
