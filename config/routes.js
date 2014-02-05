@@ -6,12 +6,12 @@ var api = require('../app/controllers/api'),
 
 module.exports = function (app, passport) {
 
-  app.get('/', function(req, res){
-    res.json({ user: req.user });
-  });
+  // app.get('/', function(req, res){
+  //   res.json({ user: req.user });
+  // });
 
 
-  app.get('/login', pages.login);
+  app.get('/', pages.login);
 
   // GET /auth/facebook
   //   Use passport.authenticate() as route middleware to authenticate the

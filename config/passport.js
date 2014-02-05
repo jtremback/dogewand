@@ -44,8 +44,12 @@ module.exports = function (passport, config) {
       callbackURL: config.url +  '/auth/facebook/callback'
     },
     function (accessToken, refreshToken, profile, done) {
+
+      console.log(profile);
+
       //Sanitize profile url for foolproofing
       var sani_url = urlSanitize(profile.profileUrl);
+
       User.findOne({ 'sani_url': sani_url }, function (err, user) {
         if (err) { return done(err); }
         if (!user) {
