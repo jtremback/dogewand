@@ -8,7 +8,8 @@ var express = require('express')
   , fs = require('fs')
   , passport = require('passport')
   , config = require('./config/config')()
-  , mongoose = require('mongoose');
+  , mongoose = require('mongoose')
+  , https = require('https');
 
 /**
  * Main application entry file.
@@ -53,9 +54,14 @@ require('./config/express')(app, config, passport);
 // Bootstrap routes
 require('./config/routes')(app, passport);
 
+var options = {
+  key: fs.readFileSync('./ssl/server.key'),
+  cert: fs.readFileSync('./ssl/server.crt'),
+};
+
 // Start the app by listening on <port>
 var port = process.env.PORT || 3700;
-app.listen(port);
+https.createServer(options, app).listen(port);
 console.log('Express app started on port ' + port);
 
 // expose app
