@@ -13,16 +13,10 @@ module.exports = function (app, config, passport) {
 
   app.set('showStackError', true);
 
-  // should be placed before express.static
-  app.use(express.compress({
-    filter: function (req, res) {
-      return (/json|text|javascript|css/).test(res.getHeader('Content-Type'));
-    },
-    level: 9
-  }));
-
   app.use(express.favicon());
   app.use(express.static('./public'));
+
+  app.use(express.logger()) // LOGGING
 
   // set views path, template engine and default layout
   app.set('views', './app/views');
@@ -69,7 +63,7 @@ module.exports = function (app, config, passport) {
     app.all('*', function(req, res, next){
       if (!req.get('Origin')) return next();
       // use "*" here to accept any origin
-      res.set('Access-Control-Allow-Origin', 'http://localhost:3700', 'https://facebook.com');
+      res.set('Access-Control-Allow-Origin', 'https://localhost:3700', 'https://facebook.com', 'https://soundcloud.com');
       res.set('Access-Control-Allow-Methods', 'GET, POST');
       res.set('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type');
       // res.set('Access-Control-Allow-Max-Age', 3600);
