@@ -13,6 +13,11 @@ module.exports = function (app, passport) {
 
   app.get('/', pages.login);
 
+  app.get('/floop', function (req, res) {
+    console.log('herping');
+    res.end();
+  });
+
   // GET /auth/facebook
   //   Use passport.authenticate() as route middleware to authenticate the
   //   request.  The first step in Facebook authentication will involve
