@@ -19,21 +19,6 @@ var gulp = require('gulp'),
   lr = require('tiny-lr'),
   server = lr();
 
-// does a bunch of js shit including sweet 
-function sweet (src, target, dest) {
-  return gulp.src(src)
-    .pipe(concat(target))
-    .pipe(sweetjs())
-    .pipe(jshint('.jshintrc'))
-    .pipe(jshint.reporter('jshint-stylish'))
-    .pipe(gulp.dest(dest))
-    .pipe(rename({ suffix: '.min' }))
-    .pipe(uglify({outSourceMaps: true}))
-    .pipe(livereload(server))
-    .pipe(gulp.dest(dest))
-    .pipe(notify({ message: 'Scripts task complete' }));
-}
-
 // Styles
 gulp.task('styles', function() {
   return gulp.src('assets/stylus/style.styl')
@@ -63,22 +48,34 @@ gulp.task('scripts', function() {
 });
 
 
+function sweet_folder (opts) {
+  return gulp.src(opts.source)
+    .pipe(concat(opts.target))
+    .pipe(sweetjs())
+    .pipe(jshint('.jshintrc'))
+    .pipe(jshint.reporter('jshint-stylish'))
+    .pipe(gulp.dest(opts.dest))
+    .pipe(livereload(server));
+}
+
+
 // Prepares files for chrome extension
 gulp.task('chrome-extension', function() {
   gulp.src(['extension/chrome/dist/*'], { read: false })
     .pipe(clean());
 
-  gulp.src(['extension/chrome/src/background/macros.js', 'extension/chrome/src/background/background.js'])
-    .pipe(concat('background.js'))
-    .pipe(sweetjs())
-    .pipe(jshint('.jshintrc'))
-    .pipe(jshint.reporter('jshint-stylish'))
-    .pipe(gulp.dest('extension/chrome/dist'))
-    .pipe(livereload(server))
-    .pipe(notify({ message: 'Extension task complete' }));
+    sweet_folder({
+      source: [
+      'extension/chrome/src/content_script/macros.js',
+      'extension/chrome/src/content_script/riot.js',
+      'extension/chrome/src/content_script/content_script.js'
+      ],
+      target: 'content_script.js',
+      dest: 'extension/chrome/dist'});
 
-  return gulp.src('extension/chrome/src/*.*')
-      .pipe(gulp.dest('extension/chrome/dist'));
+  return gulp.src(['extension/chrome/src/*.*'])
+      .pipe(gulp.dest('extension/chrome/dist'))
+      .pipe(notify({ message: 'Extension task complete' }));
 
 });
 
