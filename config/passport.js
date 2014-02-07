@@ -33,6 +33,7 @@ module.exports = function (passport, config) {
 
   passport.deserializeUser(function(id, done) {
     User.findOne({ _id: id }, function (err, user) {
+      console.log('deserialize', user)
       done(err, user);
     });
   });
@@ -66,6 +67,7 @@ module.exports = function (passport, config) {
           });
         }
         else {
+          console.log(user);
           return done(err, user);
         }
       });

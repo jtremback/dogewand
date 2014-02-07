@@ -1,10 +1,40 @@
 plan
 
-db:
-  User
-    auth shit
+alternate db:
 
-  Tip  
+  Account:
+    user_id
+    wallet_id
+    provider
+    identifier
+
+  User:
+    email
+
+  Tip:
+    from_user
+    to_user
+    amount
+    hash
+
+
+POST dogewand.com/api/tip?id=jureto&amount=30&provider=face
+
+generate tip
+  receive identifier of tipee and amount
+  check for user with id_info
+    if no user: make new user with identifier
+      gen wallet id
+      new entry in db
+    call jae: move to wallet
+      if insufficient balance: send back to extension
+      if success:
+        new tip record
+
+
+extension auth:
+  
+
 
 todo:
   X get gulp making js with templates

@@ -34,13 +34,6 @@ function sweet (src, target, dest) {
     .pipe(notify({ message: 'Scripts task complete' }));
 }
 
-// straight up copy
-function copy (src, dest) {
-  return gulp.src(src)
-    .pipe(gulp.dest(dest));
-}
-
-
 // Styles
 gulp.task('styles', function() {
   return gulp.src('assets/stylus/style.styl')
@@ -69,14 +62,24 @@ gulp.task('scripts', function() {
     .pipe(notify({ message: 'Scripts task complete' }));
 });
 
-// Prepares files for chrome extension
-gulp.task('chrome_ext', function() {
-  sweet(
-    ['extension/chrome/src/background/macros.js', 'extension/chrome/src/background/background.js'],
-    'background.js',
-    'extension/chrome/dist');
 
-  copy('extension/chrome/src/*.*', 'extension/chrome/dist');
+// Prepares files for chrome extension
+gulp.task('chrome-extension', function() {
+  gulp.src(['extension/chrome/dist/*'], { read: false })
+    .pipe(clean());
+
+  gulp.src(['extension/chrome/src/background/macros.js', 'extension/chrome/src/background/background.js'])
+    .pipe(concat('background.js'))
+    .pipe(sweetjs())
+    .pipe(jshint('.jshintrc'))
+    .pipe(jshint.reporter('jshint-stylish'))
+    .pipe(gulp.dest('extension/chrome/dist'))
+    .pipe(livereload(server))
+    .pipe(notify({ message: 'Extension task complete' }));
+
+  return gulp.src('extension/chrome/src/*.*')
+      .pipe(gulp.dest('extension/chrome/dist'));
+
 });
 
 // Images
@@ -93,12 +96,7 @@ gulp.task('clean', function() {
   return gulp.src(['public/css', 'public/js', 'public/img', 'extension/chrome/dist'], {read: false})
     .pipe(clean());
 });
- 
-// Listen
-gulp.task('reload', function () {
-  return gulp.src('app/*')
-    .pipe(livereload(server));
-});
+
 
 // Default task
 gulp.task('default', ['clean'], function() {
@@ -120,8 +118,8 @@ gulp.task('watch', function() {
  
     gulp.watch('assets/img/*', ['images']);
  
-    gulp.watch('extension/chrome/src/**/*', ['chrome_ext']);
+    gulp.watch('extension/chrome/src/**/*', ['chrome-extension']);
 
-    gulp.watch('app/views/*', ['reload']);
+    // gulp.watch('app/views/*', ['reload']);
   });
 });

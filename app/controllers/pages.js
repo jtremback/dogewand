@@ -4,6 +4,6 @@ var mongoose = require('mongoose')
   , User = mongoose.model('User');
 
 exports.login = function(req, res) {
-  console.log(bookmarklet)
-  res.render('login', {});
+  if (req.user) return res.render('hooray', { user: req.user });
+  return res.render('login');
 };

@@ -14,7 +14,7 @@ module.exports = function (app, passport) {
   app.get('/', pages.login);
 
   app.get('/floop', function (req, res) {
-    console.log('herping');
+    console.log('herping', req.user);
     res.end();
   });
 
