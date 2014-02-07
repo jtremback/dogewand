@@ -1,8 +1,9 @@
 'use strict';
 
 
-var mongoose = require('mongoose')
-  , User = mongoose.model('User');
+var mongoose = require('mongoose');
+var Account = mongoose.model('Account');
+var Tip = mongoose.model('Tip');
 
 var login = function (req, res) {
   var redirectTo = req.session.returnTo ? req.session.returnTo : '/';
@@ -19,12 +20,22 @@ exports.signin = function (req, res) {};
 exports.authCallback = login;
 
 
-// api/:profile_link/:amount
+exports.generateTip = function (req, res) {
+  var identifier = req.params.identifier;
+  var provider = req.params.provider;
+  var amount = req.params.amount;
+  var tipper = req.user;
 
-// exports.tip = function (req, res) {
-//   var profile_link = User.profileLinkSanitize(req.params.profile_link);
-
-//   User.findOne({ 'sani_url':  }, function (err, user) {
-    
-//   }
-// }
+  Account.upsert(identifier, provider, function (err, tippee) {
+    if (err) return console.error(err);
+    wallets.move(tipper.wallet_id, tippee.wallet_id, amount, function (err) {
+      if (err) return console.error(err); // TODO handle error with response
+      Tip.create(tipper.wallet_id, tippee.wallet_id, amount, function (err, tip) {
+        if (err) return console.error(err); // TODO handle error with response
+        res.send({
+          link: url + tip.hash
+        })
+      });
+    });
+  });
+};
