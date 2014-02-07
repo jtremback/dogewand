@@ -16,7 +16,7 @@ module.exports = function (app, config, passport) {
   app.use(express.favicon());
   app.use(express.static('./public'));
 
-  app.use(express.logger()) // LOGGING
+  app.use(express.logger()); // LOGGING
 
   // set views path, template engine and default layout
   app.set('views', './app/views');
@@ -37,6 +37,8 @@ module.exports = function (app, config, passport) {
       store: new mongoStore({
         url: config.db,
         collection : 'sessions'
+      }, function () {
+        console.log("db connection open");
       })
     }));
 

@@ -1,7 +1,8 @@
-/* Riot 0.9.8, @license MIT, (c) 2014 Moot Inc + contributors */
-(function($) { "use strict";
+'use strict';
 
-$.observable = function(el) {
+var observable, render, route;
+
+observable = function(el) {
   var callbacks = {}, slice = [].slice;
 
   el.on = function(events, fn) {
@@ -68,7 +69,7 @@ var ENTITIES_MAP = {
 };
 
 // Render a template with data
-$.render = function(template, data) {
+render = function(template, data) {
   if(!template) return '';
 
   FN[template] = FN[template] || new Function("_",
@@ -83,37 +84,42 @@ $.render = function(template, data) {
 
 /* Cross browser popstate */
 
-// for browsers only
-if (typeof top != "object") return;
+// // for browsers only
+// if (typeof top != "object") return;
 
-var currentHash,
-  pops = $.observable({}),
-  listen = window.addEventListener,
-  doc = document;
+// var currentHash,
+//   pops = observable({}),
+//   listen = window.addEventListener,
+//   doc = document;
 
-function pop(hash) {
-  hash = hash.type ? location.hash : hash;
-  if (hash != currentHash) pops.trigger("pop", hash);
-  currentHash = hash;
-}
+// function pop(hash) {
+//   hash = hash.type ? location.hash : hash;
+//   if (hash != currentHash) pops.trigger("pop", hash);
+//   currentHash = hash;
+// }
 
-if (listen) {
-  listen("popstate", pop, false);
-  doc.addEventListener("DOMContentLoaded", pop, false);
+// if (listen) {
+//   listen("popstate", pop, false);
+//   doc.addEventListener("DOMContentLoaded", pop, false);
 
-} else {
-  doc.attachEvent("onreadystatechange", function() {
-    if (doc.readyState === "complete") pop("");
-  });
-}
+// } else {
+//   doc.attachEvent("onreadystatechange", function() {
+//     if (doc.readyState === "complete") pop("");
+//   });
+// }
 
-// Change the browser URL or listen to changes on the URL
-$.route = function(to) {
-  // listen
-  if (typeof to === "function") return pops.on("pop", to);
+// // Change the browser URL or listen to changes on the URL
+// route = function(to) {
+//   // listen
+//   if (typeof to === "function") return pops.on("pop", to);
 
-  // fire
-  if (history.pushState) history.pushState(0, 0, to);
-  pop(to);
+//   // fire
+//   if (history.pushState) history.pushState(0, 0, to);
+//   pop(to);
 
-};})(typeof top == "object" ? window.$ || (window.$ = {}) : exports);
+// };
+
+module.exports = {
+  observable: observable,
+  render: render
+};

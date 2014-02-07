@@ -14,8 +14,7 @@ module.exports = function (app, passport) {
   app.get('/', pages.login);
 
   app.get('/floop', function (req, res) {
-    console.log('herping', req.user);
-    res.end();
+    res.json(req.user);
   });
 
   // GET /auth/facebook

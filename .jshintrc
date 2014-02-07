@@ -9,7 +9,7 @@
   "globals": {},
   "strict": true,
   // "globalstrict": tsrue,
-  "quotmark": true,
+  // "quotmark": true,
   "smarttabs": true,
   "trailing": true,
   "undef": true,

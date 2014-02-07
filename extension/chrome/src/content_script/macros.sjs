@@ -6,3 +6,5 @@ let str = macro {
         return #{$newTemp}
     }
 }
+
+export str

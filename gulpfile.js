@@ -16,6 +16,7 @@ var gulp = require('gulp'),
   notify = require('gulp-notify'),
   cache = require('gulp-cache'),
   livereload = require('gulp-livereload'),
+  browserify = require('gulp-browserify'),
   lr = require('tiny-lr'),
   server = lr();
 
@@ -48,36 +49,45 @@ gulp.task('scripts', function() {
 });
 
 
-function sweet_folder (opts) {
-  return gulp.src(opts.source)
-    .pipe(concat(opts.target))
-    .pipe(sweetjs())
-    .pipe(jshint('.jshintrc'))
-    .pipe(jshint.reporter('jshint-stylish'))
-    .pipe(gulp.dest(opts.dest))
-    .pipe(livereload(server));
-}
-
-
-// Prepares files for chrome extension
 gulp.task('chrome-extension', function() {
   gulp.src(['extension/chrome/dist/*'], { read: false })
     .pipe(clean());
 
-    sweet_folder({
-      source: [
-      'extension/chrome/src/content_script/macros.js',
-      'extension/chrome/src/content_script/riot.js',
-      'extension/chrome/src/content_script/content_script.js'
-      ],
-      target: 'content_script.js',
-      dest: 'extension/chrome/dist'});
+  gulp.src('extension/chrome/src/content_script/content_script.js', { read: false })
+    .pipe(browserify({
+      transform: ['sweetify'],
+      extensions: ['.sjs']
+    }))
+    .pipe(jshint('.jshintrc'))
+    .pipe(jshint.reporter('jshint-stylish'))
+    .pipe(gulp.dest('extension/chrome/dist'))
+    .pipe(livereload(server));
 
   return gulp.src(['extension/chrome/src/*.*'])
       .pipe(gulp.dest('extension/chrome/dist'))
       .pipe(notify({ message: 'Extension task complete' }));
-
 });
+
+
+// // Prepares files for chrome extension
+// gulp.task('chrome-extension', function() {
+//   gulp.src(['extension/chrome/dist/*'], { read: false })
+//     .pipe(clean());
+
+//     sweet_folder({
+//       source: [
+//       'extension/chrome/src/content_script/macros.js',
+//       'extension/chrome/src/content_script/riot.js',
+//       'extension/chrome/src/content_script/content_script.js'
+//       ],
+//       target: 'content_script.js',
+//       dest: 'extension/chrome/dist'});
+
+//   return gulp.src(['extension/chrome/src/*.*'])
+//       .pipe(gulp.dest('extension/chrome/dist'))
+//       .pipe(notify({ message: 'Extension task complete' }));
+
+// });
 
 // Images
 gulp.task('images', function() {
