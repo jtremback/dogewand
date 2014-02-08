@@ -13,7 +13,7 @@ exports.popup = str `
       }
     </style>
     <div class="dogewand-popup">
-      {{foo}}
+      {foo}
       <iframe src="https://localhost:3700"></iframe>
     </div>
 
