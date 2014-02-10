@@ -28,7 +28,7 @@ var through = require('through');
 
 function compile(file, data) {
   var compiled = stylus(data, { filename: file }).render();
-  var prefixed = autoprefixer().process(compiled).css;
+  var prefixed = autoprefixer('last 3 Chrome versions').process(compiled).css;
 
   return 'module.exports = ' + JSON.stringify(prefixed) + ';';
 }
