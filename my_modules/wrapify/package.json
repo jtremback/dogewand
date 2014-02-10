@@ -1,0 +1,27 @@
+{
+  "name": "wrapify",
+  "description": "simply escapes and wraps text files for browserify",
+  "author": {
+    "name": "Jehan Tremback",
+    "email": "jehan.trremback@gmail.com"
+  },
+  "version": "0.0.1",
+  "dependencies": {
+    "through": "2.2.x"
+  },
+  "devDependencies": {
+    "tap": "~0.4.4",
+    "browserify": "~2.34.3"
+  },
+  "scripts": {
+    "test": "$(npm bin)/tap test/*.js",
+    "gendocs": "gendocs > README.md"
+  },
+  "main": "index.js",
+  "keywords": [
+    "wrap",
+    "browserify",
+    "browserify-transform"
+  ],
+  "license": "MIT"
+}
