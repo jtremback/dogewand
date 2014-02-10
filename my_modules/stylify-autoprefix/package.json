@@ -1,0 +1,44 @@
+{
+  "name": "stylify",
+  "description": "browserify v2 plugin for stylus",
+  "author": {
+    "name": "Damon Oehlman",
+    "email": "damon.oehlman@gmail.com"
+  },
+  "version": "0.1.2",
+  "dependencies": {
+    "stylus": "~0.38.0",
+    "clean-css": "~2.0.7",
+    "autoprefixer-stylus": "0.0.3",
+    "through": "2.2.x"
+  },
+  "devDependencies": {
+    "tap": "~0.4.4",
+    "browserify": "~2.34.3",
+    "insert-css": "0.0.0",
+    "crel": "~1.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.org/DamonOehlman/stylify.git"
+  },
+  "bugs": {
+    "url": "https://bitbucket.org/DamonOehlman/stylify/issues"
+  },
+  "scripts": {
+    "test": "$(npm bin)/tap test/*.js",
+    "gendocs": "gendocs > README.md"
+  },
+  "main": "index.js",
+  "keywords": [
+    "stylus",
+    "css",
+    "browserify",
+    "browserify-transform"
+  ],
+  "license": "MIT",
+  "readme": "# stylify\n\nbrowserify v2 plugin for [stylus](https://github.com/LearnBoost/stylus).\n\n\n[![NPM](https://nodei.co/npm/stylify.png)](https://nodei.co/npm/stylify/)\n\n\n## Example Usage\n\nUsage is very simple when combined with the\n[insert-css](https://github.com/substack/insert-css) (or similar) module.\nConsider the following example, which dynamically creates a couple of\ndiv tags, and dynamically assigned styles:\n\n```js\nvar insertCss = require('insert-css');\nvar crel = require('crel');\n\n// create some dom elements to demo our styles\nvar elements = ['square', 'rect'].map(function(cls) {\n  return crel('div', { class: 'box ' + cls });\n}).forEach(document.body.appendChild.bind(document.body));\n\n// insert our stylus css into our app\ninsertCss(require('./simple.styl'));\n```\n\nYou can see the final statement uses a familar node `require` call to \nbring in a stylus stylesheet:\n\n```css\nsidelength = 40px\nboxborder = black\n\nbody\n  margin 0\n  padding 0\n\n.box\n  border: 1px solid boxborder\n  margin: 5px\n\n.square\n  width: sidelength\n  height: sidelength\n\n.rect\n  width: sidelength * 2\n  height: sidelength\n```\n\n## License(s)\n\n### MIT\n\nCopyright (c) 2013 Damon Oehlman <damon.oehlman@gmail.com>\n\nPermission is hereby granted, free of charge, to any person obtaining\na copy of this software and associated documentation files (the\n'Software'), to deal in the Software without restriction, including\nwithout limitation the rights to use, copy, modify, merge, publish,\ndistribute, sublicense, and/or sell copies of the Software, and to\npermit persons to whom the Software is furnished to do so, subject to\nthe following conditions:\n\nThe above copyright notice and this permission notice shall be\nincluded in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.\nIN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY\nCLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,\nTORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE\nSOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+  "readmeFilename": "README.md",
+  "_id": "stylify@0.1.2",
+  "_from": "stylify@~0.1.2"
+}

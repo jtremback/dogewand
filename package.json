@@ -35,6 +35,8 @@
     "stylify": "~0.1.2",
     "install": "~0.1.7",
     "gulp-minify-css": "~0.3.0",
-    "npm": "~1.3.26"
+    "npm": "~1.3.26",
+    "autoprefixer": "~1.0.20140203",
+    "autoprefixer-stylus": "0.0.3"
   }
 }

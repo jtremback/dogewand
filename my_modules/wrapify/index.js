@@ -19,6 +19,8 @@ module.exports = function (file) {
     this.queue(null);
   }
 
+  console.log(file)
+
   if (!/\.wrap\./.test(file)) return through();
 
   return through(write, end);
