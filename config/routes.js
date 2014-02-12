@@ -11,9 +11,9 @@ module.exports = function (app, passport) {
   // });
 
 
-  app.get('/', pages.login);
+  app.get('/extension/login', pages.login);
 
-  app.get('/floop', function (req, res) {
+  app.get('/api/user', ensureAuthenticated, function (req, res) {
     res.json(req.user);
   });
 
@@ -34,7 +34,7 @@ module.exports = function (app, passport) {
   //   request.  If authentication fails, the user will be redirected back to the
   //   login page.  Otherwise, the primary route function function will be called,
   //   which, in this example, will redirect the user to the home page.
-  app.get('/auth/facebook/callback', 
+  app.get('/auth/facebook/callback',
     passport.authenticate('facebook', { failureRedirect: '/login' }),
     function(req, res) {
       res.redirect('/');
@@ -51,5 +51,5 @@ module.exports = function (app, passport) {
 
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) { return next(); }
-  res.redirect('/login')
+  res.send(401, 'false');
 }

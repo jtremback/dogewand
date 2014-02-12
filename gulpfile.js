@@ -39,7 +39,8 @@ gulp.task('chrome-extension-js', function() {
     .pipe(gulpJshint.reporter('jshint-stylish'))
     .pipe(gulpBrowserify({
       transform: ['./my_modules/stylify-autoprefix', './my_modules/wrapify'],
-      extensions: ['.styl', '.html']
+      extensions: ['.styl', '.html'],
+      debug: true
     }))
     .pipe(gulpRename('content_script.js'))
     .pipe(gulp.dest('extension/chrome/dist'))

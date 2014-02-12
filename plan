@@ -41,7 +41,7 @@ todo:
   X login
   X bookmarklet dom stuff
   X bookmarklet loading
-  bookmarklet comms
+  X bookmarklet comms
   bookmarklet interface
   test db api
   tip page
@@ -109,5 +109,3 @@ possible states upon viewing tip page
     "x has tipped u y doges, click here to sign in"
   signed in
     "x has tipped u y doges"
-
-
