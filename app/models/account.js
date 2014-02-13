@@ -6,22 +6,22 @@ var randomstring = require('randomstring');
 
 var AccountSchema = new Schema({
   wallet_id: String,
-  identifier: String,
+  username: String,
   provider: String,
   profile: {}
 });
 
 
 AccountSchema.statics = {
-  upsert: function (identifier, provider, callback) {
+  upsert: function (username, provider, callback) {
     var Self = this;
 
-    Self.findOne({ identifier: identifier }, function (err, account) {
+    Self.findOne({ username: username }, function (err, account) {
       if (err) { return callback(err); }
       if (!account) {
         account = new Self({
           wallet_id: randomstring.generate(12),
-          identifier: identifier,
+          username: username,
           provider: provider
         });
         account.save(function (err) {
