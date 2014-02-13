@@ -2,7 +2,7 @@
 
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
-// var generateID = require('generateID');
+var randomstring = require('randomstring');
 
 var AccountSchema = new Schema({
   wallet_id: String,
@@ -20,7 +20,7 @@ AccountSchema.statics = {
       if (err) { return callback(err); }
       if (!account) {
         account = new Self({
-          wallet_id: generateID(),
+          wallet_id: randomstring.generate(12),
           identifier: identifier,
           provider: provider
         });

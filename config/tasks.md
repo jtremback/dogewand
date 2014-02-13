@@ -29,19 +29,13 @@ tip: {
   tx_id: String,
   amount: Number,
   state: String,
-  tipper_identifier: {
-    provider: String,
-    username: String
-  },
-  tippee_identifier: {
-    provider: String,
-    username: String
-  }
+  to_account_id: {type : Schema.ObjectId, ref : 'Account'},
+  from_account_id: {type : Schema.ObjectId, ref : 'Account'}
 }
 
 User signs up with social site Oauth- new `account` is created with new `wallet_id`. `username` and `provider` are stored.
 
-Tipper leaves tip- External API is called to move `amount` to root. new `tip` is created with identifiers for both parties, amount, state is set to initial. 
+Tipper leaves tip- External API is called to move `amount` to root. new `tip` is created with object_ids for both parties, amount, state is set to initial. 
 
 Tippee claims tip- External API is called to move `amount` to tippee account. state is set to accepted.
 
