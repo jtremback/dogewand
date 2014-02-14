@@ -17,7 +17,10 @@
     "url-tools": "0.0.1",
     "jade": "~1.1.5",
     "randomstring": "~1.0.2",
-    "browserify-zepto": "~1.1.2"
+    "browserify-zepto": "~1.1.2",
+    "unirest": "~0.1.1",
+    "lodash": "~2.4.1",
+    "three-times": "~0.3.6"
   },
   "devDependencies": {
     "gulp-stylus": "0.0.11",
