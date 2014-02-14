@@ -11,7 +11,7 @@ module.exports = function (app, passport) {
   // });
 
 
-  app.get('/extension/login', pages.login);
+  app.get('/extension/login', pages.login); // Login page formatted for loading within extension iframe
 
   app.get('/api/user', ensureAuthenticated, function (req, res) {
     res.json(req.user);
