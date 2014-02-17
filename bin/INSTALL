@@ -1,0 +1,6 @@
+npm install express
+npm install passport
+npm install mongoose
+npm install randomstring
+npm install passport-facebook
+npm install connect-mongo
