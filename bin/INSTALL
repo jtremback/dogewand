@@ -4,3 +4,4 @@ npm install mongoose
 npm install randomstring
 npm install passport-facebook
 npm install connect-mongo
+npm install jade
