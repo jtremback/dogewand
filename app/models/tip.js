@@ -4,108 +4,115 @@ var mongoose = require('mongoose');
 var config = require('../../config/config')();
 var _ = require('lodash');
 var Schema = mongoose.Schema;
+var ObjectID = require('mongodb').ObjectID;
 
 var cryptos = require('../cryptos')(config.cryptos);
 
 
 var TipSchema = new Schema({
-  _id: String, // tx_id of original move to main
+  // _id
   amount: Number,
-  claimed: String, // tx_id of corresponding wallet transaction
-  canceled: String, // tx_id of corresponding wallet transaction
+  state: String, // In case of accidents
+  resolve_id: String, // tx_id of corresponding wallet transaction
+  from_wallet: String,
+  from_wallet_balance: Number, // Set when tip is created, updated when canceled.
   to_wallet: String,
-  from_wallet: String
+  to_wallet_balance: Number // Set when tip is claimed, not when canceled.
 });
 
 // from_wallet, to_wallet, amount,
 
 TipSchema.statics = {
-  create: function (tip, callback) {
+
+  create: function (opts, callback) {
     var Self = this;
 
-    transfer();
+    createTip();
 
-    function transfer() {
-      var opts = _.cloneDeep(tip); // Clone to avoid modifying original
+    function createTip () {
+      var doc = _.cloneDeep(opts);
+      doc.state = 'creating';
+
+      new Self(doc).save(function (err, tip) {
+        if (err) return callback(err);
+        transfer(tip);
+      });
+    }
+
+    function transfer (tip) {
+      var opts = _.pick(tip, 'from_wallet', 'amount'); // Clone only those opts we need
+      opts.tx_id = tip._id + '00000000'; // Create tx_id as padded oid
       opts.to_wallet = 'main'; // Put in main for escrow until claimed or canceled
 
-      cryptos('move', opts, newTip);
+
+      var saveTipReady = saveTip(tip); // Load tip into saveTip scope
+      cryptos('move', opts, saveTipReady);
     }
 
-    function newTip (err, data, tx_id) {
-      if (err) return callback(err);
-      var doc = _.cloneDeep(tip);
-      doc._id = tx_id; // So it can be indexed
+    function saveTip (tip) {
+      return function (err, response) {
+        if (err) return callback(err);
 
-      new Self(doc).save(callback);
+        tip.state = 'created';
+        tip.from_wallet_balance = response.data[tip.from_wallet][config.cryptos.coin]; // Get balance out of api format
+
+        tip.save(function (err, tip) {
+          if (err) return callback(err);
+          callback(err, tip, response);
+        });
+      };
     }
   }
+
 };
 
 TipSchema.methods = {
 
-  claim: function (callback) {
+  resolve: function (operation, callback) {
     var self = this;
+    // var tx_id = new ObjectID() + '00000000';
 
-    if (self.claimed || self.canceled) return callback({type: 'inactive'}); // GTFO if the tip is gone already
+    if (self.state !== 'created') return callback({operation: 'inactive'}); // Shit is wrong
 
-    transfer();
+    start();
 
-    function transfer() {
-      var opts = _.cloneDeep(self.toObject()); // Clone to get opts
+    function start () {
+      self.state = operation + 'ing';
+      self.resolve_id = new ObjectID() + '00000000';
+      self.save(function (err) {
+        if (err) return callback(err);
+        transfer();
+      });
+    }
+
+    function transfer () {
+      var opts = _.pick(self.toObject(), ['to_wallet', 'amount']); // Clone only those opts we need
       
-      // Transform id name for cryptos
-      opts.tx_id = opts._id;
-      opts = _.omit(opts, '_id');
+      opts.tx_id = self.resolve_id; // Transform id name for cryptos
       opts.from_wallet = 'main'; // Get it out of escrow
+
+      if (operation === 'cancel') opts.to_wallet = self.from_wallet; // Reverse transaction
 
       cryptos('move', opts, saveTip);
     }
 
-    function saveTip (err, data, tx_id) {
+    function saveTip (err, response) {
       if (err) return callback(err);
-      self.claimed = tx_id;
+      self.state = operation + 'ed';
+
+      if (operation === 'claim')
+        self.to_wallet_balance = response.data[self.to_wallet][config.cryptos.coin];
+
+      if (operation === 'cancel')
+        self.from_wallet_balance = response.data[self.from_wallet][config.cryptos.coin]; // Reverse transaction
+
       self.save(function (err, tip) {
         if (err) return callback(err);
-        callback(err, tip, data);
+        callback(err, tip, response);
       });
     }
   }
 
-  ,
-
-  cancel: function (old_tx_id, callback) {
-    var Self = this;
-
-    findTip(old_tx_id); // Kickoff
-
-    function findTip (tx_id) {
-      Self.findOne({ _id: tx_id }, function (doc) {
-        transfer(doc);
-      });
-    }
-
-    function transfer(doc) {
-      var saveTipReady = saveTip(doc); // Initialize callback with tip doc
-      var opts = _.cloneDeep(doc.toObject()); // Clone to avoid modifying original
-      
-      // Reverse transaction
-      opts.to_wallet = doc.from_wallet;
-      opts.from_wallet = 'main';
-
-      cryptos('move', opts, saveTipReady);
-    }
-
-    function saveTip (doc) {
-      return function (err, data, tx_id) {
-        console.log('saveTip', doc);
-        if (err) return callback(err);
-        doc.canceled = tx_id;
-        doc.save(callback);
-      };
-    }
-  }
 };
-
 
 mongoose.model('Tip', TipSchema);

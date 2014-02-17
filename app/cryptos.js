@@ -27,36 +27,21 @@ var ObjectID = require('mongodb').ObjectID;
 // 530056d795292a00000431ab00000000
 
 module.exports = function(init_opts) {
-  // if (!path) path = 'https://cryptos.io/account/';
-
-  // var auth = { 
-  //   user_id: init_opts.user_id,
-  //   secret: init_opts.secret
-  // };
 
   return function (type, opts, callback) {
-    opts.tx_id = (type === 'move' || type === 'withdraw') ? new ObjectID() + '00000000' : false; // Create tx_id as padded oid or set false
-
     var qs = _.assign(_.omit(init_opts, 'path'), opts);
-
-    // var qs = _.extend(auth, opts); // Create query string
-
-
-
-    // console.log(init_opts.path + type + JSON.stringify(qs));
 
     request({ url: init_opts.path + type, qs: qs }, function (error, response, body) {
       body = JSON.parse(body);
 
-      if (error) return callback(error, body.data, opts.tx_id); // Bad URL
-      if (body === 'Unauthorized') return callback({ type: 'unauthorized' }, body.data, opts.tx_id); // Bad Auth
-
+      if (error) return callback(error, body); // Bad URL
+      if (body === 'Unauthorized') return callback({ type: 'unauthorized' }, body); // Bad Auth
       if (body.status === 'ERROR' &&
-          body.data.match(/negative balance for wallet/)) return callback({ type: 'broke' }, body.data, opts.tx_id); // Broke
+          body.data.match(/negative balance for wallet/)) return callback({ type: 'broke' }, body); // Broke
       
-      if (body.status === 'OK') return callback(null, body, opts.tx_id); // Success
-      return callback({ type: 'other'}, body, opts.tx_id); // Other Error
+      if (body.status === 'OK') return callback(null, body); // Success
+      return callback({ type: 'other'}, body); // Other Error
     });
   };
-
 };
+

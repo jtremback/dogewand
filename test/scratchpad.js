@@ -3,6 +3,7 @@
 var mongoose = require('mongoose');
 var config = require('../config/config')();
 var fs = require('fs');
+var nock = require('nock');
 
 // Bootstrap db connection
 // Connect to mongodb
@@ -39,18 +40,23 @@ var Tip = mongoose.model('Tip');
 
 // console.log(tx_id.getTimestamp());
 
+// nock.recorder.rec();
+
 Tip.create({
   from_wallet: '2is0rnd8hf4y',
   to_wallet: '2is0rnd8hf4z',
   amount: 1
-}, function (err, data) {
-  console.log('error: ' + err, 'data: ' + data, '_id: ' + data._id);
+}, function (err, tip, response) {
+  console.log('error: ' + err, 'tip: ' + tip, 'response: ' + response);
+
   
-  Tip.findOne({ to_wallet: '2is0rnd8hf4z', claimed: { "$exists" : false }}, function (err, tip) {
+  Tip.findOne({ to_wallet: '2is0rnd8hf4z', state: 'created'}, function (err, tip) {
     if (err) return console.log(err);
-    tip.claim(function (err, tip, data) {
-      console.log(err, tip, data);
-      Tip.find({ to_wallet: '2is0rnd8hf4z', claimed: { "$exists" : false }}, function (err, tips) {
+    tip.resolve('cancel', function (err, tip, data) {
+      // Tip.find({ to_wallet: '2is0rnd8hf4z', state: 'claimed'}, function (err, tips) {
+      //   console.log(tips);
+      // });
+      Tip.find({ to_wallet: '2is0rnd8hf4z', state: 'canceled'}, function (err, tips) {
         console.log(tips);
       });
     });
