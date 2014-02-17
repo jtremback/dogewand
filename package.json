@@ -4,7 +4,7 @@
   "description": "Oauth dogecoin tipbot",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_ENV=test tape ./test/tip.js"
   },
   "author": "Jehan Tremback",
   "license": "AGPL",
@@ -40,6 +40,8 @@
     "gulp-minify-css": "~0.3.0",
     "npm": "~1.3.26",
     "autoprefixer": "~1.0.20140203",
-    "autoprefixer-stylus": "0.0.3"
+    "autoprefixer-stylus": "0.0.3",
+    "tape": "~2.4.2",
+    "sepia": "~1.0.1"
   }
 }

@@ -26,15 +26,16 @@ TipSchema.statics = {
 
   create: function (opts, callback) {
     var Self = this;
+    console.log(':) Tip.create()');
 
     createTip();
-
     function createTip () {
-      var doc = _.cloneDeep(opts);
+      var doc = _.clone(opts);
       doc.state = 'creating';
-
       new Self(doc).save(function (err, tip) {
         if (err) return callback(err);
+        console.log(':) creating tip: ', tip);
+
         transfer(tip);
       });
     }
@@ -44,20 +45,23 @@ TipSchema.statics = {
       opts.tx_id = tip._id + '00000000'; // Create tx_id as padded oid
       opts.to_wallet = 'main'; // Put in main for escrow until claimed or canceled
 
-
       var saveTipReady = saveTip(tip); // Load tip into saveTip scope
       cryptos('move', opts, saveTipReady);
     }
 
+    // Double wrapped function that can be preloaded with a tip and then passed into cryptos
     function saveTip (tip) {
       return function (err, response) {
         if (err) return callback(err);
+        console.log(':) moved funds: ', response);
 
         tip.state = 'created';
         tip.from_wallet_balance = response.data[tip.from_wallet][config.cryptos.coin]; // Get balance out of api format
 
         tip.save(function (err, tip) {
           if (err) return callback(err);
+          console.log(':) created tip');
+
           callback(err, tip, response);
         });
       };
@@ -76,15 +80,18 @@ TipSchema.methods = {
 
     start();
 
+    // Mostly just sets the state to whichever operation is happening (canceling, claiming), 
+    // so we can fix transaction problems when they happen
     function start () {
       self.state = operation + 'ing';
-      self.resolve_id = new ObjectID() + '00000000';
+      self.resolve_id = new ObjectID() + '00000000'; // Keep the tx_id
       self.save(function (err) {
         if (err) return callback(err);
         transfer();
       });
     }
 
+    // Move the funds (with switches for operation)
     function transfer () {
       var opts = _.pick(self.toObject(), ['to_wallet', 'amount']); // Clone only those opts we need
       
@@ -96,6 +103,7 @@ TipSchema.methods = {
       cryptos('move', opts, saveTip);
     }
 
+    // Confirm it
     function saveTip (err, response) {
       if (err) return callback(err);
       self.state = operation + 'ed';

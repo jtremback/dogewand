@@ -1,0 +1,18 @@
+{
+  "statusCode": 200,
+  "headers": {
+    "server": "nginx/1.1.19",
+    "date": "Mon, 17 Feb 2014 08:12:44 GMT",
+    "content-type": "text/plain; charset=utf-8",
+    "content-length": "93",
+    "connection": "keep-alive"
+  },
+  "url": "https://cryptos.io:443/account/move%3Fuser_id=QGaLgN5HO69w&secret=dF48vXYfBAziidrKoE5ZRGB9O8RJ4j6Q3SfwxhUEXMpz5A4gggUcxIR9yKyfJkzn&coin=DOG&from_wallet=2is0rnd8hf4y&amount=1&tx_id=5301c4782d885e0000a8963100000000&to_wallet=main",
+  "time": 189,
+  "request": {
+    "method": "GET",
+    "headers": {
+      "host": "cryptos.io"
+    }
+  }
+}
