@@ -10,7 +10,6 @@ var cryptos = require('../cryptos')(config.cryptos);
 
 
 var TipSchema = new Schema({
-  // _id
   amount: Number,
   state: String, // In case of accidents
   resolve_id: String, // tx_id of corresponding wallet transaction
@@ -45,7 +44,7 @@ TipSchema.statics = {
       opts.tx_id = tip._id + '00000000'; // Create tx_id as padded oid
       opts.to_wallet = 'main'; // Put in main for escrow until claimed or canceled
 
-      var saveTipReady = saveTip(tip); // Load tip into saveTip scope
+      var saveTipReady = saveTip(tip); // Load tip into saveTip scope - see below
       cryptos('move', opts, saveTipReady);
     }
 
@@ -68,15 +67,35 @@ TipSchema.statics = {
     }
   }
 
+  ,
+
+  list: function (where, sort, callback) {
+    var Self = this;
+
+    // Sanitize
+    where = _.pick(where, ['state', 'from_wallet', 'to_wallet']);
+    sort = _.pick(sort, ['_id', 'amount', 'resolve_id']);
+
+    Self.find()
+      .where(where)
+      .sort(sort)
+      .exec(function (err, tips) {
+        return callback(err, tips);
+      });
+  }
+
 };
 
 TipSchema.methods = {
 
   resolve: function (operation, callback) {
     var self = this;
-    // var tx_id = new ObjectID() + '00000000';
 
-    if (self.state !== 'created') return callback({operation: 'inactive'}); // Shit is wrong
+    if (operation !== 'claim' && operation !== 'cancel')
+      return callback({type: 'operation'}); // Can not compute
+
+    if (self.state !== 'created') 
+      return callback({type: 'inactive'}); // Sorry, all gone
 
     start();
 
@@ -84,7 +103,7 @@ TipSchema.methods = {
     // so we can fix transaction problems when they happen
     function start () {
       self.state = operation + 'ing';
-      self.resolve_id = new ObjectID() + '00000000'; // Keep the tx_id
+      self.resolve_id = new ObjectID() + '00000000'; // Keep the tx_id. We need to pad it for cryptos, which is dumb
       self.save(function (err) {
         if (err) return callback(err);
         transfer();
