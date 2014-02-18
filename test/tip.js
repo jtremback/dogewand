@@ -23,8 +23,8 @@ var Tip = mongoose.model('Tip');
 sepia.filter({
   url: /account/,
   urlFilter: function(url) {
-    url.replace(/user_id=[a-zA-Z0-9]{32}/, '');
-    url.replace(/secret=[a-zA-Z0-9]{32}/, '');
+    url = url.replace(/user_id=[a-zA-Z0-9]/, '');
+    url = url.replace(/secret=[a-zA-Z0-9]{64}/, '');
     return url.replace(/tx_id=[a-zA-Z0-9]{32}/, '');
   }
 });
