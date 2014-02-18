@@ -13,16 +13,16 @@ var AccountSchema = new Schema({
 
 
 AccountSchema.statics = {
-  upsert: function (username, provider, callback) {
+  upsert: function (opts, callback) {
     var Self = this;
 
-    Self.findOne({ username: username }, function (err, account) {
+    Self.findOne(opts, function (err, account) {
       if (err) { return callback(err); }
       if (!account) {
         account = new Self({
           wallet_id: randomstring.generate(12),
-          username: username,
-          provider: provider
+          username: opts.username,
+          provider: opts.provider
         });
         account.save(function (err) {
           if (err) console.log(err);
