@@ -45,23 +45,20 @@ exports.generateTip = function (req, res) {
 exports.resolveTip = function (req, res) {
   var id = req.params.id;
   var operation = req.params.operation;
+  var user_id = req.user._id;
 
   Tip.findById(id, function (err, tip) {
     if (err) return res.send(500, 'Internal Error');
     if (!tip) return res.send(404, 'Tip not found');
 
+    if (user_id !== tip.from_wallet || user_id !== tip.to_wallet)
+      return res.send(401, 'Unauthorized');
+
     tip.resolve(operation, function (err, tip) {
       if (err) return res.send(500, 'Internal Error');
       var response;
 
-      if (operation === 'claim') {
-        response = _.pick(tip, ['from_wallet', 'to_wallet', 'to_wallet_balance', '_id']);
-      }
-
-      if (operation === 'cancel') {
-        response = _.pick(tip, ['from_wallet', 'to_wallet', 'from_wallet_balance', '_id']);
-      }
-
+      response = _.pick(tip, ['from_wallet', 'to_wallet', 'dest_wallet_balance', '_id']);
       return res.send(200, response);
     });
   });
