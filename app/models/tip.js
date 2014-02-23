@@ -4,7 +4,6 @@ var mongoose = require('mongoose');
 var Account = mongoose.model('Account');
 var config = require('../../config/config')();
 var _ = require('lodash');
-var async = require('async');
 var Schema = mongoose.Schema;
 var ObjectID = require('mongodb').ObjectID;
 
@@ -16,8 +15,7 @@ var TipSchema = new Schema({
   state: String, // In case of accidents
   from_wallet: String,
   to_wallet: String,
-  resolve_id: String, // tx_id of corresponding wallet transaction
-  dest_wallet_balance: Number // either 
+  comment: String, // comment of corresponding wallet transaction
 });
 
 // Catch both network and server errors on an rpc call
@@ -35,30 +33,31 @@ TipSchema.statics = {
   create: function (opts, callback) {
     var Self = this;
     var doc = _.clone(opts);
-    console.log(':) Tip.create()');
 
-    Account.updateBalance(doc.from_wallet, function (err, balance) {
+    Account.findById(doc.from_wallet, function (err, wallet) {
       if (err) return callback(err);
-      doc.from_wallet_balance = balance - doc.amount; // Get what balance would be after tip
+      wallet.updateBalance(function (err, balance) {
+        if (err) return callback(err);
+        var new_balance = balance - doc.amount; // Get what balance would be after tip
 
-      if (doc.from_wallet_balance > 0) { // If it would be negative, forget it.
-        doc.state = 'creating'; // Set state
+        if (new_balance > 0) { // If it would be negative, forget it.
+          doc.state = 'creating'; // Set state
 
-        new Self(doc).save(function (err, tip) { // Create tip in db
-          if (err) return callback(err);
-          console.log(':) creating tip: ', tip);
-          return move(tip); // Next step
-        });
-      }
+          new Self(doc).save(function (err, tip) { // Create tip in db
+            if (err) return callback(err);
+            console.log(':) creating tip: ', tip);
+            return move(tip); // Next step
+          });
+        }
 
-      else return callback('insufficient');
+        else return callback('insufficient');
+      });
     });
 
     function move (tip) {
       var body = {
         method: 'move',
-        params: [ tip.from_wallet, '', tip.amount ],
-        id: tip._id // Create id from _id 
+        params: [ tip.from_wallet, '', tip.amount, tip._id ],
       };
 
       rpc(body, function (err, response) {
@@ -78,7 +77,7 @@ TipSchema.statics = {
 
     // Sanitize
     where = _.pick(where, ['state', 'from_wallet', 'to_wallet']);
-    sort = _.pick(sort, ['_id', 'amount', 'resolve_id']);
+    sort = _.pick(sort, ['_id', 'amount', 'comment']);
 
     Self.find()
       .where(where)
@@ -96,7 +95,7 @@ TipSchema.methods = {
     console.log(':) tip.resolve: ' + operation );
 
     // var self = this;
-    if (this.state !== 'created') return callback({type: 'inactive'}); // Sorry, all gone
+    if (this.state !== 'created') return callback({ type: 'inactive' }); // Sorry, all done
 
     var dest;
     if (operation === 'claim') dest = this.to_wallet;
@@ -104,7 +103,7 @@ TipSchema.methods = {
     else return callback({type: 'operation'}); // Can not compute
 
     this.state = operation + 'ing';
-    this.resolve_id = new ObjectID(); // Keep the tx_id.
+    this.comment = new ObjectID(); // Keep the tx_id.
     this.save(function (err, tip) {
       if (err) return callback(err);
       return move(tip);
@@ -113,8 +112,7 @@ TipSchema.methods = {
     function move (tip) {
       var body = {
         method: 'move',
-        params: [ '', dest, tip.amount ],
-        id: tip._id // Create id from _id 
+        params: [ '', dest, tip.amount, tip.comment ],
       };
 
       rpc(body, function (err, response) {
@@ -122,24 +120,11 @@ TipSchema.methods = {
 
         tip.state = operation + 'ed'; // We did it
         console.log(':) moved funds: ', response);
-        return saveTip(tip); // Done
+        Account.updateBalance(dest);
+        tip.save(callback);
       });
     }
-
-    // Confirm it
-    function saveTip (tip) {
-      Account.updateBalance(dest, function (err, balance) {
-        if (err) return callback(err);
-        tip.dest_wallet_balance = balance;
-        tip.save(function (err, tip) {
-          console.log(':) resolved tip: ', tip);
-          return callback(err, tip);
-        });
-      });
-    }
-
   }
-
 };
 
 mongoose.model('Tip', TipSchema);

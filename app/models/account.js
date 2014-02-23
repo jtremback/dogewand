@@ -14,7 +14,10 @@ var AccountSchema = new Schema({
 
 AccountSchema.statics = {
 
-  // opts = { provider: 'Farcebook', username: 'Jehoon' }
+  // opts = { 
+  //   provider,
+  //   username
+  // }
   upsert: function (opts, callback) {
     var Self = this;
 
@@ -45,37 +48,23 @@ AccountSchema.statics = {
 
     var body = {
       method: 'getbalance',
-      params: [ id ],
-      id: '' // Don't need it here
+      params: [ id ]
     };
 
     rpc(body, function (err, response) {
-      if (err) return callback(err);
-      Self.update({ _id: id }, { balance: response.result}, function () {
+      if (callback) {
+        if (err) return callback(err);
         return callback(null, response.result);
-      });
+      }
+      if (response) {
+        Self.update({ _id: id }, { balance: response.result});
+      }
     });
   }
 };
 
 
 AccountSchema.methods = {
-  newAddress: function (callback) {
-    var self = this;
-
-    var body = {
-      method: 'getnewaddress',
-      params: [self._id],
-      id: '' // Don't need it here
-    };
-
-    rpc(body, function (err, response) {
-      if (err) return callback(err);
-      return callback(null, response.result);
-    });
-  }
-
-  ,
 
   // Gets balance and updates mongo at the same time
   updateBalance: function (callback) {
@@ -83,17 +72,37 @@ AccountSchema.methods = {
 
     var body = {
       method: 'getbalance',
-      params: [self._id],
-      id: '' // Don't need it here
+      params: [ self.id ]
+    };
+
+    rpc(body, function (err, response) {
+      if (callback) {
+        if (err) return callback(err);
+        return callback(null, response.result);
+      }
+      if (response) {
+        self.update({ balance: response.result});
+      }
+    });
+
+  }
+  
+  ,
+
+  newAddress: function (callback) {
+    var self = this;
+
+    var body = {
+      method: 'getnewaddress',
+      params: [self._id]
     };
 
     rpc(body, function (err, response) {
       if (err) return callback(err);
-      self.update({ balance: response.result});
       return callback(null, response.result);
     });
   }
-  
+
   ,
 
   // opts: {
@@ -106,8 +115,7 @@ AccountSchema.methods = {
 
     var body = {
       method: 'sendfrom',
-      params: [self._id, opts.to_adress, opts.amount],
-      id: '' // Don't need it here
+      params: [ self._id, opts.to_adress, opts.amount ]
     };
 
     rpc(body, function (err, response) {
