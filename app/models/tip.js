@@ -18,40 +18,31 @@ var TipSchema = new Schema({
   resolved_id: String // stored in dogecoind 'comment' field
 });
 
-// Catch both network and server errors on an rpc call
-// function bothErrors (err, body)
 
-// Check balance = from_balance
-// from_balance = from_balance - amount
-// if from_balance > 0, Move
-// save(from_balance)
-
-// from_wallet, to_wallet, amount,
 
 TipSchema.statics = {
 
+  // opts = {
+  //   from_wallet,
+  //   to_wallet,
+  //   amount
+  // }
   create: function (opts, callback) {
     var Self = this;
-    var doc = _.clone(opts);
 
-    Account.findById(doc.from_wallet, function (err, wallet) {
+    Account.updateBalance(opts.from_wallet, function (err, balance) {
       if (err) return callback(err);
-      wallet.updateBalance(function (err, balance) {
-        if (err) return callback(err);
-        var new_balance = balance - doc.amount; // Get what balance would be after tip
 
-        if (new_balance > 0) { // If it would be negative, forget it.
-          doc.state = 'creating'; // Set state
+      if ((balance - opts.amount) > 0) { // Check funds
+        opts.state = 'creating'; // Set state
 
-          new Self(doc).save(function (err, tip) { // Create tip in db
-            if (err) return callback(err);
-            console.log(':) creating tip: ', tip);
-            return move(tip); // Next step
-          });
-        }
+        new Self(opts).save(function (err, tip) { // Create tip in db
+          if (err) return callback(err);
+          return move(tip); // Next step
+        });
+      }
 
-        else return callback('insufficient');
-      });
+      else return callback('insufficient');
     });
 
     function move (tip) {
@@ -60,41 +51,21 @@ TipSchema.statics = {
         params: [ tip.from_wallet, '', tip.amount, 6, tip._id ],
       };
 
-      rpc(body, function (err, response) {
+      rpc(body, function (err) {
         if (err) return callback(err);
 
         tip.state = 'created'; // We did it
-        console.log(':) moved funds: ', response);
-        return tip.save(callback); // Done
+        Account.updateBalance(tip.from_wallet, function () { // Update relevant account with new balance
+          return tip.save(callback); // Done
+        });
       });
     }
   }
-
-  ,
-
-  list: function (where, sort, callback) {
-    var Self = this;
-
-    // Sanitize
-    where = _.pick(where, ['state', 'from_wallet', 'to_wallet']);
-    sort = _.pick(sort, ['_id', 'amount', 'resolved_id']);
-
-    Self.find()
-      .where(where)
-      .sort(sort)
-      .exec(function (err, tips) {
-        return callback(err, tips);
-      });
-  }
-
 };
 
 TipSchema.methods = {
 
   resolve: function (operation, callback) {
-    console.log(':) tip.resolve: ' + operation );
-
-    // var self = this;
     if (this.state !== 'created') return callback({ type: 'inactive' }); // Sorry, all done
 
     var dest;
@@ -115,13 +86,13 @@ TipSchema.methods = {
         params: [ '', dest, tip.amount, 6, tip.resolved_id ],
       };
 
-      rpc(body, function (err, response) {
+      rpc(body, function (err) {
         if (err) return callback(err);
 
         tip.state = operation + 'ed'; // We did it
-        console.log(':) moved funds: ', response);
-        Account.updateBalance(dest); // Update relevant account with new balance
-        tip.save(callback);
+        Account.updateBalance(dest, function () { // Update relevant account with new balance
+          tip.save(callback);
+        });
       });
     }
   }

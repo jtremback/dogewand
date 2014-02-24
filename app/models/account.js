@@ -11,6 +11,43 @@ var AccountSchema = new Schema({
   provider: String
 });
 
+// Gets balance and updates mongo at the same time
+// IMPORTANT: Do not use the balance in mongo for anything important!!!
+// Get it using this method instead.
+// 
+// updateBalance(context, [id], [callback])
+// 
+// function updateBalance (context, id, callback) {
+//   var _id = id ? id : context._id;
+
+//   var body = {
+//     method: 'getbalance',
+//     params: [ _id ]
+//   };
+
+//   rpc(body, function (err, response) {
+//     var balance = response ? response.result : null;
+//     console.log('updateBalance', (id ? 'static' : 'method'), _id, balance);
+
+//     if (id) { // Checks if it was a static method with supplied id
+//       context.findById(_id, function (err, account) {
+//         account.balance = balance;
+//         account.save(function (err, account) {
+//           if (typeof callback === 'function') return callback(err, account.balance);
+//           return;
+//         });
+//       });
+//     }
+
+//     else {
+//       context.balance = balance;
+//       context.save(function (err, account) {
+//         if (typeof callback === 'function') return callback(err, account.balance);
+//         return;
+//       });
+//     }
+//   });
+// }
 
 AccountSchema.statics = {
 
@@ -28,13 +65,9 @@ AccountSchema.statics = {
           username: opts.username,
           provider: opts.provider
         });
-        account.save(function (err) {
-          if (err) console.log(err);
-          return callback(err, account);
-        });
+        return account.save(callback);
       }
       else {
-        console.log(account);
         return callback(err, account);
       }
     });
@@ -51,15 +84,16 @@ AccountSchema.statics = {
       params: [ id ]
     };
 
-    rpc(body, function (err, response) {
-      if (callback) {
-        if (err) return callback(err);
-        return callback(null, response.result);
-      }
-      if (response) {
-        Self.update({ _id: id }, { balance: response.result});
-      }
+    rpc(body, function (err, result) {
+      if (err) return callback(err);
+      Self.findById(id, function (err, account) {
+        account.balance = result;
+        account.save(function (err, account) {
+          return callback(err, account.balance);
+        });
+      });
     });
+    // updateBalance(this, id, callback);
   }
 };
 
@@ -68,23 +102,22 @@ AccountSchema.methods = {
 
   // Gets balance and updates mongo at the same time
   updateBalance: function (callback) {
-    var self = this;
+    // var self = this;
 
-    var body = {
-      method: 'getbalance',
-      params: [ self.id ]
-    };
+    // var body = {
+    //   method: 'getbalance',
+    //   params: [ self.id ]
+    // };
 
-    rpc(body, function (err, response) {
-      if (callback) {
-        if (err) return callback(err);
-        return callback(null, response.result);
-      }
-      if (response) {
-        self.update({ balance: response.result});
-      }
-    });
-
+    // rpc(body, function (err, response) {
+    //   if (callback) {
+    //     return callback(err, response ? response.result : null);
+    //   }
+    //   if (response) {
+    //     self.update({ balance: response.result});
+    //   }
+    // });
+    updateBalance(this, null, callback);
   }
   
   ,
