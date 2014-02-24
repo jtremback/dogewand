@@ -2,8 +2,9 @@
 
 var mongoose = require('mongoose');
 var config = require('../config/config')();
+var rpc = require('../app/rpc')(config.rpc);
 var fs = require('fs');
-var nock = require('nock');
+
 
 // Bootstrap db connection
 // Connect to mongodb
@@ -32,6 +33,7 @@ fs.readdirSync(models_path).forEach(function (file) {
 
 
 var Tip = mongoose.model('Tip');
+var Account = mongoose.model('Account');
 
 // var ObjectID = require('mongodb').ObjectID;
 // var tx_id = new ObjectID();
@@ -42,24 +44,52 @@ var Tip = mongoose.model('Tip');
 
 // nock.recorder.rec();
 
-Tip.create({
-  from_wallet: '2is0rnd8hf4y',
-  to_wallet: '2is0rnd8hf4z',
-  amount: 1
-}, function (err, tip, response) {
-  console.log('error: ' + err, 'tip: ' + tip, 'response: ' + response);
+// ObjectId("53094bd705f76eaac594158b")
+
+// Tip.create({
+//   from_wallet: '53094bd705f76eaac594158b',
+//   to_wallet: '530979c7fabedd830a383f56',
+//   amount: 1
+// }, function (err, tip) {
+//   if (err) return console.log('error: ' + JSON.stringify(err), 'tip: ' + tip);
 
   
-  Tip.findOne({ to_wallet: '2is0rnd8hf4z', state: 'created'}, function (err, tip) {
-    if (err) return console.log(err);
-    tip.resolve('cancel', function (err, tip, data) {
-      // Tip.find({ to_wallet: '2is0rnd8hf4z', state: 'claimed'}, function (err, tips) {
-      //   console.log(tips);
-      // });
-      Tip.find({ to_wallet: '2is0rnd8hf4z', state: 'canceled'}, function (err, tips) {
-        console.log(tips);
-      });
-    });
-  });
+//   Tip.findOne({ to_wallet: '530979c7fabedd830a383f56', state: 'created'}, function (err, tip) {
+//     if (err) return console.log(err);
+//     tip.resolve('claim', function (err, tip) {
+//       console.log(err, tip);
+//       Tip.find({ to_wallet: '530979c7fabedd830a383f56', state: 'claimed'}, function (err, tips) {
+//         console.log(tips);
+//       });
+//       // Tip.find({ to_wallet: '530979c7fabedd830a383f56', state: 'canceled'}, function (err, tips) {
+//       //   console.log(tips);
+//       // });
+//     });
+//   });
+// });
+
+rpc({
+  method: 'listtransactions',
+  params: [ '', 100]
+}, function (err, response) {
+  console.log(err, JSON.stringify(response));
 });
 
+
+// rpc({
+//   method: 'listtransactions',
+//   params: [ '', 100],
+//   id: '' // Create id from _id 
+// }, function (response) {
+//   console.log(JSON.stringify(response));
+// });
+
+// Tip.find({ to_wallet: '530979c7fabedd830a383f56', state: 'created' }, function (err, tips) {
+//   console.log(tips);
+// });
+
+// Account.upsert({provider: 'Farcebook', username: 'Jehoon'}, function (err, account) {
+//   account.newAddress(function (result) {
+//     console.log(result);
+//   });
+// });
