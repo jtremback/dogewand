@@ -15,7 +15,7 @@ var TipSchema = new Schema({
   state: String, // In case of accidents
   from_wallet: String,
   to_wallet: String,
-  comment: String, // comment of corresponding wallet transaction
+  resolved_id: String // stored in dogecoind 'comment' field
 });
 
 // Catch both network and server errors on an rpc call
@@ -57,7 +57,7 @@ TipSchema.statics = {
     function move (tip) {
       var body = {
         method: 'move',
-        params: [ tip.from_wallet, '', tip.amount, tip._id ],
+        params: [ tip.from_wallet, '', tip.amount, 6, tip._id ],
       };
 
       rpc(body, function (err, response) {
@@ -77,7 +77,7 @@ TipSchema.statics = {
 
     // Sanitize
     where = _.pick(where, ['state', 'from_wallet', 'to_wallet']);
-    sort = _.pick(sort, ['_id', 'amount', 'comment']);
+    sort = _.pick(sort, ['_id', 'amount', 'resolved_id']);
 
     Self.find()
       .where(where)
@@ -103,7 +103,7 @@ TipSchema.methods = {
     else return callback({type: 'operation'}); // Can not compute
 
     this.state = operation + 'ing';
-    this.comment = new ObjectID(); // Keep the tx_id.
+    this.resolved_id = new ObjectID(); // resolved_id identifies the tip later
     this.save(function (err, tip) {
       if (err) return callback(err);
       return move(tip);
@@ -112,7 +112,7 @@ TipSchema.methods = {
     function move (tip) {
       var body = {
         method: 'move',
-        params: [ '', dest, tip.amount, tip.comment ],
+        params: [ '', dest, tip.amount, 6, tip.resolved_id ],
       };
 
       rpc(body, function (err, response) {
@@ -120,11 +120,12 @@ TipSchema.methods = {
 
         tip.state = operation + 'ed'; // We did it
         console.log(':) moved funds: ', response);
-        Account.updateBalance(dest);
+        Account.updateBalance(dest); // Update relevant account with new balance
         tip.save(callback);
       });
     }
   }
+
 };
 
 mongoose.model('Tip', TipSchema);

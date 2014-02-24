@@ -3,10 +3,9 @@
 var test = require('tape');
 var mongoose = require('mongoose');
 var config = require('../config/config')();
-var url = require('url');
-var querystring = require('querystring');
-var sepia = require('sepia');
-var _ = require('lodash');
+var rpc = require('../app/rpc')(config.rpc);
+var ObjectID = require('mongodb').ObjectID;
+var fs = require('fs');
 
 
 // Connect to mongodb
@@ -15,41 +14,44 @@ var _ = require('lodash');
   mongoose.connect(config.db, options);
 })();
 
-require('../app/models/tip.js');
-var Tip = mongoose.model('Tip');
 
-
-// Set up sepia filters
-sepia.filter({
-  url: /account/,
-  urlFilter: function(url) {
-    url = url.replace(/user_id=[a-zA-Z0-9]/, '');
-    url = url.replace(/secret=[a-zA-Z0-9]{64}/, '');
-    return url.replace(/tx_id=[a-zA-Z0-9]{32}/, '');
-  }
+// Bootstrap models
+var models_path = '../app/models';
+fs.readdirSync(models_path).forEach(function (file) {
+  if (~file.indexOf('.js')) require(models_path + '/' + file);
 });
+
+var Tip = mongoose.model('Tip');
+var Account = mongoose.model('Account');
 
 
 // Action
 test('create', function (t) {
-  t.plan(6);
+  t.plan(5);
 
-  var opts = {
-    from_wallet: '2is0rnd8hf4y',
-    to_wallet: '2is0rnd8hf4z',
-    amount: 1
-  };
+  var from_wallet = '53094bd705f76eaac594158b'; // Start from the same funded wallet
+  var to_wallet = new ObjectID();
+  var amount = 0.0001;
 
-  Tip.create(opts, function (err, tip, response) {
-    var tip_opts = _.pick(tip, ['from_wallet', 'to_wallet', 'amount']); // Get values of keys we put in
+  Tip.create({
+    from_wallet: from_wallet,
+    to_wallet: to_wallet,
+    amount: amount // Don't wanna run out
+  }, function (err, tip) {
 
-    t.equal(typeof tip.from_wallet_balance, 'number');
-    t.equal(tip.state, 'created');
-    t.deepEqual(tip_opts, opts);
+    t.equal(tip.from_wallet, from_wallet, 'mongo from_wallet correct');
+    t.equal(tip.to_wallet, to_wallet, 'mongo to_wallet correct');
+    t.equal(tip.state, 'created', 'mongo state correct');
 
-    t.equal(response.status, 'OK');
-    t.ok(_.has(response.data, 'main'), 'main wallet in response');
-    t.ok(_.has(response.data, opts.from_wallet), 'from_wallet in response');
+    rpc({
+      method: 'listtransactions',
+      params: [ from_wallet, 1 ]
+    }, function (err, response) {
+      console.log(response);
+      var result = response.result[0];
+      t.equal(result.amount, -amount, 'dogecoind amount correct');
+      t.equal(result.otheraccount, '', 'dogecoind otheraccount correct');
+    });
 
   });
 });

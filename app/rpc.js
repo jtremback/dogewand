@@ -26,11 +26,10 @@ module.exports = function(config) { // Saves config in scope
       body: body
 
     }, function (error, response, body) {
-      console.log(body)
       if (error) return callback(error);
       
       body = JSON.parse(body);
-      if (body.error) return callback(body.error);
+      if (body.error) return callback(body.error, body);
       callback(error, body);
     });
   };
