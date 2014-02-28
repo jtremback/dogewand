@@ -2,7 +2,6 @@
 
 //Dependencies
 var request = require('request');
-var _ = require('lodash');
 
 
 // init_opts = {
@@ -29,7 +28,7 @@ module.exports = function(config) { // Saves config in scope
       if (error) return callback(error);
 
       body = JSON.parse(body);
-      console.log('rpc: ', opts.method, body.result);
+      console.log('rpc: ', opts.method, opts.params, body.result);
       if (body.error) return callback(body.error, body);
       callback(error, body.result);
     });

@@ -6,6 +6,9 @@ var config = require('../config/config')();
 var rpc = require('../app/rpc')(config.rpc);
 var ObjectID = require('mongodb').ObjectID;
 var fs = require('fs');
+var path = require('path');
+var utility = require('./utility');
+var t_config = utility.config;
 
 
 // Connect to mongodb
@@ -16,7 +19,7 @@ var fs = require('fs');
 
 
 // Bootstrap models
-var models_path = '../app/models';
+var models_path = path.resolve(__dirname, '../app/models');
 fs.readdirSync(models_path).forEach(function (file) {
   if (~file.indexOf('.js')) require(models_path + '/' + file);
 });
@@ -24,17 +27,31 @@ fs.readdirSync(models_path).forEach(function (file) {
 var Tip = mongoose.model('Tip');
 var Account = mongoose.model('Account');
 
-var wallet_a = '53094bd705f76eaac594158b';
-var wallet_b = '530ae522f6e631e05a583196';
+var amount = 1;
+
+test('reset', function (t) {
+  t.plan(2);
+
+  utility.resetBalances(function (err) {
+    t.notOk(err);
+
+    rpc({
+      method: 'move',
+      params: ['', t_config.wallet_a, 6]
+    }, function (err) {
+      t.notOk(err);
+    });
+  });
+});
 
 // Action
 test('create', function (t) {
   t.plan(8);
 
   var opts = {
-    from_wallet: wallet_a,
-    to_wallet: wallet_b,
-    amount: 0.0001
+    from_wallet: t_config.wallet_a,
+    to_wallet: t_config.wallet_b,
+    amount: amount
   };
 
   rpc({
@@ -70,8 +87,8 @@ test('insufficient', function (t) {
 
   // Check for rejection on insufficient funds
   Tip.create({
-    from_wallet: '53094bd705f76eaac594158b',
-    to_wallet: wallet_b,
+    from_wallet: t_config.wallet_a,
+    to_wallet: t_config.wallet_b,
     amount: Infinity // So awesome to finally use this. No tip can be this large!
   }, function (err) {
     t.equal(err, 'insufficient', 'err insufficient');
@@ -82,9 +99,9 @@ test('cancel', function (t) {
   t.plan(6);
   
   var opts = {
-    from_wallet: wallet_a,
-    to_wallet: wallet_b,
-    amount: 0.0001
+    from_wallet: t_config.wallet_a,
+    to_wallet: t_config.wallet_b,
+    amount: amount
   };
 
   Tip.create(opts, function (err, tip) {
@@ -118,9 +135,9 @@ test('claim', function (t) {
   t.plan(6);
   
   var opts = {
-    from_wallet: wallet_a,
-    to_wallet: wallet_b,
-    amount: 0.0001
+    from_wallet: t_config.wallet_a,
+    to_wallet: t_config.wallet_b,
+    amount: amount
   };
 
   Tip.create(opts, function (err, tip) {
