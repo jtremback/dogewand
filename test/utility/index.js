@@ -31,7 +31,25 @@ exports.resetBalances = function (callback) {
   });
 };
 
-exports.config = {
-  wallet_a: '53094bd705f76eaac594158b',
-  wallet_b: '530ae522f6e631e05a583196'
-}
+exports.resetMongo = function (Tip, Account, callback) {
+  async.parallel([
+    function (cb) {
+      Tip.find({}).remove(cb);
+    },
+    function (cb) {
+      Account.find({}).remove(cb);
+    }
+  ], callback);
+};
+
+exports.fakeAccounts = function (Account, callback) {
+  async.map([{
+    username: 'Jehoon',
+    provider: 'farcebook'
+  }, {
+    username: 'C3P0',
+    provider: 'farcebook'
+  }], function (opts, cb) {
+    Account.upsert(opts, cb);
+  }, callback);
+};

@@ -2,13 +2,10 @@
 
 var test = require('tape');
 var mongoose = require('mongoose');
-var config = require('../config/config')();
+var config = require('../config/config')('test');
 var rpc = require('../app/rpc')(config.rpc);
-var ObjectID = require('mongodb').ObjectID;
-var fs = require('fs');
-var path = require('path');
+var async = require('async');
 var utility = require('./utility');
-var t_config = utility.config;
 
 
 // Connect to mongodb
@@ -19,6 +16,8 @@ var t_config = utility.config;
 
 
 // Bootstrap models
+var fs = require('fs');
+var path = require('path');
 var models_path = path.resolve(__dirname, '../app/models');
 fs.readdirSync(models_path).forEach(function (file) {
   if (~file.indexOf('.js')) require(models_path + '/' + file);
@@ -28,34 +27,43 @@ var Tip = mongoose.model('Tip');
 var Account = mongoose.model('Account');
 
 var amount = 1;
+var wallet_a;
+var wallet_b;
 
 test('reset', function (t) {
-  t.plan(2);
-
-  utility.resetBalances(function (err) {
+  async.series([
+    async.apply(utility.resetMongo, Tip, Account),
+    async.apply(utility.fakeAccounts, Account),
+    utility.resetBalances
+  ], function (err, results) {
     t.notOk(err);
+    wallet_a = results[1][0]._id.toString();
+    wallet_b = results[1][1]._id.toString();
+    seedFunds();
+  });
 
+  function seedFunds () {
     rpc({
-      method: 'move',
-      params: ['', t_config.wallet_a, 6]
+      method: 'move', // Move some funds to test with
+      params: ['', wallet_a, 6]
     }, function (err) {
       t.notOk(err);
+      t.end();
     });
-  });
+  }
 });
 
 // Action
 test('create', function (t) {
-  t.plan(8);
 
   var opts = {
-    from_wallet: t_config.wallet_a,
-    to_wallet: t_config.wallet_b,
+    from_wallet: wallet_a,
+    to_wallet: wallet_b,
     amount: amount
   };
 
   rpc({
-    method: 'getbalance',
+    method: 'getbalance', // Check balance beforehand
     params: [opts.from_wallet]
   }, function (err, old_balance) {
     Tip.create(opts, function (err, tip) {
@@ -65,17 +73,17 @@ test('create', function (t) {
       t.equal(tip.state, 'created', 'mongo state correct');
 
       Account.findById(tip.from_wallet, function (err, wallet) {
-        t.equal(wallet.balance, old_balance - opts.amount);
+        t.equal(wallet.balance, old_balance - opts.amount, 'account has been properly debited');
       });
 
       rpc({
         method: 'listtransactions',
         params: [ opts.from_wallet, 1 ]
       }, function (err, result) {
-        t.notOk(err);
         result = result[0];
         t.equal(result.amount, -opts.amount, 'dogecoind amount correct');
         t.equal(result.otheraccount, '', 'dogecoind otheraccount correct');
+        t.end();
       });
     });
   });
@@ -87,8 +95,8 @@ test('insufficient', function (t) {
 
   // Check for rejection on insufficient funds
   Tip.create({
-    from_wallet: t_config.wallet_a,
-    to_wallet: t_config.wallet_b,
+    from_wallet: wallet_a,
+    to_wallet: wallet_b,
     amount: Infinity // So awesome to finally use this. No tip can be this large!
   }, function (err) {
     t.equal(err, 'insufficient', 'err insufficient');
@@ -99,8 +107,8 @@ test('cancel', function (t) {
   t.plan(6);
   
   var opts = {
-    from_wallet: t_config.wallet_a,
-    to_wallet: t_config.wallet_b,
+    from_wallet: wallet_a,
+    to_wallet: wallet_b,
     amount: amount
   };
 
@@ -135,8 +143,8 @@ test('claim', function (t) {
   t.plan(6);
   
   var opts = {
-    from_wallet: t_config.wallet_a,
-    to_wallet: t_config.wallet_b,
+    from_wallet: wallet_a,
+    to_wallet: wallet_b,
     amount: amount
   };
 
@@ -159,7 +167,7 @@ test('claim', function (t) {
           t.equal(result.comment, tip.resolved_id, 'resolved_id correct');
 
           Account.findById(tip.to_wallet, function (err, wallet) {
-            t.equal(wallet.balance, (old_balance + opts.amount));
+            t.equal(wallet.balance, (old_balance + opts.amount), 'balance added to receiving account');
           });
         });
       });
@@ -168,6 +176,12 @@ test('claim', function (t) {
 });
 
 test('end', function (t) {
-  t.end();
-  process.exit();
+  Tip.find({}).remove(function (err) {
+    t.notOk(err);
+    Account.find({}).remove(function (err) {
+      t.notOk(err);
+      t.end();
+      process.exit();
+    });
+  });
 });
