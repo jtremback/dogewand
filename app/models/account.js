@@ -39,14 +39,16 @@ AccountSchema.statics = {
 
   ,
 
-  // This wraps the updateBalance method with a findById and returns only the balance.
-  updateBalance: function (opts, callback) {
+  // 
+  findCall: function (method, conditions, callback) {
     var Self = this;
 
-    Self.findOne(opts, function (err, account) {
+    Self.findOne(conditions, function (err, account) {
+      console.log(account);
       if (err) return callback(err);
       if (!account) return callback('no account found');
-      account.updateBalance(function (err, account) {
+      account[method](function (err, account) {
+        if (err) return callback(err);
         return callback(err, account);
       });
     });

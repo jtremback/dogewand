@@ -42,14 +42,8 @@ exports.resetMongo = function (Tip, Account, callback) {
   ], callback);
 };
 
-exports.fakeAccounts = function (Account, callback) {
-  async.map([{
-    username: 'Jehoon',
-    provider: 'farcebook'
-  }, {
-    username: 'C3P0',
-    provider: 'farcebook'
-  }], function (opts, cb) {
+exports.fakeAccounts = function (Account, opts, callback) {
+  async.map(opts, function (opts, cb) {
     Account.upsert(opts, cb);
   }, callback);
 };

@@ -31,9 +31,17 @@ var wallet_a;
 var wallet_b;
 
 test('reset', function (t) {
+  var opts = [{
+    username: 'Jehoon',
+    provider: 'farcebook'
+  }, {
+    username: 'C3P0',
+    provider: 'farcebook'
+  }];
+  
   async.series([
     async.apply(utility.resetMongo, Tip, Account),
-    async.apply(utility.fakeAccounts, Account),
+    async.apply(utility.fakeAccounts, Account, opts),
     utility.resetBalances
   ], function (err, results) {
     t.notOk(err);
