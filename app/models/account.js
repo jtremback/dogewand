@@ -96,14 +96,15 @@ AccountSchema.methods = {
   //   amount
   // }
   // 
-  withdraw: function (opts, callback) {
+  withdraw: function (to_adress, amount, callback) {
     var self = this;
 
     rpc({
       method: 'sendfrom',
-      params: [ self._id, opts.to_adress, opts.amount ]
+      params: [ self._id, to_adress, amount ]
     }, function (err, result) {
       console.log(result);
+      if (err) return callback(err);
       self.updateBalance(callback);
     });
   }

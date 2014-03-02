@@ -2,13 +2,13 @@
 
 var async = require('async');
 var _ = require('lodash');
-var config = require('../../config/config')('test');
-var rpc = require('../../app/rpc')(config.rpc);
+var config = require('../config/config')('test');
+var rpc = require('../app/rpc')(config.rpc);
 
 exports.resetBalances = function (callback) {
   rpc({
     method: 'listaccounts',
-    params: []
+    params: [0]
   }, function (err, accounts) {
     var pairs = _.pairs(accounts);
 

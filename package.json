@@ -4,7 +4,7 @@
   "description": "Oauth dogecoin tipbot",
   "main": "server.js",
   "scripts": {
-    "test": "NODE_ENV=test tape ./test/tip.js"
+    "test": "NODE_ENV=test tape test/*.js | faucet"
   },
   "author": "Jehan Tremback",
   "license": "AGPL",
