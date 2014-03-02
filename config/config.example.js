@@ -1,28 +1,44 @@
 'use strict';
 
-module.exports = function () {
-  if (process.env.NODE_ENV === 'production') {
+module.exports = function (env) {
+  var nenv = process.env.NODE_ENV;
+
+  if (nenv === 'production' || env === 'production') {
 
   }
 
-  if (process.env.NODE_ENV === 'test') {
-
+  if (nenv === 'test' || env === 'test') {
+    return {
+      db: 'mongodb://localhost/dogewand-test',
+      url: 'https://localhost:3700',
+      sessionSecret: 'This is my funky secret oh my god it has ninja turtles',
+      rpc: {
+        rpcuser: 'dogecoinrpc',
+        rpcpassword: 'XXX',
+        ip: 'XXX',
+        port: '1337'
+      },
+      facebook: {
+        clientID: 'XXX',
+        clientSecret: 'XXX'
+      }
+    };
   }
 
   else {
     return {
-      db: 'mongodb://localhost/noobjs_dev',
+      db: 'mongodb://localhost/dogewand',
       url: 'https://localhost:3700',
       sessionSecret: 'This is my funky secret oh my god it has ninja turtles',
-      cryptos: {
-        path: 'https://cryptos.io/account/',
-        user_id: 'ID',
-        secret: 'SECRET',
-        coin: 'DOG'
+      rpc: {
+        rpcuser: 'dogecoinrpc',
+        rpcpassword: 'XXX',
+        ip: 'XXX',
+        port: '1337'
       },
       facebook: {
-        clientID: 'APP_ID',
-        clientSecret: 'APP_SECRET'
+        clientID: 'XXX',
+        clientSecret: 'XXX'
       }
     };
   }
