@@ -30,7 +30,7 @@ TipSchema.statics = {
   create: function (opts, callback) {
     var Self = this;
 
-    Account.updateBalance(opts.from_wallet, function (err, account) {
+    Account.findCall('updateBalance', { _id: opts.from_wallet }, function (err, account) {
       if (err) return callback(err);
       var balance = account.balance;
 
@@ -56,7 +56,7 @@ TipSchema.statics = {
         if (err) return callback(err);
 
         tip.state = 'created'; // We did it
-        Account.updateBalance({ _id: tip.from_wallet }, function () { // Update relevant account with new balance
+        Account.findCall('updateBalance', { _id: tip.from_wallet }, function () { // Update relevant account with new balance
           return tip.save(callback); // Done
         });
       });
@@ -91,7 +91,7 @@ TipSchema.methods = {
         if (err) return callback(err);
 
         tip.state = operation + 'ed'; // We did it
-        Account.updateBalance({ _id: dest }, function () { // Update relevant account with new balance
+        Account.findCall('updateBalance', { _id: dest }, function () { // Update relevant account with new balance
           tip.save(callback);
         });
       });
