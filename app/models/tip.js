@@ -30,7 +30,7 @@ TipSchema.statics = {
   create: function (opts, callback) {
     var Self = this;
 
-    Account.updateBalance({ _id: opts.from_wallet }, function (err, account) {
+    Account.updateBalance(opts.from_wallet, function (err, account) {
       if (err) return callback(err);
       var balance = account.balance;
 
