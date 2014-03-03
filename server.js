@@ -11,15 +11,6 @@ var express = require('express')
   , mongoose = require('mongoose')
   , https = require('https');
 
-/**
- * Main application entry file.
- * Please note that the order of loading is important.
- */
-
-// Load configurations
-// if test env, load example file
-
-// Bootstrap db connection
 // Connect to mongodb
 var connect = function () {
   var options = { server: { socketOptions: { keepAlive: 1 } }, auto_reconnect: true };
@@ -27,6 +18,8 @@ var connect = function () {
 };
 
 connect();
+
+
 
 // Error handler
 mongoose.connection.on('error', function (err) {
@@ -47,7 +40,10 @@ fs.readdirSync(models_path).forEach(function (file) {
 // bootstrap passport config
 require('./config/passport')(passport, config);
 
+
+
 var app = express();
+
 // express settings
 require('./config/express')(app, config, passport);
 
