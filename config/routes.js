@@ -50,7 +50,6 @@ module.exports = function (app, passport) {
     res.redirect('/');
   });
 
-  // app.listen(3000);
 
 };
 

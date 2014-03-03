@@ -39,7 +39,7 @@ AccountSchema.statics = {
 
   ,
 
-  // 
+  // Wraps methods in a findOne call
   findCall: function (method, conditions, callback) {
     var Self = this;
 
