@@ -5,7 +5,7 @@
  */
 
 var express = require('express')
-  , mongoStore = require('connect-mongo')(express)
+  , MongoStore = require('connect-mongo-store')(express)
 ;
 
 
@@ -30,17 +30,13 @@ module.exports = function (app, config, passport) {
     // bodyParser should be above methodOverride
     app.use(express.bodyParser());
     app.use(express.methodOverride());
-
-    // express/mongo session storage
+    
+    
     app.use(express.session({
       secret: config.sessionSecret,
-      store: new mongoStore({
-        url: config.db,
-        collection : 'sessions'
-      }, function () {
-        console.log("db connection open");
-      })
+      store: new MongoStore(config.db)
     }));
+
 
     // use passport session
     app.use(passport.initialize());
@@ -87,8 +83,4 @@ module.exports = function (app, config, passport) {
     });
   });
 
-  // development env config
-  app.configure('development', function () {
-    app.locals.pretty = true;
-  });
 };
