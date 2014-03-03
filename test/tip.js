@@ -9,7 +9,7 @@ var utility = require('../test-utility');
 
 
 
-test('====Tip model====', function (t) {
+test('Tip model', function (t) {
   // Connect to mongodb
   (function () {
     var options = { server: { socketOptions: { keepAlive: 1 } }, auto_reconnect: true };

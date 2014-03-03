@@ -10,7 +10,7 @@ var path = require('path');
 var utility = require('../test-utility');
 
 
-test('====Account model====', function (t) {
+test('Account model', function (t) {
   // Connect to mongodb
   (function () {
     var options = { server: { socketOptions: { keepAlive: 1 } }, auto_reconnect: true };
