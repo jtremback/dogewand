@@ -4,12 +4,17 @@ var api = require('../app/controllers/api'),
   pages = require('../app/controllers/pages')
 ;
 
+
 module.exports = function (app, passport) {
 
-  // app.get('/', function(req, res){
-  //   res.json({ user: req.user });
-  // });
+  app.get('/', function(req, res){
+    console.log(req);
+    res.json({ user: req.user });
+  });
 
+  app.get('/api', function (req, res) {
+    res.status(200).send('200 OK');
+  });
 
   app.get('/extension/login', pages.login); // Login page formatted for loading within extension iframe
 
@@ -45,7 +50,7 @@ module.exports = function (app, passport) {
     res.redirect('/');
   });
 
-  app.listen(3000);
+  // app.listen(3000);
 
 };
 

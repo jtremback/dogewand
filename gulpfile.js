@@ -54,7 +54,15 @@ gulp.task('chrome-extension', ['chrome-extension-js'], function() {
     .pipe(gulp.dest('extension/chrome/dist'))
     .pipe(gulpNotify({ message: 'Extension js complete' }));
 });
- 
+
+
+gulp.task('tests', function () {
+  var spawn = require('child_process').spawn,
+      ls    = spawn('npm', ['test']);
+
+  ls.stdout.pipe(process.stdout);
+});
+
 
 // Watch
 gulp.task('watch', function() {
