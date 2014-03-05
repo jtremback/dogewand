@@ -18,7 +18,6 @@ Run the tests with `npm test`.
 
 TO DO:
 
--* library to talk to wallet service (wallet service is a seperate project, docs upcoming)-
 -* finish up db code for accounts
 -* tests
 * build routing code for tip claims
