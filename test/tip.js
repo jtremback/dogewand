@@ -11,11 +11,14 @@ var utility = require('../test-utility');
 
 test('Tip model', function (t) {
   // Connect to mongodb
-  (function () {
-    var options = { server: { socketOptions: { keepAlive: 1 } }, auto_reconnect: true };
-    mongoose.connect(config.db, options);
-  })();
-
+  mongoose.connect(config.db, {
+    auto_reconnect: true,
+    server: {
+      socketOptions: {
+        keepAlive: 1
+      }
+    }
+  });
 
   // Bootstrap models
   var fs = require('fs');

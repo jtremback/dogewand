@@ -7,8 +7,9 @@ var rpc = require('../rpc')(config.rpc);
 
 var AccountSchema = new Schema({
   balance: Number, // updateBalance should be used whenever the balance is changed or read from dogecoind
-  username: String,
-  provider: String
+  providers: [
+    { provider: String, username: String }
+  ]
 });
 
 
@@ -16,8 +17,7 @@ AccountSchema.statics = {
 
   // opts = { 
   //   provider,
-  //   username,
-  //   [_id]
+  //   username
   // }
   upsert: function (opts, callback) {
     var Self = this;
@@ -26,8 +26,10 @@ AccountSchema.statics = {
       if (err) { return callback(err); }
       if (!account) {
         account = new Self({
-          username: opts.username,
-          provider: opts.provider
+          'providers': [{
+            'username': opts.username,
+            'provider': opts.provider
+          }]
         });
         return account.save(callback);
       }
@@ -62,9 +64,6 @@ AccountSchema.methods = {
   // IMPORTANT: Do not use the balance in mongo for anything important!!!
   // Get it using this method instead.
   // 
-  // updateBalance(context, callback)
-  // callback(err, balance)
-  // 
   updateBalance: function (callback) {
     var self = this;
 
@@ -91,11 +90,6 @@ AccountSchema.methods = {
 
   ,
 
-  // opts: {
-  //   to_address, 
-  //   amount
-  // }
-  // 
   withdraw: function (to_adress, amount, callback) {
     var self = this;
 

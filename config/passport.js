@@ -1,9 +1,8 @@
 'use strict';
 
-var mongoose = require('mongoose')
-  , FacebookStrategy = require('passport-facebook').Strategy
-  , Account = mongoose.model('Account')
-;
+var mongoose = require('mongoose');
+var FacebookStrategy = require('passport-facebook').Strategy;
+var Account = mongoose.model('Account');
 
 
 module.exports = function (passport, config) {
@@ -24,10 +23,11 @@ module.exports = function (passport, config) {
       clientID: config.facebook.clientID,
       clientSecret: config.facebook.clientSecret,
       callbackURL: config.url +  '/auth/facebook/callback'
-    },
-
-    function (accessToken, refreshToken, profile, done) {
-      Account.upsert(profile.username, 'facebook', done);
+    }, function (accessToken, refreshToken, profile, done) {
+      Account.upsert({
+        'providers.provider': 'facebook',
+        'providers.username': profile.username
+      }, done);
     }
   ));
 };

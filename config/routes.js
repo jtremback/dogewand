@@ -18,31 +18,23 @@ module.exports = function (app, passport) {
 
   app.get('/extension/login', pages.login); // Login page formatted for loading within extension iframe
 
+
   app.get('/api/user', ensureAuthenticated, function (req, res) {
     res.json(req.user);
   });
 
-  // GET /auth/facebook
-  //   Use passport.authenticate() as route middleware to authenticate the
-  //   request.  The first step in Facebook authentication will involve
-  //   redirecting the user to facebook.com.  After authorization, Facebook will
-  //   redirect the user back to this application at /auth/facebook/callback
+  if (process.env.NODE_ENV === 'test') {
+    app.get('/auth/none', passport.authenticate('local'));
+  }
+
   app.get('/auth/facebook',
     passport.authenticate('facebook'),
-    function(req, res){
-      // The request will be redirected to Facebook for authentication, so this
-      // function will not be called.
-    });
+    function () {});
 
-  // GET /auth/facebook/callback
-  //   Use passport.authenticate() as route middleware to authenticate the
-  //   request.  If authentication fails, the user will be redirected back to the
-  //   login page.  Otherwise, the primary route function function will be called,
-  //   which, in this example, will redirect the user to the home page.
   app.get('/auth/facebook/callback',
-    passport.authenticate('facebook', { failureRedirect: '/login' }),
+    passport.authenticate('facebook', { failureRedirect: '/extension/login' }),
     function(req, res) {
-      res.redirect('/');
+      res.redirect('/extension/loggedin');
     });
 
   app.get('/logout', function(req, res){

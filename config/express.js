@@ -5,7 +5,8 @@
  */
 
 var express = require('express')
-  , MongoStore = require('connect-mongo-store')(express)
+  , connectMongo = require('connect-mongo')(express)
+  , connectMongoStore = require('connect-mongo-store')(express)
 ;
 
 
@@ -34,7 +35,14 @@ module.exports = function (app, config, passport) {
     
     app.use(express.session({
       secret: config.sessionSecret,
-      store: new MongoStore(config.db)
+      // store: new connectMongoStore(config.db)
+      store: new connectMongo({
+        url: config.db,
+        collection : 'sessions'
+      }, function () {
+        console.log("db connection open");
+      })
+
     }));
 
 
