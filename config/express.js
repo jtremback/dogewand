@@ -6,7 +6,6 @@
 
 var express = require('express')
   , connectMongo = require('connect-mongo')(express)
-  , connectMongoStore = require('connect-mongo-store')(express)
 ;
 
 
@@ -35,7 +34,6 @@ module.exports = function (app, config, passport) {
     
     app.use(express.session({
       secret: config.sessionSecret,
-      // store: new connectMongoStore(config.db)
       store: new connectMongo({
         url: config.db,
         collection : 'sessions'
