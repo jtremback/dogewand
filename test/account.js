@@ -32,25 +32,25 @@ test('Account model', function (t) {
 
 
   t.test('upsert', function (t) {
-    var opts = [{
+    var accounts = [{
       username: 'Jehoon',
       provider: 'farcebook'
     }, {
       username: 'C3P0',
       provider: 'farcebook'
     }, {
-      username: 'Jehoon', // 2 accounts with same opts- test upserting
+      username: 'Jehoon', // 2 accounts with same accounts- test upserting
       provider: 'farcebook'
     }];
 
     async.series([
-      async.apply(utility.resetMongo, Tip, Account),
-      async.apply(utility.fakeAccounts, Account, opts) // This does the upserting
+      async.apply(utility.resetMongo, [ Tip, Account ]),
+      async.apply(utility.fakeAccounts, Account, accounts) // This does the upserting
     ], function (err, results) {
-      t.notOk(err);
+      t.error(err);
 
-      wallet_a = results[1][0]._id.toString(); // Save for later
-      wallet_b = results[1][1]._id.toString();
+      wallet_a = results[1][0]; // Save for later
+      wallet_b = results[1][1];
 
       t.equal(results[1][0].providers[0].username, 'Jehoon');
       t.equal(results[1][0].providers[0].provider, 'farcebook');
@@ -65,9 +65,9 @@ test('Account model', function (t) {
     utility.resetBalances(function () {
       rpc({
         method: 'move', // Move some funds to test with
-        params: ['', wallet_a, 6]
+        params: ['', wallet_a._id, 6]
       }, function (err) {
-        t.notOk(err);
+        t.error(err);
         Account.findCall('updateBalance', { _id: wallet_a }, function (err, account) {
           t.equal(6, account.balance);
           t.end();

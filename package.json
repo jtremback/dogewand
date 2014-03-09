@@ -4,7 +4,7 @@
   "description": "Oauth dogecoin tipbot",
   "main": "server.js",
   "scripts": {
-    "test": "NODE_ENV=test tape test/*.js"
+    "test": "NODE_ENV=test tape test/*.js | faucet"
   },
   "author": "Jehan Tremback",
   "license": "AGPL",
@@ -20,7 +20,8 @@
     "request": "~2.33.0",
     "async": "~0.2.10",
     "connect-mongo": "~0.4.0",
-    "express": "^3.4.8"
+    "express": "^3.4.8",
+    "check-types": "^1.2.0"
   },
   "devDependencies": {
     "gulp-stylus": "0.0.11",

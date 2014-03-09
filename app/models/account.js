@@ -6,7 +6,7 @@ var config = require('../../config/config')();
 var rpc = require('../rpc')(config.rpc);
 
 var AccountSchema = new Schema({
-  balance: Number, // updateBalance should be used whenever the balance is changed or read from dogecoind
+  balance: { type: Number, default: 0 }, // updateBalance should be used whenever the balance is changed or read from dogecoind
   providers: [
     { provider: String, username: String }
   ]
@@ -61,8 +61,8 @@ AccountSchema.statics = {
 AccountSchema.methods = {
 
   // Gets balance and updates mongo at the same time
-  // IMPORTANT: Do not use the balance in mongo for anything important!!!
-  // Get it using this method instead.
+  // IMPORTANT: Do not use the balance in mongo for anything important!!! It is for display only.
+  // Get the balance for important things using this method instead.
   // 
   updateBalance: function (callback) {
     var self = this;

@@ -31,15 +31,10 @@ exports.resetBalances = function (callback) {
   });
 };
 
-exports.resetMongo = function (Tip, Account, callback) {
-  async.parallel([
-    function (cb) {
-      Tip.find({}).remove(cb);
-    },
-    function (cb) {
-      Account.find({}).remove(cb);
-    }
-  ], callback);
+exports.resetMongo = function (Models, callback) {
+  async.each(Models, function (Model, cb) {
+    Model.find({}).remove(cb);
+  }, callback);
 };
 
 exports.fakeAccounts = function (Account, opts, callback) {

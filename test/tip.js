@@ -36,7 +36,7 @@ test('Tip model', function (t) {
   var wallet_b;
 
   t.test('reset', function (t) {
-    var opts = [{
+    var accounts = [{
       username: 'Jehoon',
       provider: 'farcebook'
     }, {
@@ -45,22 +45,22 @@ test('Tip model', function (t) {
     }];
     
     async.series([
-      async.apply(utility.resetMongo, Tip, Account),
-      async.apply(utility.fakeAccounts, Account, opts),
+      async.apply(utility.resetMongo, [ Tip, Account ]),
+      async.apply(utility.fakeAccounts, Account, accounts),
       utility.resetBalances
     ], function (err, results) {
-      t.notOk(err);
-      wallet_a = results[1][0]._id.toString();
-      wallet_b = results[1][1]._id.toString();
+      t.error(err);
+      wallet_a = results[1][0];
+      wallet_b = results[1][1];
       seedFunds();
     });
 
     function seedFunds () {
       rpc({
         method: 'move', // Move some funds to test with
-        params: ['', wallet_a, 6]
+        params: ['', wallet_a._id, 6]
       }, function (err) {
-        t.notOk(err);
+        t.notOk(err, 'move');
         t.end();
       });
     }
@@ -69,32 +69,28 @@ test('Tip model', function (t) {
   // Action
   t.test('create', function (t) {
 
-    var opts = {
-      from_wallet: wallet_a,
-      to_wallet: wallet_b,
-      amount: amount
-    };
-
     rpc({
       method: 'getbalance', // Check balance beforehand
-      params: [opts.from_wallet]
+      params: [ wallet_a._id ]
     }, function (err, old_balance) {
-      Tip.create(opts, function (err, tip) {
-        t.notOk(err);
-        t.equal(tip.from_wallet, opts.from_wallet, 'mongo from_wallet correct');
-        t.equal(tip.to_wallet, opts.to_wallet, 'mongo to_wallet correct');
+      Tip.create(wallet_a, wallet_b, amount, function (err, tip) {
+        t.error(err, 'Tip.create');
+        t.equal(tip.tipper_id, wallet_a._id, 'mongo tipper correct');
+        t.equal(tip.tippee_id, wallet_b._id, 'mongo tippee_id correct');
         t.equal(tip.state, 'created', 'mongo state correct');
 
-        Account.findById(tip.from_wallet, function (err, wallet) {
-          t.equal(wallet.balance, old_balance - opts.amount, 'account has been properly debited');
+        Account.findById(tip.tipper_id, function (err, account) {
+          t.error(err);
+          t.equal(account.balance, old_balance - amount, 'account has been properly debited');
         });
 
         rpc({
           method: 'listtransactions',
-          params: [ opts.from_wallet, 1 ]
+          params: [ wallet_a._id, 1 ]
         }, function (err, result) {
+          t.error(err);
           result = result[0];
-          t.equal(result.amount, -opts.amount, 'dogecoind amount correct');
+          t.equal(result.amount, -amount, 'dogecoind amount correct');
           t.equal(result.otheraccount, '', 'dogecoind otheraccount correct');
           t.end();
         });
@@ -104,85 +100,42 @@ test('Tip model', function (t) {
   });
 
   t.test('insufficient', function (t) {
-    t.plan(1);
-
     // Check for rejection on insufficient funds
-    Tip.create({
-      from_wallet: wallet_a,
-      to_wallet: wallet_b,
-      amount: Infinity // So awesome to finally use this. No tip can be this large!
-    }, function (err) {
-      t.equal(err, 'insufficient', 'err insufficient');
+    Tip.create(wallet_a, wallet_b, Infinity, function (err) {
+      t.equal(err, 402, 'err insufficient');
+      t.end();
     });
   });
 
-  t.test('cancel', function (t) {
-    t.plan(6);
-    
-    var opts = {
-      from_wallet: wallet_a,
-      to_wallet: wallet_b,
-      amount: amount
-    };
-
-    Tip.create(opts, function (err, tip) {
+  t.test('claim', function (t) {
+    Tip.create(wallet_a, wallet_b, amount, function (err, tip) {
       rpc({
-        method: 'getbalance',
-        params: [opts.from_wallet]
+        method: 'getbalance', // Check balance beforehand
+        params: [wallet_a._id]
       }, function (err, old_balance) {
-        tip.resolve('cancel', function (err, tip) {
-          t.equal(tip.state, 'canceled', 'mongo state correct');
-
-          rpc({
-            method: 'listtransactions',
-            params: [ '', 1 ]
-          }, function (err, result) {
-            t.notOk(err);
-            result = result[0];
-            t.equal(result.amount, -opts.amount, 'dogecoind amount correct');
-            t.equal(result.otheraccount, opts.from_wallet, 'dogecoind otheraccount correct');
-            t.equal(result.comment, tip.resolved_id, 'resolved_id correct');
-
-            Account.findById(tip.from_wallet, function (err, wallet) {
-              t.equal(wallet.balance, old_balance + opts.amount);
-            });
-          });
+        tip.resolve(wallet_a, function (err, tip, recipient) {
+          t.error(err);
+          t.equal(wallet_a._id, tip.recipient_id, 'tip.recipient_id correct');
+          t.deepEqual(wallet_a, recipient, 'recipient correct');
+          t.equal(recipient.balance, old_balance + amount, 'recipient balance correct');
+          t.end();
         });
       });
     });
   });
 
-  t.test('claim', function (t) {
-    t.plan(6);
-    
-    var opts = {
-      from_wallet: wallet_a,
-      to_wallet: wallet_b,
-      amount: amount
-    };
-
-    Tip.create(opts, function (err, tip) {
+  t.test('cancel', function (t) {
+    Tip.create(wallet_a, wallet_b, amount, function (err, tip) {
       rpc({
-        method: 'getbalance',
-        params: [opts.to_wallet]
+        method: 'getbalance', // Check balance beforehand
+        params: [wallet_b._id]
       }, function (err, old_balance) {
-        tip.resolve('claim', function (err, tip) {
-          t.equal(tip.state, 'claimed', 'mongo state correct');
-
-          rpc({
-            method: 'listtransactions',
-            params: [ '', 1 ]
-          }, function (err, result) {
-            t.notOk(err);
-            result = result[0];
-            t.equal(result.amount, -opts.amount, 'dogecoind amount correct');
-            t.equal(result.otheraccount, opts.to_wallet, 'dogecoind otheraccount correct');
-            t.equal(result.comment, tip.resolved_id, 'resolved_id correct');
-
-            Account.findById(tip.to_wallet, function (err, wallet) {
-              t.equal(wallet.balance, (old_balance + opts.amount), 'balance added to receiving account');
-            });
-          });
+        tip.resolve(wallet_b, function (err, tip, recipient) {
+          t.error(err);
+          t.equal(wallet_b._id, tip.recipient_id, 'recipient_id correct');
+          t.deepEqual(wallet_b, recipient, 'recipient correct');
+          t.equal(recipient.balance, old_balance + amount, 'recipient balance correct');
+          t.end();
         });
       });
     });
