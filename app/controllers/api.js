@@ -5,6 +5,7 @@ var mongoose = require('mongoose');
 var _ = require('lodash');
 var Account = mongoose.model('Account');
 var Tip = mongoose.model('Tip');
+var check = require('check-types');
 
 var login = function (req, res) {
   var redirectTo = req.session.returnTo ? req.session.returnTo : '/';
@@ -16,50 +17,74 @@ exports.signin = function (req, res) {};
 
 exports.authCallback = login;
 
-exports.generateTip = function (req, res) {
-  var tipper = req.user;
-
+exports.createTip = function (req, res, next) {
   var opts = {
     username: req.params.username,
-    provider: req.params.provider
+    provider: req.params.provider,
+    amount: req.params.amount
   };
 
-  Account.upsert(opts, function (err, tippee) { // Get or make account for tippee
-    if (err) return console.error(err);
+  var valid = check.every(
+    check.map(opts, {
+      username: check.unemptyString,
+      provider: check.unemptyString,
+      amount: check.positiveNumber
+    })
+  );
 
-    var opts = {
-      from_wallet: tipper.wallet_id,
-      to_wallet: tippee.wallet_id,
-      amount: req.params.amount
-    };
+  if (!valid) return next(new Error(400));
 
-    Tip.create(opts, function (err, tip) {
-      if (err) return res.send(500, 'Internal Error');
-
-      var response = _.pick(tip, ['from_wallet', 'to_wallet', 'from_wallet_balance', '_id']);
-      return res.send(200, response);
-    });
+  createTip(req.user, opts, function (err, tip) {
+    if (err) return next(err);
+    return res.send(200, tip);
   });
 };
 
-exports.resolveTip = function (req, res) {
-  var id = req.params.id;
-  var operation = req.params.operation;
-  var user_id = req.user._id;
+function createTip (tipper, opts, callback) {
+  Account.upsert({
+    username: opts.username,
+    provider: opts.provider
+  }, function (err, tippee) {
+    // console.log('tipper', tipper);
+    // console.log('tippee', tippee);
+    if (err) return callback(err);
 
-  Tip.findById(id, function (err, tip) {
-    if (err) return res.send(500, 'Internal Error');
-    if (!tip) return res.send(404, 'Tip not found');
+    Tip.create(tipper, tippee, opts.amount, function (err, tip) {
+      if (err) return callback(err);
 
-    if (user_id !== tip.from_wallet || user_id !== tip.to_wallet)
-      return res.send(401, 'Unauthorized');
-
-    tip.resolve(operation, function (err, tip) {
-      if (err) return res.send(500, 'Internal Error');
-      var response;
-
-      response = _.pick(tip, ['from_wallet', 'to_wallet', 'dest_wallet_balance', '_id']);
-      return res.send(200, response);
+      return callback(null, tip);
     });
   });
+}
+
+
+exports.resolveTip = function (req, res, next) {
+  var tip_id = check.unemptyString(req.tip_id);
+  var recipient = check.obj(req.user);
+  if (!tip_id || !recipient) return next(400);
+  
+  resolveTip (recipient, tip_id, function (err, response) {
+    if (err) return next(err);
+    res.send(200, response);
+  });
 };
+
+function resolveTip (recipient, tip_id, callback) {
+  Tip.findOne({ _id: tip_id }, function (err, tip) {
+    if (!tip) return callback(404);
+
+    tip.resolve(recipient, function (err, tip, recipient) {
+      if (err) return callback(err);
+      
+      var response = {
+        tip: tip,
+        recipient: recipient
+      };
+
+      return callback(null, response);
+    });
+  });
+}
+
+exports.createTipTest = createTip;
+exports.resolveTipTest = resolveTip;
