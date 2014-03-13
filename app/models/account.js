@@ -102,6 +102,45 @@ AccountSchema.methods = {
       self.updateBalance(callback);
     });
   }
+
+  ,
+
+  getTips: function (direction, state, callback) {
+    var self = this;
+
+    var query = self.find();
+
+    if (direction === 'in') {
+      query.where({ tipper_id: self._id });
+    }
+    else if (direction === 'out') {
+      query.where({ tippee_id: self._id });
+    }
+    else if (direction === 'all') {
+      query.or([{ tipper_id: self._id }, { tippee_id: self._id }]);
+    }
+    else {
+      callback(400);
+    }
+
+    if (state === 'claimed') {
+      query.where({ state: 'claimed' });
+    }
+    else if (state === 'canceled') {
+      query.where({ state: 'canceled' });
+    }
+    else if (state === 'created') {
+      query.where({ state: 'canceled' });
+    }
+    else if (state === 'all') {
+      query.where({ state: { $in: [ 'claimed', 'canceled', 'created' ] } });
+    }
+    else {
+      callback(400);
+    }
+
+    query.exec(callback);
+  }
 };
 
 
