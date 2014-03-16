@@ -66,7 +66,7 @@ module.exports = function (app, config, passport) {
 
     app.all('*', function(req, res, next){
       if (!req.get('Origin')) return next();
-      // use "*" here to accept any origin
+
       res.set('Access-Control-Allow-Origin', 'https://localhost:3700', 'https://facebook.com', 'https://soundcloud.com');
       res.set('Access-Control-Allow-Methods', 'GET, POST');
       res.set('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type');

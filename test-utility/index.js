@@ -15,7 +15,7 @@ exports.resetBalances = function (callback) {
     async.each(pairs, function (pair, cb) {
 
       if (pair[1] === 0 || pair[0] === '') return cb(); // If account balance is 0 or account is root
-      
+
       var params;
       if (pair[1] < 0) params = [ '', pair[0], pair[1] ]; // If balance is less than 0, move other direction
       else params = [ pair[0], '', pair[1] ]; // Otherwise move amount to root

@@ -9,7 +9,7 @@ var utility = require('../test-utility');
 
 
 
-test('Tip model', function (t) {
+test('- Tip model', function (t) {
   // Connect to mongodb
   mongoose.connect(config.db, {
     auto_reconnect: true,
@@ -43,7 +43,7 @@ test('Tip model', function (t) {
       username: 'C3P0',
       provider: 'farcebook'
     }];
-    
+
     async.series([
       async.apply(utility.resetMongo, [ Tip, Account ]),
       async.apply(utility.fakeAccounts, Account, accounts),
@@ -96,7 +96,7 @@ test('Tip model', function (t) {
         });
       });
     });
-    
+
   });
 
   t.test('insufficient', function (t) {

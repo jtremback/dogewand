@@ -74,17 +74,27 @@ TipSchema.statics = {
 TipSchema.methods = {
 
   resolve: function (recipient, callback) {
-    if (this.state !== 'created') return callback(new Error(410));
+    var recipient_id = recipient._id.toString();
+    var tipper_id = this.tipper_id.toString();
+    var tippee_id = this.tippee_id.toString();
 
-    console.log(recipient._id, this.tipper_id, recipient._id, this.tippee_id)
+    if (this.state === 'claimed') return callback(new Error('410 - Tip has already been claimed.'));
+    if (this.state === 'canceled') return callback(new Error('410 - Tip has already been cancelled.'));
+    if (this.state !== 'created') return callback(new Error('410 - Tip is not redeemable.'));
 
-    console.log(!(recipient._id === this.tipper_id || recipient._id === this.tippee_id))
-
-    if (!(recipient._id !== this.tipper_id || recipient._id !== this.tippee_id)) {
-      return callback(401);
+    // Check what kind of resolution this is
+    var action;
+    if (recipient_id === tipper_id) {
+      action = 'cancel';
+    }
+    else if (recipient_id === tippee_id) {
+      action = 'claim';
+    }
+    else {
+      return callback(new Error('401 - Account not allowed to access tip.'));
     }
 
-    this.state = 'resolving';
+    this.state = action + 'ing';
     this.resolved_id = new ObjectID(); // resolved_id identifies the tip later
     this.save(function (err, tip) {
       if (err) return callback(err);
@@ -101,7 +111,8 @@ TipSchema.methods = {
         if (err) return callback(err);
 
         tip.recipient_id = recipient._id;
-        tip.state = 'resolved'; // We did it
+        tip.state = action + 'ed'; // We did it
+
         tip.save(function (err, tip) {
           if (err) return callback(err);
           recipient.updateBalance(function (err, recipient) {
@@ -111,7 +122,7 @@ TipSchema.methods = {
       });
     }
   }
- 
+
 };
 
 mongoose.model('Tip', TipSchema);

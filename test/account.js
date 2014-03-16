@@ -10,7 +10,7 @@ var path = require('path');
 var utility = require('../test-utility');
 
 
-test('Account model', function (t) {
+test('- Account model', function (t) {
   // Connect to mongodb
   (function () {
     var options = { server: { socketOptions: { keepAlive: 1 } }, auto_reconnect: true };
@@ -29,6 +29,7 @@ test('Account model', function (t) {
 
   var wallet_a;
   var wallet_b;
+  var amount = 1;
 
 
   t.test('upsert', function (t) {
@@ -114,6 +115,61 @@ test('Account model', function (t) {
       });
     });
   });
+
+  //// Making a strategic decision not to test getTips right now,
+  //// because it is only for display and is a huge pain to test.
+
+  // t.test('getTips', function (t) {
+  //   var directions = [
+  //     'in',
+  //     'out',
+  //     'all'
+  //   ];
+
+  //   var states = [
+  //     'created',
+  //     'claimed',
+  //     'canceled',
+  //     'all'
+  //   ];
+
+  //   async.each(directions, function (direction, callback) {
+  //     async.map(states, function (state, callback) {
+  //       var tipper;
+  //       var tippee;
+
+  //       if (direction === 'in') {
+  //         tippee = wallet_a;
+  //         tipper = wallet_b;
+  //       }
+
+  //       else if (direction === 'out') {
+  //         tippee = wallet_b;
+  //         tipper = wallet_a;
+  //       }
+
+  //       Tip.create(tipper, tippee, amount, function (err, tip) {
+  //         if (state === 'claimed') {
+  //           return tip.resolve(tippee, callback);
+  //         }
+  //         else if (state === 'canceled') {
+  //           return tip.resolve(tipper, callback);
+  //         }
+  //       });
+  //     });
+  //   }, function (err, results) {
+  //     t.error(err);
+  //     async.each(results, function (, callback) {
+
+  //     });
+  //   });
+
+  //   function check (tip, direction, state) {
+  //     if (state === 'all') {
+
+  //     }
+  //   }
+  // });
 
 
   t.test('end', function (t) {

@@ -1,5 +1,33 @@
 plan
 
+
+
+get api/user
+  current logged in user data
+
+get api/user/tips
+  get current user's tips
+
+post api/tip/create_tip
+  create tip
+
+post api/tip/resolve_tip
+  resolve tip to current user
+
+
+
+get tip/:_id
+  view tip page
+
+get account
+  view account of signed in user
+
+get extension/* 
+  pages formatted for an iframe in the extension
+
+
+
+
 alternate db:
 
   Account:

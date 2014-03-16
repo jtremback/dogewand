@@ -6,11 +6,16 @@ var async = require('async');
 var config = require('../config/config')('test');
 var rpc = require('../app/rpc')(config.rpc);
 var utility = require('../test-utility');
+// var models = require('../test-utility/models.js');
+
+// var Tip = models.Account;
+// var Account = models.Account;
+
 
 // var app = require('../');
 
 
-test('API controller', function (t) {
+test('- API controller', function (t) {
   // Connect to mongodb
   mongoose.connect(config.db, {
     auto_reconnect: true,
@@ -31,6 +36,7 @@ test('API controller', function (t) {
 
   var Tip = mongoose.model('Tip');
   var Account = mongoose.model('Account');
+
 
   // Needs to be required under models
   var api = require('../app/controllers/api.js');
@@ -114,7 +120,7 @@ test('API controller', function (t) {
       });
     });
   });
-  
+
   t.test('end', function (t) {
     mongoose.disconnect(function () {
       t.end();
