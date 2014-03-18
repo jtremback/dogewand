@@ -1,79 +1,83 @@
 'use strict';
 
-// Load plugins
-var gulp = require('gulp'),
-  // gulpStylus = require('gulp-stylus'),
-  // gulpAutoprefixer = require('gulp-autoprefixer'),
-  // gulpMinifycss = require('gulp-minify-css'),
-  gulpJshint = require('gulp-jshint'),
-  gulpRename = require('gulp-rename'),
-  gulpNotify = require('gulp-notify'),
-  gulpLivereload = require('gulp-livereload'),
-  gulpBrowserify = require('gulp-browserify'),
-  gulpClean = require('gulp-clean'),
-  lr = require('tiny-lr'),
-  server = lr();
+var gulp = require('gulp');
+var gulpRename = require('gulp-rename');
+var gulpNotify = require('gulp-notify');
+var gulpInclude = require('gulp-include');
+var gulpTap = require('gulp-tap');
+var gulpAutoprefixer = require('gulp-autoprefixer');
+var gulpStylus = require('gulp-stylus');
+var gulpMinifyCss = require('gulp-minify-css');
+var gulpMinifyHtml = require('gulp-htmlmin');
+var gulpMinifyJs = require('gulp-uglify');
+var gulpClean = require('gulp-clean');
+var path = require('path');
 
-// // Styles
-// gulp.task('styles', function() {
-//   return gulp.src('assets/stylus/style.styl')
-//     .pipe(stylus())
-//     .pipe(autoprefixer('last 5 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 4'))
-//     .pipe(gulp.dest('public/css'))
-//     .pipe(rename({ suffix: '.min' }))
-//     .pipe(minifycss())
-//     .pipe(livereload(server))
-//     .pipe(gulp.dest('public/css'))
-//     .pipe(notify({ message: 'Styles task complete' }));
-// });
+// Wrap file in js var named after filename
+function varWrap (file) {
+  var regex = /^.*\/(.*)\.(.*)$/;
+  var filename = file.path.match(regex)[1];
+  file.contents = Buffer.concat([
+    new Buffer('var ' + filename + ' = \''),
+    file.contents,
+    new Buffer('\';')
+  ]);
+}
 
+//// PREPROCESS
+gulp.task('bundle-styles', function () {
+  // gulp.src(['extension/bundle/incremental/*.css'])
+  //   .pipe(gulpClean());
 
-gulp.task('chrome-extension-js', function() {
-  // Clean dist
-  gulp.src(['extension/chrome/dist/*'])
-    .pipe(gulpClean());
+  return gulp.src('extension/bundle/style/style.styl')
+    .pipe(gulpStylus())
+    .pipe(gulpAutoprefixer('last 5 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 4'))
+    .pipe(gulpMinifyCss())
+    .pipe(gulpTap(varWrap))
+    .pipe(gulp.dest('extension/bundle/incremental'))
+    .pipe(gulpNotify({ message: 'Styles task complete' }));
+});
 
-  // Compile index.js
-  return gulp.src('extension/chrome/src/content_script/index.js', { read: false }) // read: false for browserify
-    .pipe(gulpJshint('.jshintrc'))
-    .pipe(gulpJshint.reporter('jshint-stylish'))
-    .pipe(gulpBrowserify({
-      transform: ['./my_modules/stylify-autoprefix', './my_modules/wrapify'],
-      extensions: ['.styl', '.html'],
-      debug: true
-    }))
+gulp.task('bundle-html', function () {
+  // gulp.src(['extension/bundle/incremental/*.html'])
+  //   .pipe(gulpClean());
+
+  return gulp.src('extension/bundle/html/*.html')
+    .pipe(gulpMinifyHtml({collapseWhitespace: true}))
+    .pipe(gulpTap(varWrap))
+    .pipe(gulp.dest('extension/bundle/incremental'))
+    .pipe(gulpNotify({ message: 'HTML task complete' }));
+});
+
+gulp.task('bundle-js', function () {
+  // gulp.src(['extension/bundle/incremental/*.js'])
+  //   .pipe(gulpClean());
+
+  return gulp.src('extension/bundle/*.js')
+    .pipe(gulp.dest('extension/bundle/incremental'))
+    .pipe(gulpNotify({ message: 'JS task complete' }));
+});
+
+//// COMBINE
+gulp.task('bundle-incremental', function () {
+  return gulp.src('extension/bundle/incremental/index.js')
+    .pipe(gulpInclude())
+    // .pipe(gulpMinifyJs())
     .pipe(gulpRename('content_script.js'))
-    .pipe(gulp.dest('extension/chrome/dist'))
-    .pipe(gulpLivereload(server));
+    .pipe(gulp.dest('extension/chrome'))
+    .pipe(gulpRename('bookmarklet.js'))
+    .pipe(gulp.dest('extension/bookmarklet'))
+    .pipe(gulpNotify({ message: 'Incremental task complete' }));
 });
-
-
-gulp.task('chrome-extension', ['chrome-extension-js'], function() {
-  // Copy files in root
-  return gulp.src(['extension/chrome/src/*.*'])
-    .pipe(gulp.dest('extension/chrome/dist'))
-    .pipe(gulpNotify({ message: 'Extension js complete' }));
-});
-
-
-gulp.task('tests', function () {
-  var spawn = require('child_process').spawn,
-      ls    = spawn('npm', ['test']);
-
-  ls.stdout.pipe(process.stdout);
-});
-
 
 // Watch
-gulp.task('watch', function() {
- 
-  // Listen on port 35729
-  server.listen(35729, function (err) {
-    if (err) {
-      return console.log(err);
-    }
+gulp.task('watch', function () {
+  gulp.watch('extension/bundle/html/**', ['bundle-html']);
+  gulp.watch('extension/bundle/style/**', ['bundle-styles']);
+  gulp.watch('extension/bundle/*.js', ['bundle-js']);
 
-    gulp.watch('extension/chrome/src/**/*', ['chrome-extension']);
-
-  });
+  gulp.watch('extension/bundle/incremental/*.*', ['bundle-incremental']);
 });
+
+// Build
+gulp.task('build', ['bundle-html', 'bundle-js', 'bundle-styles']);

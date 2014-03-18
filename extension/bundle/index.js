@@ -1,10 +1,15 @@
 'use strict';
 
+/*global $*/
 
-var $ = require('browserify-zepto');
-require('./riot')($); //Janky riot
+// = include style.css
+// = include main.html
+// = include toolbar.html
 
-if ($('.dgw-toolbar').length) return $('.dgw-toolbar').remove(); // remove app if exists
+// = include zepto.1.1.3.js
+// = include riot.0.9.8.js
+
+if ($('.dgw-toolbar').length) $('.dgw-toolbar').remove(); // remove app if exists
 
 var css = require('./style.styl');
 var mainTemp = require('./main.wrap.html');
@@ -78,14 +83,14 @@ function mainPres (template) {
 
 
 function toolbarPres ($el, template) {
-  
+
   // UI HANDLERS
   function uiHandlers () {
     $('.dgw-tip', $el).on('click', function () {
       app.trigger('enter:tip');
     });
   }
-  
+
   // MESSAGE HANDLERS
   app.on('init', function () {
     user.load();
