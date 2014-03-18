@@ -3,5 +3,3 @@ config/config.js
 .DS_Store
 public/
 extension/bundle/incremental
-extension/chrome
-extension/bookmarklet
