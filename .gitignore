@@ -2,4 +2,6 @@ node_modules/
 config/config.js
 .DS_Store
 public/
-extension/chrome/dist/
+extension/bundle/incremental
+extension/chrome
+extension/bookmarklet
