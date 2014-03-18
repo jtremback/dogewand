@@ -80,4 +80,4 @@ gulp.task('watch', function () {
 });
 
 // Build
-gulp.task('build', ['bundle-html', 'bundle-js', 'bundle-styles']);
+gulp.task('build', ['bundle-html', 'bundle-js', 'bundle-styles', 'bundle-incremental']);

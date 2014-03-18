@@ -3,3 +3,5 @@ config/config.js
 .DS_Store
 public/
 extension/bundle/incremental
+extension/chrome/content_script.js
+extension/bookmarklet/bookmarklet.js
