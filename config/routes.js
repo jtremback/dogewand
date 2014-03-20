@@ -33,7 +33,7 @@ var api = require('../app/controllers/api'),
 // get account
 //   view account of signed in user
 
-// get extension/* 
+// get extension/*
 //   pages formatted for an iframe in the extension
 
 // get extension/login
@@ -46,6 +46,7 @@ module.exports = function (app, passport) {
   //   // front page
   // });
 
+
   // Smoke test
   app.get('/api', function (req, res) {
     console.log(req);
@@ -55,7 +56,7 @@ module.exports = function (app, passport) {
 
   // app.get('/api/v1/user', api.userInfo);
 
-  // // 
+  // //
   // app.get('/api/v1/user/tips', api.userTips);
 
   // app.post('/api/v1/tip/create', api.createTip);
