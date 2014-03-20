@@ -9,16 +9,14 @@ var gulpAutoprefixer = require('gulp-autoprefixer');
 var gulpStylus = require('gulp-stylus');
 var gulpMinifyCss = require('gulp-minify-css');
 var gulpMinifyHtml = require('gulp-htmlmin');
-var gulpMinifyJs = require('gulp-uglify');
-var gulpClean = require('gulp-clean');
-var path = require('path');
 
 // Wrap file in js var named after filename
 function varWrap (file) {
   var regex = /^.*\/(.*)\.(.*)$/;
   var filename = file.path.match(regex)[1];
+  var extension = file.path.match(regex)[2];
   file.contents = Buffer.concat([
-    new Buffer('var ' + filename + ' = \''),
+    new Buffer('var ' + filename + '_' + extension + ' = \''),
     file.contents,
     new Buffer('\';')
   ]);
@@ -26,9 +24,6 @@ function varWrap (file) {
 
 //// PREPROCESS
 gulp.task('bundle-styles', function () {
-  // gulp.src(['extension/bundle/incremental/*.css'])
-  //   .pipe(gulpClean());
-
   return gulp.src('extension/bundle/style/style.styl')
     .pipe(gulpStylus())
     .pipe(gulpAutoprefixer('last 5 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 4'))
@@ -39,9 +34,6 @@ gulp.task('bundle-styles', function () {
 });
 
 gulp.task('bundle-html', function () {
-  // gulp.src(['extension/bundle/incremental/*.html'])
-  //   .pipe(gulpClean());
-
   return gulp.src('extension/bundle/html/*.html')
     .pipe(gulpMinifyHtml({collapseWhitespace: true}))
     .pipe(gulpTap(varWrap))
@@ -50,9 +42,6 @@ gulp.task('bundle-html', function () {
 });
 
 gulp.task('bundle-js', function () {
-  // gulp.src(['extension/bundle/incremental/*.js'])
-  //   .pipe(gulpClean());
-
   return gulp.src('extension/bundle/*.js')
     .pipe(gulp.dest('extension/bundle/incremental'))
     .pipe(gulpNotify({ message: 'JS task complete' }));
@@ -62,7 +51,6 @@ gulp.task('bundle-js', function () {
 gulp.task('bundle-incremental', function () {
   return gulp.src('extension/bundle/incremental/index.js')
     .pipe(gulpInclude())
-    // .pipe(gulpMinifyJs())
     .pipe(gulpRename('content_script.js'))
     .pipe(gulp.dest('extension/chrome'))
     .pipe(gulpRename('bookmarklet.js'))

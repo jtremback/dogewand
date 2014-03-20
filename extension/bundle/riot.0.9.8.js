@@ -1,5 +1,5 @@
 /* Riot 0.9.8, @license MIT, (c) 2014 Moot Inc + contributors */
-(function($) { "use strict";
+// (function($) { "use strict";
 
 $.observable = function(el) {
   var callbacks = {}, slice = [].slice;
@@ -121,4 +121,5 @@ $.route = function(to) {
   if (history.pushState) history.pushState(0, 0, to);
   pop(to);
 
-};})(typeof top == "object" ? window.$ || (window.$ = {}) : exports);
+};
+// })(typeof top == "object" ? window.$ || (window.$ = {}) : exports);
