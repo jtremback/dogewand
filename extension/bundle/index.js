@@ -1,6 +1,7 @@
 'use strict';
 
-/*global $*/
+/*global $, main_html, style_css, toolbar_html*/
+console.log('hello.')
 
 // = include style.css
 // = include main.html
@@ -9,22 +10,19 @@
 // = include zepto.1.1.3.js
 // = include riot.0.9.8.js
 
+
 if ($('.dgw-toolbar').length) $('.dgw-toolbar').remove(); // remove app if exists
 
-var css = require('./style.styl');
-var mainTemp = require('./main.wrap.html');
-var toolbarTemp = require('./toolbar.wrap.html');
+$('head').append('<style>' + style_css + '</style>');
 
-$('head').append('<style>' + css + '</style>');
+console.log(style_css);
 
 // App
 var app = new App();
 var user = new User();
 
-
-
-var main = mainPres(mainTemp);
-toolbarPres($('.dgw-toolbar', main), toolbarTemp);
+var main = mainPres(main_html);
+toolbarPres($('.dgw-toolbar', main), toolbar_html);
 app.trigger('init');
 
 

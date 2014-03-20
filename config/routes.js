@@ -25,8 +25,7 @@ var api = require('../app/controllers/api'),
 
 
 // get /
-//   view landing page
-
+// view landing page
 // get tip/:_id
 //   view tip page
 
@@ -42,9 +41,7 @@ var api = require('../app/controllers/api'),
 
 module.exports = function (app, passport) {
 
-  // app.get('/', function(req, res){
-  //   // front page
-  // });
+  app.get('/', pages.app);
 
 
   // Smoke test

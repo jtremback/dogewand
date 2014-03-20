@@ -55,6 +55,8 @@ gulp.task('bundle-incremental', function () {
     .pipe(gulp.dest('extension/chrome'))
     .pipe(gulpRename('bookmarklet.js'))
     .pipe(gulp.dest('extension/bookmarklet'))
+    .pipe(gulpRename('app.js'))
+    .pipe(gulp.dest('public/js'))
     .pipe(gulpNotify({ message: 'Incremental task complete' }));
 });
 
