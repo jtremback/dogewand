@@ -9,8 +9,8 @@ sign in link. When another user signs in at the link with the right account, the
 This tipbot is powered by dogecoind. Connection credentials are placed in `config/config.js`.
 
 The bot uses mongo, but the accounts system in dogecoind is the source of truth about account balances.
-Mongo exists solely to tie accounts to social media identities. Any concerns about data consistency
-can be addressed by logging on the 
+Mongo exists solely to tie accounts to social media identities. This may need to change in the future to scale.
+
 
 Run the tests with `npm test`.
 
@@ -20,13 +20,13 @@ TO DO:
 
 -* finish up db code for accounts
 -* tests
-* build routing code for tip claims
+-* build routing code for tip claims
 * write frontend code for extension and site
 * security audit
 * automatic wallet backup
 * scaling tweaks
 
-The extension can be built by running `gulp watch` in the root. Will be adding build scripts for the site as well.
+The extension can be built by running `gulp watch` in the root. I will be adding build scripts for the site as well.
 
 ---
 

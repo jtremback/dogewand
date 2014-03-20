@@ -6,7 +6,7 @@ var express = require('express')
   , config = require('./config/config')()
   , mongoose = require('mongoose');
 
-
+  console.log('hello?')
 
 // Connect to mongodb
 mongoose.connect(config.db, {
@@ -23,6 +23,7 @@ mongoose.connection.on('error', function (err) {
   console.log(err);
 });
 
+console.log('hello!')
 
 
 // Bootstrap models

@@ -15,7 +15,7 @@ var AccountSchema = new Schema({
 
 AccountSchema.statics = {
 
-  // opts = { 
+  // opts = {
   //   provider,
   //   username
   // }
@@ -46,7 +46,6 @@ AccountSchema.statics = {
     var Self = this;
 
     Self.findOne(conditions, function (err, account) {
-      console.log(account);
       if (err) return callback(err);
       if (!account) return callback('no account found');
       account[method](function (err, account) {
@@ -63,7 +62,7 @@ AccountSchema.methods = {
   // Gets balance and updates mongo at the same time
   // IMPORTANT: Do not use the balance in mongo for anything important!!! It is for display only.
   // Get the balance for important things using this method instead.
-  // 
+  //
   updateBalance: function (callback) {
     var self = this;
 

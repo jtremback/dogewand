@@ -27,10 +27,10 @@ module.exports = function(config) { // Saves config in scope
       body: opts_str
 
     }, function (error, response, body) {
-      elapse.timeEnd('request.post' + opts_str);
       if (error) return callback(error);
 
       body = JSON.parse(body);
+      elapse.timeEnd('request.post' + opts_str);
       console.log('rpc returns: ', JSON.stringify(body.result).substring(0, 420));
       if (body.error) return callback(body.error, body);
       callback(error, body.result);
