@@ -9,6 +9,7 @@ var gulpAutoprefixer = require('gulp-autoprefixer');
 var gulpStylus = require('gulp-stylus');
 var gulpMinifyCss = require('gulp-minify-css');
 var gulpMinifyHtml = require('gulp-htmlmin');
+var gulpDataUri = require('gulp-data-uri');
 
 // Wrap file in js var named after filename
 function varWrap (file) {
@@ -24,10 +25,12 @@ function varWrap (file) {
 
 //// PREPROCESS
 gulp.task('bundle-styles', function () {
-  return gulp.src('extension/bundle/style/style.styl')
+  return gulp.src('assets/stylus/extension.styl')
     .pipe(gulpStylus())
     .pipe(gulpAutoprefixer('last 5 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 4'))
+    .pipe(gulpDataUri())
     .pipe(gulpMinifyCss())
+    .pipe(gulpRename('style.css'))
     .pipe(gulpTap(varWrap))
     .pipe(gulp.dest('extension/bundle/incremental'))
     .pipe(gulpNotify({ message: 'Styles task complete' }));
@@ -63,7 +66,7 @@ gulp.task('bundle-incremental', function () {
 // Watch
 gulp.task('watch', function () {
   gulp.watch('extension/bundle/html/**', ['bundle-html']);
-  gulp.watch('extension/bundle/style/**', ['bundle-styles']);
+  gulp.watch('assets/stylus/**', ['bundle-styles']);
   gulp.watch('extension/bundle/*.js', ['bundle-js']);
 
   gulp.watch('extension/bundle/incremental/*.*', ['bundle-incremental']);

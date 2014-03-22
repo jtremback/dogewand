@@ -48,6 +48,7 @@
     "gulp-tap": "^0.1.1",
     "gulp-include": "^0.2.2",
     "gulp-minify-html": "^0.1.1",
-    "gulp-htmlmin": "^0.1.2"
+    "gulp-htmlmin": "^0.1.2",
+    "gulp-data-uri": "^0.1.2"
   }
 }

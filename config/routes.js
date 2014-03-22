@@ -64,7 +64,8 @@ module.exports = function (app, passport) {
   // //   res.status(200).send('200 OK');
   // // });
 
-  // app.get('/extension/login', pages.login); // Login page formatted for loading within extension iframe
+  app.get('/app/login', pages.login); // Login page formatted for loading within extension iframe
+
 
 
   app.get('/api/user', ensureAuthenticated, function (req, res) {

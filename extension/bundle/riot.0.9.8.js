@@ -1,5 +1,5 @@
 /* Riot 0.9.8, @license MIT, (c) 2014 Moot Inc + contributors */
-// (function($) { "use strict";
+// (function($) { "use strict"; // Doesn't work with zepto, whatever
 
 $.observable = function(el) {
   var callbacks = {}, slice = [].slice;
