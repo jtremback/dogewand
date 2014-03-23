@@ -1,4 +1,7 @@
-// Models
+'use strict';
+
+/*global $*/
+
 var models = {
 
   App: function () {
@@ -18,36 +21,36 @@ var models = {
 
   ,
 
-  // Tipper: function (balance) {
-  //   var self = $.observable(this);
+  Tipper: function (balance) {
+    var self = $.observable(this);
 
-  //   var tip;
+    var tip;
 
-  //   self.calc = function (opts) {
-  //     var new_balance;
+    self.calc = function (opts) {
+      var new_balance;
 
-  //     if (opts.balance) {
-  //       tip = balance - opts.balance;
-  //       if (tip < 0) {
-  //         tip = balance; // Empty account
-  //       }
+      if (opts.balance) {
+        tip = balance - opts.balance;
+        if (tip < 0) {
+          tip = balance; // Empty account
+        }
 
-  //       self.trigger('new:tip', tip);
-  //     }
+        self.trigger('refresh:tip', tip);
+      }
 
-  //     if (opts.tip) {
-  //       var new_balance = balance - opts.tip; // If it goes negative
-  //       if (new_balance < 0) {
-  //         tip = balance; // Empty account
-  //         new_balance = 0; // Set to zero
-  //       }
+      if (opts.tip) {
+        new_balance = balance - opts.tip; // If it goes negative
+        if (new_balance < 0) {
+          tip = balance; // Empty account
+          new_balance = 0; // Set to zero
+        }
 
-  //       self.trigger('new:balance', new_balance);
-  //     }
-  //   };
-  // }
+        self.trigger('refresh:balance', new_balance);
+      }
+    };
+  }
 
-  // ,
+  ,
 
 
   User: function () {

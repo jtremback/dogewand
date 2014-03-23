@@ -1,7 +1,8 @@
 (function () {
   'use strict';
 
-  /*global $, main_html, style_css, toolbar_html, presenters*/
+  /*global $, main_html, style_css, toolbar_html, presenters, models*/
+
   console.log('hello.')
 
   // = include style.css
@@ -27,8 +28,5 @@
 
   $('head').append('<style>' + style_css + '</style>');
 
-
-  presenters.main();
-
-  app.trigger('init:main');
+  presenters(models).main($('body'));
 })();

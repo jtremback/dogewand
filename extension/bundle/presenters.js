@@ -1,31 +1,34 @@
 'use strict';
 
-/*global $, models, templates, scrape_utils*/
+/*global $, templates, scrape_utils*/
 
 // App
-var app = new models.App();
-var user = new models.User();
 
-var presenters = {
+function presenters (models) {
 
-  main: function () {
-    var contents = $(templates.main).appendTo('body');
-    presenters.toolbar($('[dgw-toolbar]', contents)); // Render toolbar into spot
+  var app = new models.App();
+  var user = new models.User();
 
-    $('body').on('click', function () {
+  function main ($container) {
+    var $contents = $(templates.main).appendTo($container);
+    toolbar($('[dgw-toolbar]', $contents)); // Render toolbar into spot
+
+
+    $container.on('click', function () {
       app.trigger('exit:tipping');
     });
 
-    $('[dgw-dogewand]').on('click', function (e) {
+    $contents.on('click', function (e) {
       e.stopPropagation();
     });
 
     app.on('exit:app', function () {
-      contents.remove();
+      $contents.remove();
     });
 
+
     app.on('enter:tipping', function () {
-      $('body').addClass('dgw-wand');
+      $container.addClass('dgw-wand');
       var links = scrape_utils.link_finders.facebook();
       links.addAttr('dgw-link');
       links.addClass('dgw-link');
@@ -37,7 +40,7 @@ var presenters = {
     });
 
     app.on('exit:tipping', function () {
-      $('body').removeClass('dgw-wand');
+      $container.removeClass('dgw-wand');
       $('.dgw-link').removeClass('dgw-link'); // Just to make sure
 
       var links = $('[dgw-link]');
@@ -45,59 +48,69 @@ var presenters = {
       links.off('.dgw-link');
     });
 
-    app.trigger('enter:tipping'); // Trigger immediately for convenience
+    app.trigger('enter:tipping'); // Trigger immediately for convenience <- shouldn't be here
   }
 
-  ,
 
-  toolbar: function (container) {
-    var contents = container.html($.render(templates.toolbar, user.data));
 
-    console.log(contents);
+  function toolbar ($container) {
+    $container.empty();
+    $(templates.toolbar).appendTo($container);
 
-    $(contents).on('click', '[dgw-tip]', function () {
+
+    $container.on('click', '[dgw-tip]', function () {
       app.trigger('enter:tipping');
     });
 
-    $(contents).on('click', '[dgw-close]', function () {
+    $container.on('click', '[dgw-close]', function () {
       app.trigger('exit:app');
     });
 
 
     user.on('loaded', function (user) {
-      console.log(user.balance, contents);
-      $('[dgw-balance]', contents).html(user.balance);
+      $('[dgw-balance]', $container).html(user.balance);
     });
 
     user.load();
-    app.trigger('enter:tipping'); // Enter tipping mode immediately for convenience
   }
 
-  // ,
 
-  // tipper: function (balance) {
-  //   var contents;
-  //   var tipper = new models.Tipper;
 
-  //   function uiHandlers () {
+  function modal ($container) {
+    var $contents = $(templates.modal).appendTo($container);
 
-  //   }
+    app.on('show:modal', function (body) {
+      $contents.addClass('dgw-shown');
+      $('[dgw-modal-body]').html(body);
+    });
 
-  //   tipper.on('new:tip', function (tip) {
-
-  //   });
-
-  //   tipper.on('new:balance', function (balance) {
-
-  //   });
-  // }
+    app.on('hide:modal', function () {
+      $contents.removeClass('dgw-shown');
+      $('[dgw-modal-body]').html('');
+    });
+  }
 
 
 
-  // modal: function (template) {
-  //   var contents;
+  return {
+    main: main,
+    toolbar: toolbar,
+    modal: modal
 
-  //   app.on('modal', )
-  // }
+    // tipper: function ($container, balance) {
+    //   var $contents = $container.html($.render(templates.tipper, {balance: balance}));
+    //   var tipper = new models.Tipper(balance);
 
-};
+    //   tipper.on('refresh:tip', function (tip) {
+
+    //   });
+
+    //   tipper.on('refresh:balance', function (balance) {
+
+    //   });
+    // }
+
+    // ,
+
+  };
+}
