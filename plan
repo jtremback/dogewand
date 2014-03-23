@@ -1,6 +1,19 @@
 plan
 
 
+tip on the frontend
+
+get username for url
+or get username pasted
+
+make tip call
+
+display error or
+display tip link
+
+update balance and tip lists
+
+
 
 get api/user
   current logged in user data
@@ -22,7 +35,7 @@ get tip/:_id
 get account
   view account of signed in user
 
-get extension/* 
+get extension/*
   pages formatted for an iframe in the extension
 
 
@@ -61,7 +74,7 @@ generate tip
 
 
 extension auth:
-  
+
 
 
 todo:
@@ -74,7 +87,7 @@ todo:
   test db api
   tip page
   talk to jae api
-  
+
 
 
 Bookmarklet interface:
@@ -96,7 +109,7 @@ user:
   jae creds
 tips:
   amount
-  from_user 
+  from_user
   to_user
 
 
@@ -118,7 +131,7 @@ generate tip
       new entry in db
     call jae: move to wallet
       if insufficient balance: send back to extension
-      if success: 
+      if success:
         add tip_page record
         send url back to extension
 

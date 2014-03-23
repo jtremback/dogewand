@@ -72,6 +72,8 @@ module.exports = function (app, passport) {
     res.json(req.user);
   });
 
+  app.post('/api/tip', ensureAuthenticated, api.createTip);
+
 
   app.get('/auth/facebook',
     passport.authenticate('facebook'),

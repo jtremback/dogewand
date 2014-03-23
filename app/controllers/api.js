@@ -86,8 +86,7 @@ function resolveTip (recipient, tip_id, callback) {
 }
 
 exports.getAccount = function (req, res, next) {
-  var account = check.obj(req.user);
-  if (!account) return next(400);
+  var account = req.user;
 
   getAccount(account, function (err, account) {
     if (err) return next(err);

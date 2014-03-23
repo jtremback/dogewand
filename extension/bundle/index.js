@@ -11,53 +11,104 @@ console.log('hello.')
 // = include riot.0.9.8.js
 
 
+$.fn.addAttr = function(attr) {
+  this.attr(attr, attr);
+  return this;
+};
+
+
 // Models
 var models = {
 
-  App: function() {
+  App: function () {
     var self = $.observable(this);
     self.mode = {};
 
-    self.on('enter:tip', function () {
-      self.mode.tip = true;
+    self.host = window.location.host.match(/^.*\.(.*)\.(.*)$/)[1];
+
+    self.on('enter:tipping', function () {
+      self.mode.tipping = true;
     });
 
-    self.on('exit:tip', function () {
-      self.mode.tip = false;
+    self.on('exit:tipping', function () {
+      self.mode.tipping = false;
     });
   }
 
   ,
 
+  // Tipper: function (balance) {
+  //   var self = $.observable(this);
+
+  //   var tip;
+
+  //   self.calc = function (opts) {
+  //     var new_balance;
+
+  //     if (opts.balance) {
+  //       tip = balance - opts.balance;
+  //       if (tip < 0) {
+  //         tip = balance; // Empty account
+  //       }
+
+  //       self.trigger('new:tip', tip);
+  //     }
+
+  //     if (opts.tip) {
+  //       var new_balance = balance - opts.tip; // If it goes negative
+  //       if (new_balance < 0) {
+  //         tip = balance; // Empty account
+  //         new_balance = 0; // Set to zero
+  //       }
+
+  //       self.trigger('new:balance', new_balance);
+  //     }
+  //   };
+  // }
+
+  // ,
+
+
   User: function () {
     var self = $.observable(this);
 
-    self.data = 'false';
+    self.tips = {};
 
     self.load = function () {
-
       $.ajax({
         type: 'GET',
         url: 'https://localhost:3700/api/user',
         success: function(data){
           if (!data) return self.trigger('error');
           self.data = data;
-          return self.trigger('loaded');
+          return self.trigger('loaded', data);
         },
         error: function(xhr, type){
-          alert('Y U NO WORK?')
+          console.log('error', xhr, type);
+          return self.trigger('error');
+        }
+      });
+    };
+
+    self.createTip = function (post_data) {
+      console.log('Tips.send', post_data);
+
+      $.ajax({
+        type: 'POST',
+        url: 'https://localhost:3700/api/tip',
+        data: post_data,
+        success: function(data){
+          if (!data) return self.trigger('error');
+          self.tips.push(data);
+        },
+        error: function(xhr, type){
+          return self.trigger('error');
         }
       });
     };
   }
-
 };
 
-
-
-if ($('.dgw-dogewand').length) $('.dgw-dogewand').remove(); // remove app if exists
-
-$('head').append('<style>' + style_css + '</style>');
 
 
 // App
@@ -95,27 +146,23 @@ var username_finders = {
 
 var presenters = {
 
-  main: function (template) {
+  main: function () {
     var contents;
 
     // UI HANDLERS
     function uiHandlers () {
       $('body').on('click', function () {
-        app.trigger('exit:tip');
+        app.trigger('exit:tipping');
       });
 
-      $('.dgw-dogewand').on('click', function (e) {
-        e.stopPropagation();
-      });
-
-      $('.dgw-link').on('click', function (e) {
+      $('[dgw-dogewand]').on('click', function (e) {
         e.stopPropagation();
       });
     }
 
     app.on('init:main', function () {
-      contents = $(template).appendTo('body');
-      app.trigger('init:toolbar');
+      contents = $(main_html).appendTo('body'); // <- Should possibly be rewritten?
+      $('[dgw-toolbar]', contents).html(presenters.toolbar()); // Render toolbar into spot
       uiHandlers(); // Attach ui handlers
     });
 
@@ -123,45 +170,91 @@ var presenters = {
       contents.remove();
     });
 
-    app.on('enter:tip', function () {
+    app.on('enter:tipping', function () {
       $('body').addClass('dgw-wand');
-      link_finders.facebook().addClass('dgw-link');
+      var links = link_finders.facebook();
+      links.addAttr('dgw-link');
+      links.addClass('dgw-link');
+
+      links.on('click.dgw-link', function (e) {
+        e.preventDefault();
+        app.trigger('create:tip', username_finders.facebook(this));
+      });
     });
 
-    app.on('exit:tip', function () {
+    app.on('exit:tipping', function () {
       $('body').removeClass('dgw-wand');
+      $('.dgw-link').removeClass('dgw-link'); // Just to make sure
+
+      var links = $('[dgw-link]');
+      links.off('.dgw-link');
+      links.removeAttr('dgw-link');
     });
   }
 
   ,
 
-  toolbar: function (el, template) {
-    var contents;
-    var $el; // We need to wait until init to set this
+  toolbar: function () {
+    var contents = $($.render(toolbar_html, user.data));
 
-    // UI HANDLERS
-    function uiHandlers () {
-      $('.dgw-tip').on('click', function () {
-        app.trigger('enter:tip');
-      });
-    }
-
-    app.on('init:toolbar', function () {
-      $el = $(el);
-      user.load();
-      user.on('loaded', function () {
-        contents = $el.html($.render(template, user.data)); // Render toolbar
-        uiHandlers(); // Attach ui handlers
-        app.trigger('enter:tip');
-      });
+    $(contents).on('click', '[dgw-tip]', function () {
+      app.trigger('enter:tipping');
     });
+
+    $(contents).on('click', '[dgw-close]', function () {
+      app.trigger('exit:app');
+    });
+
+
+    user.on('loaded', function (user) {
+      console.log(user.balance, contents);
+      $('[dgw-balance]').html(user.balance);
+    });
+
+    user.load();
+    app.trigger('enter:tipping'); // Enter tipping mode immediately for convenience
+
+    return contents; // Return contents for rendering
   }
+
+  // ,
+
+  // tipper: function (balance) {
+  //   var contents;
+  //   var tipper = new models.Tipper;
+
+  //   function uiHandlers () {
+
+  //   }
+
+  //   tipper.on('new:tip', function (tip) {
+
+  //   });
+
+  //   tipper.on('new:balance', function (balance) {
+
+  //   });
+  // }
+
+
+
+  // modal: function (template) {
+  //   var contents;
+
+  //   app.on('modal', )
+  // }
 
 };
 
 
-presenters.main(main_html);
-presenters.toolbar('.dgw-toolbar', toolbar_html);
+
+if ($('.dgw-dogewand').length) $('.dgw-dogewand').remove(); // remove app if exists
+
+$('head').append('<style>' + style_css + '</style>');
+
+
+presenters.main();
+// presenters.toolbar();
 
 
 app.trigger('init:main');

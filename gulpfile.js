@@ -8,7 +8,8 @@ var gulpTap = require('gulp-tap');
 var gulpAutoprefixer = require('gulp-autoprefixer');
 var gulpStylus = require('gulp-stylus');
 var gulpMinifyCss = require('gulp-minify-css');
-var gulpMinifyHtml = require('gulp-htmlmin');
+// var gulpMinifyHtml = require('gulp-htmlmin');
+var gulpJade = require('gulp-jade');
 var gulpDataUri = require('gulp-data-uri');
 
 // Wrap file in js var named after filename
@@ -37,8 +38,8 @@ gulp.task('bundle-styles', function () {
 });
 
 gulp.task('bundle-html', function () {
-  return gulp.src('extension/bundle/html/*.html')
-    .pipe(gulpMinifyHtml({collapseWhitespace: true}))
+  return gulp.src('extension/bundle/templates/*.jade')
+    .pipe(gulpJade())
     .pipe(gulpTap(varWrap))
     .pipe(gulp.dest('extension/bundle/incremental'))
     .pipe(gulpNotify({ message: 'HTML task complete' }));
@@ -65,7 +66,7 @@ gulp.task('bundle-incremental', function () {
 
 // Watch
 gulp.task('watch', function () {
-  gulp.watch('extension/bundle/html/**', ['bundle-html']);
+  gulp.watch('extension/bundle/templates/**', ['bundle-html']);
   gulp.watch('assets/stylus/**', ['bundle-styles']);
   gulp.watch('extension/bundle/*.js', ['bundle-js']);
 
