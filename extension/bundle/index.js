@@ -162,7 +162,7 @@ var presenters = {
 
     app.on('init:main', function () {
       contents = $(main_html).appendTo('body'); // <- Should possibly be rewritten?
-      $('[dgw-toolbar]', contents).html(presenters.toolbar()); // Render toolbar into spot
+      presenters.toolbar($('[dgw-toolbar]', contents)); // Render toolbar into spot
       uiHandlers(); // Attach ui handlers
     });
 
@@ -194,8 +194,10 @@ var presenters = {
 
   ,
 
-  toolbar: function () {
-    var contents = $($.render(toolbar_html, user.data));
+  toolbar: function (container) {
+    var contents = container.html($.render(toolbar_html, user.data));
+
+    console.log(contents);
 
     $(contents).on('click', '[dgw-tip]', function () {
       app.trigger('enter:tipping');
@@ -208,13 +210,11 @@ var presenters = {
 
     user.on('loaded', function (user) {
       console.log(user.balance, contents);
-      $('[dgw-balance]').html(user.balance);
+      $('[dgw-balance]', contents).html(user.balance);
     });
 
     user.load();
     app.trigger('enter:tipping'); // Enter tipping mode immediately for convenience
-
-    return contents; // Return contents for rendering
   }
 
   // ,
