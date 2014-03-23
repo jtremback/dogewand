@@ -81,6 +81,15 @@ var link_finders = {
   }
 };
 
+var username_finders = {
+  facebook: function (that) {
+    var regex = /.*\/(.*)$/;
+    var link = $(that).attr('href');
+    var username = link.match(regex)[1];
+
+    return username;
+  }
+};
 
 
 
