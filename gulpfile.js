@@ -46,7 +46,7 @@ gulp.task('bundle-html', function () {
 });
 
 gulp.task('bundle-js', function () {
-  return gulp.src('extension/bundle/*.js')
+  return gulp.src('extension/bundle/js/**/*.js')
     .pipe(gulp.dest('extension/bundle/incremental'))
     .pipe(gulpNotify({ message: 'JS task complete' }));
 });
@@ -68,7 +68,7 @@ gulp.task('bundle-incremental', function () {
 gulp.task('watch', function () {
   gulp.watch('extension/bundle/templates/**', ['bundle-html']);
   gulp.watch('assets/stylus/**', ['bundle-styles']);
-  gulp.watch('extension/bundle/*.js', ['bundle-js']);
+  gulp.watch('extension/bundle/js/**', ['bundle-js']);
 
   gulp.watch('extension/bundle/incremental/*.*', ['bundle-incremental']);
 });

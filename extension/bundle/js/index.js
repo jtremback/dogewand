@@ -14,11 +14,11 @@
     toolbar: toolbar_html
   };
 
-  // = include zepto.1.1.3.js
-  // = include riot.0.9.8.js
+  // = include vendor/zepto.1.1.3.js
+  // = include vendor/riot.0.9.8.js
 
-  // = include jq-plugins.js
-  // = include scrape-utils.js
+  // = include util/jq-plugins.js
+  // = include util/scrape-utils.js
 
   // = include models.js
   // = include presenters.js
