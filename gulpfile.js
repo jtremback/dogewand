@@ -12,6 +12,8 @@ var gulpMinifyCss = require('gulp-minify-css');
 var gulpJade = require('gulp-jade');
 var gulpDataUri = require('gulp-data-uri');
 
+var lazypipe = require('lazypipe');
+
 // Wrap file in js var named after filename
 function varWrap (file) {
   var regex = /^.*\/(.*)\.(.*)$/;
@@ -24,36 +26,55 @@ function varWrap (file) {
   ]);
 }
 
+var stylus = lazypipe()
+  .pipe(gulpStylus)
+  .pipe(gulpAutoprefixer, 'last 5 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 4')
+  .pipe(gulpDataUri)
+  .pipe(gulpMinifyCss);
+
+
 //// PREPROCESS
-gulp.task('bundle-styles', function () {
+gulp.task('extension-styles', function () {
   return gulp.src('assets/stylus/extension.styl')
-    .pipe(gulpStylus())
-    .pipe(gulpAutoprefixer('last 5 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 4'))
-    .pipe(gulpDataUri())
-    .pipe(gulpMinifyCss())
+    .pipe(stylus())
     .pipe(gulpRename('style.css'))
     .pipe(gulpTap(varWrap))
-    .pipe(gulp.dest('extension/bundle/incremental'))
-    .pipe(gulpNotify({ message: 'Styles task complete' }));
+    .pipe(gulp.dest('extension/incremental'))
+    .pipe(gulpNotify({ message: 'extension-styles task complete' }));
 });
 
-gulp.task('bundle-html', function () {
-  return gulp.src('extension/bundle/templates/*.jade')
+gulp.task('site-styles', function () {
+  return gulp.src('assets/stylus/extension.styl')
+    .pipe(stylus())
+    .pipe(gulpRename('style.css'))
+    .pipe(gulp.dest('extension/incremental'))
+    .pipe(gulpNotify({ message: 'site-styles task complete' }));
+});
+
+gulp.task('extension-html', function () {
+  return gulp.src('assets/templates/extension/**/*.jade')
     .pipe(gulpJade())
     .pipe(gulpTap(varWrap))
-    .pipe(gulp.dest('extension/bundle/incremental'))
-    .pipe(gulpNotify({ message: 'HTML task complete' }));
+    .pipe(gulp.dest('extension/incremental'))
+    .pipe(gulpNotify({ message: 'extension-html task complete' }));
 });
 
-gulp.task('bundle-js', function () {
-  return gulp.src('extension/bundle/js/**/*.js')
-    .pipe(gulp.dest('extension/bundle/incremental'))
-    .pipe(gulpNotify({ message: 'JS task complete' }));
+gulp.task('extension-js', function () {
+  return gulp.src(['assets/js/extension/**/*.js', 'assets/js/shared/**/*.js'])
+    .pipe(gulp.dest('extension/incremental'))
+    .pipe(gulpNotify({ message: 'extension-js task complete' }));
 });
+
+gulp.task('site-js', function () {
+  return gulp.src(['assets/js/extension/**/*.js', 'assets/js/shared/**/*.js'])
+    .pipe(gulp.dest('extension/incremental'))
+    .pipe(gulpNotify({ message: 'site-js task complete' }));
+});
+
 
 //// COMBINE
-gulp.task('bundle-incremental', function () {
-  return gulp.src('extension/bundle/incremental/index.js')
+gulp.task('extension-incremental', function () {
+  return gulp.src('extension/incremental/index.js')
     .pipe(gulpInclude())
     .pipe(gulpRename('content_script.js'))
     .pipe(gulp.dest('extension/chrome'))
@@ -61,17 +82,19 @@ gulp.task('bundle-incremental', function () {
     .pipe(gulp.dest('extension/bookmarklet'))
     .pipe(gulpRename('app.js'))
     .pipe(gulp.dest('public/js'))
-    .pipe(gulpNotify({ message: 'Incremental task complete' }));
+    .pipe(gulpNotify({ message: 'extension-incremental task complete' }));
 });
 
-// Watch
-gulp.task('watch', function () {
-  gulp.watch('extension/bundle/templates/**', ['bundle-html']);
-  gulp.watch('assets/stylus/**', ['bundle-styles']);
-  gulp.watch('extension/bundle/js/**', ['bundle-js']);
 
-  gulp.watch('extension/bundle/incremental/*.*', ['bundle-incremental']);
+
+//// WATCH
+gulp.task('watch', function () {
+  gulp.watch('assets/templates/extension/**', ['extension-html']);
+  gulp.watch('assets/stylus/**', ['extension-styles']);
+  gulp.watch('assets/js/extension/**', ['extension-js']);
+
+  gulp.watch('extension/incremental/**', ['extension-incremental']);
 });
 
 // Build
-gulp.task('build', ['bundle-html', 'bundle-js', 'bundle-styles', 'bundle-incremental']);
+gulp.task('build', ['extension-html', 'extension-js', 'extension-styles', 'extension-incremental']);
