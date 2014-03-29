@@ -30,4 +30,4 @@ var scrape_utils = {
     }
   }
 
-}
+};

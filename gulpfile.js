@@ -11,16 +11,20 @@ var gulpMinifyCss = require('gulp-minify-css');
 // var gulpMinifyHtml = require('gulp-htmlmin');
 var gulpJade = require('gulp-jade');
 var gulpDataUri = require('gulp-data-uri');
+var gulpTemplate = require('gulp-template');
 
 var lazypipe = require('lazypipe');
+var config = require('./config/config')();
 
 // Wrap file in js var named after filename
 function varWrap (file) {
   var regex = /^.*\/(.*)\.(.*)$/;
   var filename = file.path.match(regex)[1];
   var extension = file.path.match(regex)[2];
+  extension = (extension) ? '_' + extension : '' ; // prefix extension if it exists
+
   file.contents = Buffer.concat([
-    new Buffer('var ' + filename + '_' + extension + ' = \''),
+    new Buffer('var ' + filename + extension + ' = \''),
     file.contents,
     new Buffer('\';')
   ]);
@@ -61,6 +65,7 @@ gulp.task('extension-html', function () {
 
 gulp.task('extension-js', function () {
   return gulp.src(['assets/js/extension/**/*.js', 'assets/js/shared/**/*.js'])
+    .pipe(gulpTemplate({url: config.url}))
     .pipe(gulp.dest('extension/incremental'))
     .pipe(gulpNotify({ message: 'extension-js task complete' }));
 });

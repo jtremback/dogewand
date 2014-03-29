@@ -51,22 +51,8 @@ module.exports = function (app, passport) {
   });
 
 
-  // app.get('/api/v1/user', api.userInfo);
-
-  // //
-  // app.get('/api/v1/user/tips', api.userTips);
-
-  // app.post('/api/v1/tip/create', api.createTip);
-
-  // app.post('/api/v1/tip/claim_tip', api.resolveTip);
-
-  // // app.get('/api/tip/cancel_tip', function (req, res) {
-  // //   res.status(200).send('200 OK');
-  // // });
-
   app.get('/app/login', pages.login); // Login page formatted for loading within extension iframe
-
-
+  app.get('/app/tipper', pages.tipper);
 
   app.get('/api/user', ensureAuthenticated, function (req, res) {
     res.json(req.user);

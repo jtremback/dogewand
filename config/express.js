@@ -19,7 +19,7 @@ module.exports = function (app, config, passport) {
   app.use(express.logger()); // LOGGING
 
   // set views path, template engine and default layout
-  app.set('views', './app/views');
+  app.set('views', './assets/templates/server');
   app.set('view engine', 'jade');
 
   app.configure(function () {

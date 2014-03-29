@@ -2,13 +2,32 @@
 
 /*global $*/
 
+function providerFinder (host) {
+  var cleaned = host
+  .split("").reverse().join("")
+  .match(/^([^\.]*\.[^\.]*).*$/)[1]
+  .split("").reverse().join(""); // Double reverse string for regexing
+
+  switch (cleaned) {
+    case 'facebook.com':
+      return 'facebook';
+    case 'localhost:3700':
+      return 'localhost';
+    default:
+      return false;
+  }
+}
+
 var models = {
 
   App: function () {
     var self = $.observable(this);
     self.mode = {};
 
-    self.host = window.location.host.match(/^.*\.(.*)\.(.*)$/)[1];
+    self.provider = providerFinder(window.location.host);
+    console.log(self.provider);
+
+    self.url = '<%= url %>';
 
     self.on('enter:tipping', function () {
       self.mode.tipping = true;
@@ -20,38 +39,6 @@ var models = {
   }
 
   ,
-
-  Tipper: function (balance) {
-    var self = $.observable(this);
-
-    var tip;
-
-    self.calc = function (opts) {
-      var new_balance;
-
-      if (opts.balance) {
-        tip = balance - opts.balance;
-        if (tip < 0) {
-          tip = balance; // Empty account
-        }
-
-        self.trigger('refresh:tip', tip);
-      }
-
-      if (opts.tip) {
-        new_balance = balance - opts.tip; // If it goes negative
-        if (new_balance < 0) {
-          tip = balance; // Empty account
-          new_balance = 0; // Set to zero
-        }
-
-        self.trigger('refresh:balance', new_balance);
-      }
-    };
-  }
-
-  ,
-
 
   User: function () {
     var self = $.observable(this);
@@ -86,6 +73,7 @@ var models = {
           self.tips.push(data);
         },
         error: function(xhr, type){
+          console.log('error', xhr, type);
           return self.trigger('error');
         }
       });

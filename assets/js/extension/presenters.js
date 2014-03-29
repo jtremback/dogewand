@@ -4,15 +4,28 @@
 
 // App
 
+
+
 function presenters (models) {
 
   var app = new models.App();
   var user = new models.User();
 
+  function iframe () {
+    app.on('create:tip', function (username) {
+      var iframe = '<iframe width="300", height="300" src="' + app.url +
+      '/tipper?username=' + username +
+      '&provider=' + app.provider +
+      '"></iframe>';
+      app.trigger('show:modal', iframe);
+    });
+  }
+
   function main ($container) {
     var $contents = $(templates.main).appendTo($container);
     toolbar($('[dgw-toolbar]', $contents)); // Render toolbar into spot
-
+    modal($contents); // Render modal into spot
+    iframe(); // init iframe controller
 
     $container.on('click', function () {
       app.trigger('exit:tipping');
@@ -25,7 +38,6 @@ function presenters (models) {
     app.on('exit:app', function () {
       $contents.remove();
     });
-
 
     app.on('enter:tipping', function () {
       $container.addClass('dgw-wand');
@@ -47,6 +59,12 @@ function presenters (models) {
       links.removeAttr('dgw-link');
       links.off('.dgw-link');
     });
+
+    window.addEventListener('message', function (event) { // close signal from iframe
+      if (event.data === 'close') {
+        app.trigger('hide:modal');
+      }
+    }, false);
 
     app.trigger('enter:tipping'); // Trigger immediately for convenience <- shouldn't be here
   }
@@ -80,6 +98,7 @@ function presenters (models) {
     var $contents = $(templates.modal).appendTo($container);
 
     app.on('show:modal', function (body) {
+      console.log('body', body)
       $contents.addClass('dgw-shown');
       $('[dgw-modal-body]').html(body);
     });
@@ -91,26 +110,9 @@ function presenters (models) {
   }
 
 
-
   return {
     main: main,
     toolbar: toolbar,
     modal: modal
-
-    // tipper: function ($container, balance) {
-    //   var $contents = $container.html($.render(templates.tipper, {balance: balance}));
-    //   var tipper = new models.Tipper(balance);
-
-    //   tipper.on('refresh:tip', function (tip) {
-
-    //   });
-
-    //   tipper.on('refresh:balance', function (balance) {
-
-    //   });
-    // }
-
-    // ,
-
   };
 }

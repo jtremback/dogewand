@@ -3,15 +3,15 @@
 
   /*global $, main_html, style_css, toolbar_html, presenters, models*/
 
-  console.log('hello.')
-
   // = include style.css
   // = include main.html
   // = include toolbar.html
+  // = include modal.html
 
   var templates = {
     main: main_html,
-    toolbar: toolbar_html
+    toolbar: toolbar_html,
+    modal: modal_html
   };
 
   // = include vendor/zepto.1.1.3.js
@@ -29,4 +29,4 @@
   $('head').append('<style>' + style_css + '</style>');
 
   presenters(models).main($('body'));
-})();
+})()
