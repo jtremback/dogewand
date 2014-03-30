@@ -17,6 +17,7 @@
   // = include vendor/zepto.1.1.3.js
   // = include vendor/riot.0.9.8.js
 
+  // = include util/ajax.js
   // = include util/jq-plugins.js
   // = include util/scrape-utils.js
 
@@ -29,4 +30,4 @@
   $('head').append('<style>' + style_css + '</style>');
 
   presenters(models).main($('body'));
-})()
+})();

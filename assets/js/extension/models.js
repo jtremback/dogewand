@@ -61,22 +61,22 @@ var models = {
       });
     };
 
-    self.createTip = function (post_data) {
-      console.log('Tips.send', post_data);
+    // self.createTip = function (post_data) {
+    //   console.log('Tips.send', post_data);
 
-      $.ajax({
-        type: 'POST',
-        url: 'https://localhost:3700/api/tip',
-        data: post_data,
-        success: function(data){
-          if (!data) return self.trigger('error');
-          self.tips.push(data);
-        },
-        error: function(xhr, type){
-          console.log('error', xhr, type);
-          return self.trigger('error');
-        }
-      });
-    };
+    //   $.ajax({
+    //     type: 'POST',
+    //     url: 'https://localhost:3700/api/tip',
+    //     data: post_data,
+    //     success: function(data){
+    //       if (!data) return self.trigger('error');
+    //       self.tips.push(data);
+    //     },
+    //     error: function(xhr, type){
+    //       console.log('error', xhr, type);
+    //       return self.trigger('error');
+    //     }
+    //   });
+    // };
   }
 };

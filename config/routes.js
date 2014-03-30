@@ -52,7 +52,7 @@ module.exports = function (app, passport) {
 
 
   app.get('/app/login', pages.login); // Login page formatted for loading within extension iframe
-  app.get('/app/tipper', pages.tipper);
+  app.get('/app/tip-create', pages.tipCreate);
 
   app.get('/api/user', ensureAuthenticated, function (req, res) {
     res.json(req.user);

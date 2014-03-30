@@ -14,7 +14,7 @@ function presenters (models) {
   function iframe () {
     app.on('create:tip', function (username) {
       var iframe = '<iframe width="300", height="300" src="' + app.url +
-      '/tipper?username=' + username +
+      '/app/tipper?username=' + username +
       '&provider=' + app.provider +
       '"></iframe>';
       app.trigger('show:modal', iframe);

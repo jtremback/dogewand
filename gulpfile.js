@@ -47,14 +47,6 @@ gulp.task('extension-styles', function () {
     .pipe(gulpNotify({ message: 'extension-styles task complete' }));
 });
 
-gulp.task('site-styles', function () {
-  return gulp.src('assets/stylus/extension.styl')
-    .pipe(stylus())
-    .pipe(gulpRename('style.css'))
-    .pipe(gulp.dest('extension/incremental'))
-    .pipe(gulpNotify({ message: 'site-styles task complete' }));
-});
-
 gulp.task('extension-html', function () {
   return gulp.src('assets/templates/extension/**/*.jade')
     .pipe(gulpJade())
@@ -70,14 +62,6 @@ gulp.task('extension-js', function () {
     .pipe(gulpNotify({ message: 'extension-js task complete' }));
 });
 
-gulp.task('site-js', function () {
-  return gulp.src(['assets/js/extension/**/*.js', 'assets/js/shared/**/*.js'])
-    .pipe(gulp.dest('extension/incremental'))
-    .pipe(gulpNotify({ message: 'site-js task complete' }));
-});
-
-
-//// COMBINE
 gulp.task('extension-incremental', function () {
   return gulp.src('extension/incremental/index.js')
     .pipe(gulpInclude())
@@ -92,14 +76,32 @@ gulp.task('extension-incremental', function () {
 
 
 
+gulp.task('site-js', function () {
+  return gulp.src(['assets/js/site/*.js'])
+    .pipe(gulpInclude())
+    .pipe(gulp.dest('public/js'))
+    .pipe(gulpNotify({ message: 'site-js task complete' }));
+});
+
+gulp.task('site-styles', function () {
+  return gulp.src('assets/stylus/site.styl')
+    .pipe(stylus())
+    .pipe(gulpRename('site.css'))
+    .pipe(gulp.dest('public/css'))
+    .pipe(gulpNotify({ message: 'site-styles task complete' }));
+});
+
+
+
+
 //// WATCH
 gulp.task('watch', function () {
   gulp.watch('assets/templates/extension/**', ['extension-html']);
-  gulp.watch('assets/stylus/**', ['extension-styles']);
-  gulp.watch('assets/js/extension/**', ['extension-js']);
+  gulp.watch('assets/stylus/**', ['extension-styles', 'site-styles']);
+  gulp.watch('assets/js/**', ['extension-js', 'site-js']);
 
   gulp.watch('extension/incremental/**', ['extension-incremental']);
 });
 
 // Build
-gulp.task('build', ['extension-html', 'extension-js', 'extension-styles', 'extension-incremental']);
+gulp.task('build', ['extension-html', 'extension-js', 'extension-styles', 'extension-incremental', 'site-styles', 'site-js']);

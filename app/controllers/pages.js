@@ -1,6 +1,7 @@
 'use strict';
 
 var config = require('../../config/config')();
+var check = require('check-types');
 
 exports.login = function (req, res) {
   if (req.user) return res.render('login', { user: req.user });
@@ -13,8 +14,24 @@ exports.app = function (req, res) {
   });
 };
 
-exports.tipper = function (req, res) {
-  res.render('tipper', {
-    url: config.url
+exports.tipCreate = function (req, res, next) {
+  var opts = {
+    username: req.query.username,
+    provider: req.query.provider
+  };
+
+  var valid = check.every(
+    check.map(opts, {
+      username: check.unemptyString,
+      provider: check.unemptyString
+    })
+  );
+
+  if (!valid) return next(new Error(400));
+
+  res.render('tip-create', {
+    url: config.url,
+    username: opts.username,
+    provider: opts.provider
   });
 };

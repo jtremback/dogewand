@@ -36,7 +36,10 @@ exports.createTip = function (req, res, next) {
 
   createTip(req.user, opts, function (err, tip) {
     if (err) return next(err);
-    return res.send(200, tip);
+    return res.render('tip-conf', {
+      opts: opts,
+      tip: tip
+    });
   });
 };
 

@@ -1,6 +1,57 @@
 plan
 
 
+How to show tip confirmation
+
+1. Send close postmessage on submit
+
+  Pros
+    * Simplest
+
+  Cons
+    * Will need to reload tips in extension, likely race condition
+
+
+2. Send post with js in iframe, send closer postmessage with data to extension
+
+  Pros
+    * Most elegant
+
+  Cons
+    * Need to write xmlhhtp requests or load zepto or other lib redundantly
+
+
+3. Redirect to iframe closer page, load tip confirmation in extension upon close
+
+  Pros
+    * Simple
+    * Eliminates race condition by controlling timing
+
+  Cons
+    * Need to make another request
+
+
+4. Submit form normally, redirect to closer page with templated-in data.
+
+  Pros
+    * Simple to build
+
+  Cons
+    * Weird
+
+
+5. Submit form normally, reload page with flash message with tip data for extension.
+
+  Pros
+    * Existing solutions
+    * Flash messages will be good to have for other stuff?
+
+  Cons
+    * Old school?
+    * Reload flicker
+    * Need to learn new module
+
+
 tip on the frontend
 
 get username for url
