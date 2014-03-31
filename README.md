@@ -18,9 +18,6 @@ Run the tests with `npm test`.
 
 TO DO:
 
--* finish up db code for accounts
--* tests
--* build routing code for tip claims
 * write frontend code for extension and site
 * security audit
 * automatic wallet backup
