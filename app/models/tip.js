@@ -23,10 +23,6 @@ var TipSchema = new Schema({
 
 TipSchema.statics = {
 
-  // opts = {
-  //   tippee_id,
-  //   amount
-  // }
   create: function (tipper, tippee, amount, callback) {
     var Self = this;
 
@@ -69,59 +65,68 @@ TipSchema.statics = {
       });
     }
   }
+
+  ,
+
+  resolve: function (user, tip_id, callback) {
+    var Self = this;
+
+    Self.findOne({ _id: tip_id }, function (err, tip) {
+      if (!tip) return callback(new Error('404 - Tip not found.'));
+
+      var user_id = user._id.toString();
+      var tipper_id = tip.tipper_id.toString();
+      var tippee_id = tip.tippee_id.toString();
+
+      if (tip.state === 'claimed') return callback(new Error('410 - Tip has already been claimed.'));
+      if (tip.state === 'canceled') return callback(new Error('410 - Tip has been cancelled.'));
+      if (tip.state !== 'created') return callback(new Error('410 - Tip is not redeemable.'));
+
+      // Check what kind of resolution this is
+      var action;
+      if (user_id === tipper_id) {
+        action = 'cancel';
+      }
+      else if (user_id === tippee_id) {
+        action = 'claim';
+      }
+      else {
+        return callback(new Error('401 - Account not allowed to access tip.'));
+      }
+
+      tip.state = action + 'ing';
+      tip.resolved_id = new ObjectID(); // resolved_id identifies the tip later
+      tip.save(function (err, tip) {
+        if (err) return callback(err);
+        return move(tip);
+      });
+
+      function move (tip) {
+        var body = {
+          method: 'move',
+          params: [ '', user._id, tip.amount, 6, tip.resolved_id ],
+        };
+
+        rpc(body, function (err) {
+          if (err) return callback(err);
+
+          tip.recipient_id = user._id;
+          tip.state = action + 'ed'; // We did it
+
+          tip.save(function (err, tip) {
+            if (err) return callback(err);
+            user.updateBalance(function (err, user) {
+              callback(err, tip, user);
+            });
+          });
+        });
+      }
+    });
+  }
 };
 
 TipSchema.methods = {
 
-  resolve: function (recipient, callback) {
-    var recipient_id = recipient._id.toString();
-    var tipper_id = this.tipper_id.toString();
-    var tippee_id = this.tippee_id.toString();
-
-    if (this.state === 'claimed') return callback(new Error('410 - Tip has already been claimed.'));
-    if (this.state === 'canceled') return callback(new Error('410 - Tip has already been cancelled.'));
-    if (this.state !== 'created') return callback(new Error('410 - Tip is not redeemable.'));
-
-    // Check what kind of resolution this is
-    var action;
-    if (recipient_id === tipper_id) {
-      action = 'cancel';
-    }
-    else if (recipient_id === tippee_id) {
-      action = 'claim';
-    }
-    else {
-      return callback(new Error('401 - Account not allowed to access tip.'));
-    }
-
-    this.state = action + 'ing';
-    this.resolved_id = new ObjectID(); // resolved_id identifies the tip later
-    this.save(function (err, tip) {
-      if (err) return callback(err);
-      return move(tip);
-    });
-
-    function move (tip) {
-      var body = {
-        method: 'move',
-        params: [ '', recipient._id, tip.amount, 6, tip.resolved_id ],
-      };
-
-      rpc(body, function (err) {
-        if (err) return callback(err);
-
-        tip.recipient_id = recipient._id;
-        tip.state = action + 'ed'; // We did it
-
-        tip.save(function (err, tip) {
-          if (err) return callback(err);
-          recipient.updateBalance(function (err, recipient) {
-            callback(err, tip, recipient);
-          });
-        });
-      });
-    }
-  }
 
 };
 

@@ -7,9 +7,8 @@ var rpc = require('../rpc')(config.rpc);
 
 var AccountSchema = new Schema({
   balance: { type: Number, default: 0 }, // updateBalance should be used whenever the balance is changed or read from dogecoind
-  providers: [
-    { provider: String, username: String }
-  ]
+  provider: String,
+  username: String
 });
 
 
@@ -26,10 +25,8 @@ AccountSchema.statics = {
       if (err) { return callback(err); }
       if (!account) {
         account = new Self({
-          'providers': [{
-            'username': opts.username,
-            'provider': opts.provider
-          }]
+          'username': opts.username,
+          'provider': opts.provider
         });
         return account.save(callback);
       }

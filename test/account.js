@@ -53,8 +53,8 @@ test('- Account model', function (t) {
       wallet_a = results[1][0]; // Save for later
       wallet_b = results[1][1];
 
-      t.equal(results[1][0].providers[0].username, 'Jehoon');
-      t.equal(results[1][0].providers[0].provider, 'farcebook');
+      t.equal(results[1][0].username, 'Jehoon');
+      t.equal(results[1][0].provider, 'farcebook');
 
       t.notEqual(wallet_a, results[1][2]._id.toString()); // Make sure we are really upserting
       t.end();

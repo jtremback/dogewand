@@ -25,8 +25,8 @@ module.exports = function (passport, config) {
       callbackURL: config.url +  '/auth/facebook/callback'
     }, function (accessToken, refreshToken, profile, done) {
       Account.upsert({
-        'providers.provider': 'facebook',
-        'providers.username': profile.username
+        provider: 'facebook',
+        username: profile.username
       }, done);
     }
   ));
