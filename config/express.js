@@ -4,9 +4,9 @@
  * Module dependencies.
  */
 
-var express = require('express')
-  , connectMongo = require('connect-mongo')(express)
-;
+var express = require('express');
+var connectMongo = require('connect-mongo')(express);
+var flash = require('connect-flash');
 
 
 module.exports = function (app, config, passport) {
@@ -48,21 +48,17 @@ module.exports = function (app, config, passport) {
     app.use(passport.initialize());
     app.use(passport.session());
 
+    app.use(flash());
+
     // adds CSRF support
-    if (process.env.NODE_ENV !== 'test') {
-      app.use(express.csrf());
-
-      app.use(function(req, res, next){
-        res.locals.csrf_token = req.csrfToken();
-        next();
-      });
-    }
+    // app.use(express.csrf());
+    // app.use(function(req, res, next){
+    //   res.locals.csrf_token = req.csrfToken();
+    //   next();
+    // });
 
 
-    /**
-     * CORS support.
-     */
-
+    // adds CORS support
     app.all('*', function(req, res, next){
       if (!req.get('Origin')) return next();
 

@@ -1,26 +1,25 @@
 'use strict';
 
 var mongoose = require('mongoose');
-var Account = mongoose.model('Account');
-var Tip = mongoose.model('Tip');
 var logic = require('./logic');
 
 
-exports.createTip = function (req, res) {
+exports.createTip = function (req, res, next) {
+  console.log('BODY', req.body)
+  console.log('PARAMS', req.param('amount'))
   var opts = {
-    username: req.params.username,
-    provider: req.params.provider,
-    amount: req.params.amount
+    username: req.param('username'),
+    provider: req.param('provider'),
+    amount: parseInt(req.body.amount, 10) // Coerce to int
   };
 
-  logic.createTip(req.user, opts, function (err, tip, user) {
-    if (err) {
-      return res.render('error');
-    }
+  logic.createTip(req.user, opts, function (err, tip, tipper, tippee) {
+    if (err) return next(err);
 
     return res.render('tip-created', {
       tip: tip,
-      opts: opts
+      tipper: tipper,
+      tippee: tippee
     });
   });
 };
@@ -30,10 +29,8 @@ exports.resolveTip = function (req, res, next) {
   var tip_id = req.tip_id;
   var user = req.user;
 
-  Tip.resolve(user, tip_id, function (err, tip, user) {
-    if (err) {
-      return res.render('error');
-    }
+  logic.resolveTip(user, tip_id, function (err, tip, user) {
+    if (err) return next(err);
 
     return res.render('tip-resolved', {
       tip: tip,

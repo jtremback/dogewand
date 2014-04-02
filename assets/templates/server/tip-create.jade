@@ -1,5 +1,5 @@
-form#tip-create(action="#{url}", method="POST")
-  input(type='hidden', name='_csrf', value="#{token}")
+form#tip-create(action="#{url}/tips/create?username=#{username}&provider=#{provider}", method="POST")
+  input(type="hidden", name="_csrf", value="#{csrf_token}")
 
   label
     |Tip D

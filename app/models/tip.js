@@ -43,7 +43,7 @@ TipSchema.statics = {
         });
       }
 
-      else return callback(402); // You are BROKE!
+      else return callback('Sorry, you don\'t have enough to make this tip.'); // You are BROKE!
     });
 
     function move (tip, tipper) {
@@ -59,7 +59,7 @@ TipSchema.statics = {
         tipper.updateBalance(function (err, tipper) { // Update account with new balance
           if (err) return callback(err);
           tip.save(function (err, tip) {
-            return callback(err, tip, tipper);
+            return callback(err, tip, tipper, tippee);
           }); // Done
         });
       });
@@ -68,19 +68,21 @@ TipSchema.statics = {
 
   ,
 
-  resolve: function (user, tip_id, callback) {
+  resolve: function (tip_id, user, callback) {
     var Self = this;
 
     Self.findOne({ _id: tip_id }, function (err, tip) {
-      if (!tip) return callback(new Error('404 - Tip not found.'));
+      if (!tip) return callback(new Error('Tip not found.'));
+
+      if ((user_id !== tipper_id) || (user_id !== tippee_id)) return callback(new Error('This is not your tip.'));
 
       var user_id = user._id.toString();
       var tipper_id = tip.tipper_id.toString();
       var tippee_id = tip.tippee_id.toString();
 
-      if (tip.state === 'claimed') return callback(new Error('410 - Tip has already been claimed.'));
-      if (tip.state === 'canceled') return callback(new Error('410 - Tip has been cancelled.'));
-      if (tip.state !== 'created') return callback(new Error('410 - Tip is not redeemable.'));
+      if (tip.state === 'claimed') return callback(new Error('Tip has already been claimed.'));
+      if (tip.state === 'canceled') return callback(new Error('Tip has been cancelled.'));
+      if (tip.state !== 'created') return callback(new Error('Tip error. Contact support.'));
 
       // Check what kind of resolution this is
       var action;
@@ -91,7 +93,7 @@ TipSchema.statics = {
         action = 'claim';
       }
       else {
-        return callback(new Error('401 - Account not allowed to access tip.'));
+        return callback(new Error('This is not your tip.'));
       }
 
       tip.state = action + 'ing';
@@ -104,19 +106,19 @@ TipSchema.statics = {
       function move (tip) {
         var body = {
           method: 'move',
-          params: [ '', user._id, tip.amount, 6, tip.resolved_id ],
+          params: [ '', user_id, tip.amount, 6, tip.resolved_id ],
         };
 
         rpc(body, function (err) {
           if (err) return callback(err);
 
-          tip.recipient_id = user._id;
+          tip.recipient_id = user_id;
           tip.state = action + 'ed'; // We did it
 
           tip.save(function (err, tip) {
             if (err) return callback(err);
             user.updateBalance(function (err, user) {
-              callback(err, tip, user);
+              callback(err, tip, user, tippee);
             });
           });
         });

@@ -2,10 +2,6 @@
 
 /*global $, templates, scrape_utils*/
 
-// App
-
-
-
 function presenters (models) {
 
   var app = new models.App();
@@ -14,7 +10,7 @@ function presenters (models) {
   function iframe () {
     app.on('create:tip', function (username) {
       var iframe = '<iframe width="300", height="300" src="' + app.url +
-      '/app/tipper?username=' + username +
+      '/tips/create?username=' + username +
       '&provider=' + app.provider +
       '"></iframe>';
       app.trigger('show:modal', iframe);

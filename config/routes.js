@@ -1,69 +1,27 @@
 'use strict';
 
-var api = require('../app/controllers/api'),
-  pages = require('../app/controllers/pages')
-;
-
-// get api
-//   smoke test
-
-// get api/user
-//   current logged in user data
-
-// get api/user/tips
-//   get current user's tips
-
-// post api/tip/create_tip
-//   create tip
-
-// post api/tip/claim_tip
-//   claim tip
-
-// post api/tip/cancel_tip
-//   cancel tip
-
-
-
-// get /
-// view landing page
-// get tip/:_id
-//   view tip page
-
-// get account
-//   view account of signed in user
-
-// get extension/*
-//   pages formatted for an iframe in the extension
-
-// get extension/login
-//   login with x button
+var pages = require('../app/controllers/pages');
+var forms = require('../app/controllers/forms');
 
 
 module.exports = function (app, passport) {
 
   app.get('/', pages.app);
 
+  app.get('/tips/create', pages.tipCreate);
+  app.post('/tips/create', forms.createTip);
 
-  // Smoke test
-  app.get('/api', function (req, res) {
-    console.log(req);
-    res.status(200).send('200 OK');
-  });
+  app.get('/tips/:tip', pages.tip);
+  app.post('/tips/:tip', forms.resolveTip);
 
-
-  app.get('/app/login', pages.login); // Login page formatted for loading within extension iframe
-  app.get('/app/tip-create', pages.tipCreate);
 
   app.get('/api/user', ensureAuthenticated, function (req, res) {
     res.json(req.user);
   });
 
-  app.post('/api/tip', ensureAuthenticated, api.createTip);
+  app.get('/auth/login', pages.login);
 
-
-  app.get('/auth/facebook',
-    passport.authenticate('facebook'),
-    function () {});
+  app.get('/auth/facebook', passport.authenticate('facebook'), function () {});
 
   app.get('/auth/facebook/callback',
     passport.authenticate('facebook', { failureRedirect: '/extension/login' }),
