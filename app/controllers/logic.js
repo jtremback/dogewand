@@ -15,8 +15,6 @@ exports.createTip = function (user, opts, callback) {
     })
   );
 
-  console.log('opts', opts, valid)
-
   if (!valid) return callback(new Error(400));
   if (opts.username === user.username) callback(new Error('You cannot tip yourself.'));
 

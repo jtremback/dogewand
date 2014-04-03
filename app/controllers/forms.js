@@ -5,8 +5,6 @@ var logic = require('./logic');
 
 
 exports.createTip = function (req, res, next) {
-  console.log('BODY', req.body)
-  console.log('PARAMS', req.param('amount'))
   var opts = {
     username: req.param('username'),
     provider: req.param('provider'),
