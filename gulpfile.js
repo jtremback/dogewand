@@ -30,78 +30,88 @@ function varWrap (file) {
   ]);
 }
 
-var stylus = lazypipe()
+var lazyStylus = lazypipe() // dry
   .pipe(gulpStylus)
   .pipe(gulpAutoprefixer, 'last 5 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 4')
   .pipe(gulpDataUri)
   .pipe(gulpMinifyCss);
 
 
-//// PREPROCESS
-gulp.task('extension-styles', function () {
-  return gulp.src('assets/stylus/extension.styl')
-    .pipe(stylus())
+
+// IFRAME LOADER
+gulp.task('loader-js', function () {
+  return gulp.src(['assets/js/loader/**/*.js', 'assets/js/shared/**/*.js'])
+    .pipe(gulpTemplate({url: config.url})) // Add magic numbers like url etc.
+    .pipe(gulp.dest('incremental/loader'))
+    .pipe(gulpNotify({ message: 'loader-js task complete' }));
+});
+
+gulp.task('loader-styles', function () {
+  return gulp.src('assets/stylus/loader.styl')
+    .pipe(lazyStylus())
     .pipe(gulpRename('style.css'))
     .pipe(gulpTap(varWrap))
-    .pipe(gulp.dest('extension/incremental'))
-    .pipe(gulpNotify({ message: 'extension-styles task complete' }));
+    .pipe(gulp.dest('incremental/loader'))
+    .pipe(gulpNotify({ message: 'loader-styles task complete' }));
 });
 
-gulp.task('extension-html', function () {
-  return gulp.src('assets/templates/extension/**/*.jade')
-    .pipe(gulpJade())
-    .pipe(gulpTap(varWrap))
-    .pipe(gulp.dest('extension/incremental'))
-    .pipe(gulpNotify({ message: 'extension-html task complete' }));
-});
-
-gulp.task('extension-js', function () {
-  return gulp.src(['assets/js/extension/**/*.js', 'assets/js/shared/**/*.js'])
-    .pipe(gulpTemplate({url: config.url}))
-    .pipe(gulp.dest('extension/incremental'))
-    .pipe(gulpNotify({ message: 'extension-js task complete' }));
-});
-
-gulp.task('extension-incremental', function () {
-  return gulp.src('extension/incremental/index.js')
+gulp.task('loader-incremental', function () {
+  return gulp.src('incremental/loader/index.js')
     .pipe(gulpInclude())
     .pipe(gulpRename('content_script.js'))
-    .pipe(gulp.dest('extension/chrome'))
+    .pipe(gulp.dest('loader/chrome'))
     .pipe(gulpRename('bookmarklet.js'))
-    .pipe(gulp.dest('extension/bookmarklet'))
+    .pipe(gulp.dest('loader/bookmarklet'))
+    .pipe(gulpNotify({ message: 'loader-incremental task complete' }));
+});
+
+
+
+// IFRAME CONTENTS
+gulp.task('app-styles', function () {
+  return gulp.src('assets/stylus/app.styl')
+    .pipe(lazyStylus())
+    .pipe(gulpRename('app.css'))
+    .pipe(gulp.dest('public/css')) // Put into public folder for good caching
+    .pipe(gulpNotify({ message: 'app-styles task complete' }));
+});
+
+// gulp.task('app-html', function () {
+//   return gulp.src('assets/templates/app/**/*.jade')
+//     .pipe(gulpJade())
+//     .pipe(gulpTap(varWrap)) // Wrap in variable for use in js
+//     .pipe(gulp.dest('incremental/app'))
+//     .pipe(gulpNotify({ message: 'app-html task complete' }));
+// });
+
+gulp.task('app-js', function () {
+  return gulp.src(['assets/js/app/**/*.js', 'assets/js/shared/**/*.js'])
+    .pipe(gulpTemplate({url: config.url})) // Add magic numbers like url etc.
+    .pipe(gulp.dest('incremental/app')) // Put into incremental folder for further processing
+    .pipe(gulpNotify({ message: 'app-js task complete' }));
+});
+
+gulp.task('app-incremental', function () {
+  return gulp.src('incremental/app/index.js')
+    .pipe(gulpInclude()) // Bring it all together
     .pipe(gulpRename('app.js'))
     .pipe(gulp.dest('public/js'))
-    .pipe(gulpNotify({ message: 'extension-incremental task complete' }));
+    .pipe(gulpNotify({ message: 'app-incremental task complete' }));
 });
-
-
-
-gulp.task('site-js', function () {
-  return gulp.src(['assets/js/site/*.js'])
-    .pipe(gulpInclude())
-    .pipe(gulp.dest('public/js'))
-    .pipe(gulpNotify({ message: 'site-js task complete' }));
-});
-
-gulp.task('site-styles', function () {
-  return gulp.src('assets/stylus/site.styl')
-    .pipe(stylus())
-    .pipe(gulpRename('site.css'))
-    .pipe(gulp.dest('public/css'))
-    .pipe(gulpNotify({ message: 'site-styles task complete' }));
-});
-
 
 
 
 //// WATCH
 gulp.task('watch', function () {
-  gulp.watch('assets/templates/extension/**', ['extension-html']);
-  gulp.watch('assets/stylus/**', ['extension-styles', 'site-styles']);
-  gulp.watch('assets/js/**', ['extension-js', 'site-js']);
+  gulp.watch('assets/stylus/**', ['app-styles', 'loader-styles']);
+  gulp.watch('assets/js/**', ['app-js', 'loader-js']);
 
-  gulp.watch('extension/incremental/**', ['extension-incremental']);
+  // gulp.watch('assets/templates/app/**', ['app-html']);
+  gulp.watch('incremental/app/**', ['app-incremental']);
+  gulp.watch('incremental/loader/**', ['loader-incremental']);
 });
 
-// Build
-gulp.task('build', ['extension-html', 'extension-js', 'extension-styles', 'extension-incremental', 'site-styles', 'site-js']);
+
+
+// BUILD
+gulp.task('build', ['app-js', 'app-styles', 'app-incremental', 'loader-styles', 'loader-js']);

@@ -6,20 +6,20 @@ var forms = require('../app/controllers/forms');
 
 module.exports = function (app, passport) {
 
-  app.get('/', pages.app);
-
-  app.get('/tips/create', pages.tipCreate);
-  app.post('/tips/create', forms.createTip);
+  app.get('/app/tips/create', pages.tipCreate);
+  app.post('/app/tips/create', forms.createTip);
 
   app.get('/tips/:tip', pages.tip);
   app.post('/tips/:tip', forms.resolveTip);
 
+  // app.get('/app/account/withdraw', pages.withdraw);
+  // app.post('/app/account/withdraw', forms.withdraw);
 
-  app.get('/api/user', ensureAuthenticated, function (req, res) {
-    res.json(req.user);
-  });
+  app.get('/app/account/address', pages.address);
 
-  app.get('/auth/login', pages.login);
+  app.get('/app/account/login', pages.login);
+
+  app.get('/app/toolbar', pages.toolbar);
 
   app.get('/auth/facebook', passport.authenticate('facebook'), function () {});
 
@@ -36,10 +36,6 @@ module.exports = function (app, passport) {
 
 
 };
-
-function onlyFromSite (req, res, next) {
-
-}
 
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) { return next(); }

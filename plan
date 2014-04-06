@@ -1,6 +1,42 @@
 plan
 
 
+
+
+Putting whole thing in iframe-
+
+  * Load zepto twice- fuck it (maybe use native dom stuff??)
+  * Channel.js framework if needed? probably not right now
+  * Just seperate the shit out, put dom scraping stuff outside.
+
+  * Seperate lib file in iframe- like normal website
+  * Still concatting everything outside
+
+  Outside script functionality:
+    * Load and resize iframe
+    * Page scraping functionality
+    * Talk to stuff inside
+    * Does it need to even do any ajax???
+    * Be as small as possible
+
+  Iframe script functionality:
+    * Send resize messages
+    * Pop modals
+    * Display forms
+    * Send ajax or possibly just form submits?
+    * MVP for toolbar, balance. later, tips lists
+
+  Preprocessing needed:
+
+    Outside script:
+      * Concat lib stuff
+      * Minify
+      * Incremental not needed? (unless there is html or smthing?)
+
+    Iframe script:
+      * Same stuff from before- incremental etc.
+      * Put css straight in page, process seperately
+
 How to show tip confirmation
 
 1. Send close postmessage on submit

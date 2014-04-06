@@ -1,0 +1,19 @@
+extend ../layout
+
+block message
+  h1 Wow!
+
+  if user
+    p #{tip.tipper} has tipped you D#{tip.amount}.
+
+    p
+      form(action="#{path}", method="POST")
+        input(type="hidden", name="_csrf", value="#{csrf_token}")
+        button(type="submit") Claim your tip.
+
+  else
+    p #{tip.tipper} has tipped #{tip.tippee} D#{tip.amount}.
+
+    p If this is you,
+      a(href="auth/#{user.provider}") sign in with #{user.provider}
+      | to claim your tip.

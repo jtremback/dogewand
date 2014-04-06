@@ -14,7 +14,7 @@ exports.createTip = function (req, res, next) {
   logic.createTip(req.user, opts, function (err, tip, tipper, tippee) {
     if (err) return next(err);
 
-    return res.render('tip-created', {
+    return res.render('modals/tip-created', {
       tip: tip,
       tipper: tipper,
       tippee: tippee
@@ -30,7 +30,7 @@ exports.resolveTip = function (req, res, next) {
   logic.resolveTip(user, tip_id, function (err, tip, user) {
     if (err) return next(err);
 
-    return res.render('tip-resolved', {
+    return res.render('pages/tip-resolved', {
       tip: tip,
       user: user
     });
