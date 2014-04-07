@@ -115,7 +115,7 @@ test('- Tip model', function (t) {
       }, function (err, old_balance) {
         Tip.resolve(tip._id, wallet_a, function (err, tip, user) {
           t.error(err);
-          t.equal(tip.recipient_id, wallet_a._id, 'tip.recipient_id correct');
+          t.equal(tip.recipient_id.toString(), wallet_a._id.toString(), 'tip.recipient_id correct');
           t.deepEqual(wallet_a, user, 'user correct');
           t.equal(user.balance, old_balance + amount, 'user balance correct');
           t.end();
@@ -130,11 +130,11 @@ test('- Tip model', function (t) {
         method: 'getbalance', // Check balance beforehand
         params: [wallet_b._id]
       }, function (err, old_balance) {
-        Tip.resolve(tip._id, wallet_b, function (err, tip, recipient) {
+        Tip.resolve(tip._id, wallet_b, function (err, tip, user) {
           t.error(err);
-          t.equal(wallet_b._id, tip.recipient_id, 'recipient_id correct');
-          t.deepEqual(wallet_b, recipient, 'recipient correct');
-          t.equal(recipient.balance, old_balance + amount, 'recipient balance correct');
+          t.equal(wallet_b._id.toString(), tip.recipient_id.toString(), 'tip.recipient_id correct');
+          t.deepEqual(wallet_b, user, 'user correct');
+          t.equal(user.balance, old_balance + amount, 'user balance correct');
           t.end();
         });
       });

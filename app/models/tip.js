@@ -31,7 +31,6 @@ TipSchema.statics = {
       var balance = tipper.balance;
 
       if ((balance - amount) > 0) { // Check funds
-
         new Self({
           tipper_id: tipper._id,
           tippee_id: tippee._id,
@@ -43,7 +42,7 @@ TipSchema.statics = {
         });
       }
 
-      else return callback('Sorry, you don\'t have enough to make this tip.'); // You are BROKE!
+      else return callback(402); // You are BROKE!
     });
 
     function move (tip, tipper) {
@@ -118,7 +117,7 @@ TipSchema.statics = {
           tip.save(function (err, tip) {
             if (err) return callback(err);
             user.updateBalance(function (err, user) {
-              callback(err, tip, user, tippee);
+              callback(err, tip, user);
             });
           });
         });
