@@ -3,9 +3,10 @@
 var test = require('tape');
 var mongoose = require('mongoose');
 var config = require('../config/config')('test');
-var rpc = require('../app/rpc')(config.rpc);
 var async = require('async');
 var utility = require('../test-utility');
+var DogeAPI = require('dogeapi');
+var dogeApi = new DogeAPI(config.dogeapi.creds);
 
 
 
@@ -21,12 +22,9 @@ test('- Tip model', function (t) {
   });
 
   // Bootstrap models
-  var fs = require('fs');
-  var path = require('path');
-  var models_path = path.resolve(__dirname, '../app/models');
-  fs.readdirSync(models_path).forEach(function (file) {
-    if (~file.indexOf('.js')) require(models_path + '/' + file);
-  });
+  var base = '../app/models/';
+  require(base + 'account.js');
+  require(base + 'tip.js');
 
   var Tip = mongoose.model('Tip');
   var Account = mongoose.model('Account');
@@ -52,27 +50,22 @@ test('- Tip model', function (t) {
       t.error(err);
       wallet_a = results[1][0];
       wallet_b = results[1][1];
-      seedFunds();
-    });
-
-    function seedFunds () {
-      rpc({
-        method: 'move', // Move some funds to test with
-        params: ['', wallet_a._id, 6]
-      }, function (err) {
+      console.log('results', wallet_a._id)
+      dogeApi.moveToUser(wallet_a._id.toString(), config.dogeapi.root, 6, function (err) {
         t.notOk(err, 'move');
         t.end();
       });
-    }
+    });
   });
 
   // Action
   t.test('create', function (t) {
 
-    rpc({
-      method: 'getbalance', // Check balance beforehand
-      params: [ wallet_a._id ]
-    }, function (err, old_balance) {
+    // rpc({
+    //   method: 'getbalance', // Check balance beforehand
+    //   params: [ wallet_a._id ]
+    // }, function (err, old_balance) {
+    dogeApi.getUserBalance(wallet_a._id, function (err, old_balance) {
       Tip.create(wallet_a, wallet_b, amount, function (err, tip) {
         t.error(err, 'Tip.create');
         t.equal(tip.tipper_id, wallet_a._id, 'mongo tipper correct');
@@ -84,10 +77,7 @@ test('- Tip model', function (t) {
           t.equal(account.balance, old_balance - amount, 'account has been properly debited');
         });
 
-        rpc({
-          method: 'listtransactions',
-          params: [ wallet_a._id, 1 ]
-        }, function (err, result) {
+        dogeApi.getTransactions(1, 'move', function (err, result) {
           t.error(err);
           result = result[0];
           t.equal(result.amount, -amount, 'dogecoind amount correct');
@@ -109,10 +99,7 @@ test('- Tip model', function (t) {
 
   t.test('claim', function (t) {
     Tip.create(wallet_a, wallet_b, amount, function (err, tip) {
-      rpc({
-        method: 'getbalance', // Check balance beforehand
-        params: [wallet_a._id]
-      }, function (err, old_balance) {
+      dogeApi.getUserBalance(wallet_a._id, function (err, old_balance) {
         Tip.resolve(tip._id, wallet_a, function (err, tip, user) {
           t.error(err);
           t.equal(tip.recipient_id.toString(), wallet_a._id.toString(), 'tip.recipient_id correct');
@@ -126,10 +113,7 @@ test('- Tip model', function (t) {
 
   t.test('cancel', function (t) {
     Tip.create(wallet_a, wallet_b, amount, function (err, tip) {
-      rpc({
-        method: 'getbalance', // Check balance beforehand
-        params: [wallet_b._id]
-      }, function (err, old_balance) {
+      dogeApi.getUserBalance(wallet_b._id, function (err, old_balance) {
         Tip.resolve(tip._id, wallet_b, function (err, tip, user) {
           t.error(err);
           t.equal(wallet_b._id.toString(), tip.recipient_id.toString(), 'tip.recipient_id correct');

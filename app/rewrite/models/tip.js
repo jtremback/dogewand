@@ -3,7 +3,7 @@
 var mongoose = require('mongoose');
 var config = require('../../config/config')();
 var Schema = mongoose.Schema;
-var DogeAPI = require('dogeapi');
+var DogeAPI = require('../src/index.js');
 var dogeApi = new DogeAPI(config.dogeapi.creds);
 
 
@@ -32,7 +32,7 @@ TipSchema.statics = {
     });
 
     function move (tip, tipper) {
-      dogeApi.moveToUser(config.dogeapi.root, tipper._id, tip.amount, function (err, txid) { // Move to main wallet
+      dogeApi.moveToUser('', tipper._id, tip.amount, function (err, txid) { // Move to main wallet
         if (err) return callback(err);
 
         tip.state = 'created'; // We did it
@@ -84,7 +84,7 @@ TipSchema.statics = {
       });
 
       function move (tip) {
-        dogeApi.moveToUser(user._id, config.dogeapi.root, tip.amount, function (error, txid) { // Move to user from  main
+        dogeApi.moveToUser(user._id, '', tip.amount, function (error, txid) { // Move to user from  main
           if (err) return callback(err);
 
           tip.recipient_id = user_id;

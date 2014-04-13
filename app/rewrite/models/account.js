@@ -3,7 +3,7 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var config = require('../../config/config')();
-var DogeAPI = require('dogeapi');
+var DogeAPI = require('../src/index.js');
 var dogeApi = new DogeAPI(config.dogeapi.creds);
 
 var AccountSchema = new Schema({
@@ -30,8 +30,7 @@ AccountSchema.statics = {
           'username': opts.username,
           'provider': opts.provider
         });
-        console.log('accernt', account)
-        dogeApi.createUser(account._id.toString(), function (err, address) {
+        dogeApi.createUser(account._id, function (err, address) {
           if (err) return callback(err);
           account.address = address;
           return account.save(callback);
@@ -72,6 +71,3 @@ AccountSchema.methods = {
     });
   }
 };
-
-
-mongoose.model('Account', AccountSchema);

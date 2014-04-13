@@ -3,36 +3,24 @@
 var async = require('async');
 var _ = require('lodash');
 var config = require('../config/config')('test');
-var rpc = require('../app/rpc')(config.rpc);
+var DogeAPI = require('dogeapi');
+var dogeApi = new DogeAPI(config.dogeapi.creds);
 
 exports.resetBalances = function (callback) {
-  rpc({
-    method: 'listaccounts',
-    params: [0]
-  }, function (err, accounts) {
-    var pairs = _.pairs(accounts);
+  dogeApi.getUsers(function (err, users) {
+    if (err) return callback(err);
+    console.log(users)
 
-    async.each(pairs, function (pair, cb) {
-
-      if (pair[1] === 0 || pair[0] === '') return cb(); // If account balance is 0 or account is root
-
-      var params;
-      if (pair[1] < 0) params = [ '', pair[0], pair[1] ]; // If balance is less than 0, move other direction
-      else params = [ pair[0], '', pair[1] ]; // Otherwise move amount to root
-
-      console.log('params', params);
-
-      rpc({
-        method: 'move',
-        params: params
-      }, cb);
-
+    async.each(users, function (user, cb) {
+      if (user.user_balance === 0 || user.user_id === config.dogeapi.root) return cb(); // If account balance is 0 or account is root
+      dogeApi.moveToUser(config.dogeapi.root, user.user_id, 6, cb);
     }, callback);
   });
 };
 
 exports.resetMongo = function (Models, callback) {
   async.each(Models, function (Model, cb) {
+
     Model.find({}).remove(cb);
   }, callback);
 };
