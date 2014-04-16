@@ -6,14 +6,9 @@ var async = require('async');
 var config = require('../config/config')('test');
 var rpc = require('../app/rpc')(config.rpc);
 var utility = require('../test-utility');
-// var models = require('../test-utility/models.js');
-
-// var Tip = models.Account;
-// var Account = models.Account;
-
-
-// var app = require('../');
-
+require('../app/models/account.js');
+require('../app/models/tip.js');
+var logic = require('../app/controllers/logic.js');
 
 function getBalances(_ids, callback) {
   async.map(_ids, iterator, callback);
@@ -26,7 +21,7 @@ function getBalances(_ids, callback) {
   }
 }
 
-test('- API controller', function (t) {
+test('---------------------------------------- logic.js', function (t) {
   // Connect to mongodb
   mongoose.connect(config.db, {
     auto_reconnect: true,
@@ -37,27 +32,15 @@ test('- API controller', function (t) {
     }
   });
 
-  // Bootstrap models
-  var fs = require('fs');
-  var path = require('path');
-  var models_path = path.resolve(__dirname, '../app/models');
-  fs.readdirSync(models_path).forEach(function (file) {
-    if (~file.indexOf('.js')) require(models_path + '/' + file);
-  });
-
   var Tip = mongoose.model('Tip');
   var Account = mongoose.model('Account');
 
-
-  // Needs to be required under models
-  var logic = require('../app/controllers/logic.js');
-
   var amount = 1;
+  var wallet_a;
+  var wallet_b;
 
-  var accounts;
-
-  t.test('setup', function (t) {
-    var opts = [{
+  t.test('reset', function (t) {
+    var accounts = [{
       username: 'Jehoon',
       provider: 'farcebook'
     }, {
@@ -65,51 +48,39 @@ test('- API controller', function (t) {
       provider: 'farcebook'
     }];
 
-    async.series([
-      async.apply(utility.resetMongo, [ Tip, Account ]),
-      async.apply(utility.fakeAccounts, Account, opts),
-      utility.resetBalances
-    ], function (err, results) {
-      t.error(err);
-      accounts = results[1];
-      seedFunds();
+    utility.init(Tip, Account, accounts, function (err, wallet_a1, wallet_b1) {
+      wallet_a = wallet_a1;
+      wallet_b = wallet_b1;
+      t.end();
     });
-
-    function seedFunds () {
-      rpc({
-        method: 'move', // Move some funds to test with
-        params: ['', accounts[0]._id, 6]
-      }, function (err) {
-        t.error(err);
-        t.end();
-      });
-    }
   });
+
+
+
+
 
   t.test('createTip to existing account', function (t) {
     var opts = {
-      username: accounts[1].username,
-      provider: accounts[1].provider,
+      username: wallet_b.username,
+      provider: wallet_b.provider,
       amount: amount
     };
 
-    getBalances([accounts[0]._id, ''], function (err, old_balances) {
-      logic.createTip(accounts[0], opts, function (err, tip, tipper, tippee) {
-        t.error(err, 'createTip');
+    logic.createTip(wallet_a, opts, function (err) {
+      t.error(err, 'createTip');
 
-        getBalances([accounts[0]._id, ''], function (err, new_balances) {
-          t.equal(old_balances[0] - amount, new_balances[0], 'tipper acct. debited');
-          t.equal(old_balances[1] + amount, new_balances[1], 'root acct. credited');
+      setTimeout(function () {
+        rpc({
+          method: 'listtransactions',
+          params: [ wallet_a._id, 1 ]
+        }, function (err, result) {
+          t.error(err);
+          result = result[0];
+          t.equal(result.amount, -amount, 'dogecoind amount correct');
+          t.equal(result.otheraccount, '', 'dogecoind otheraccount correct');
+          t.end();
         });
-
-        t.equal(accounts[0]._id.toString(), tip.tipper_id.toString(), 'tip.tipper_id correct');
-        t.equal(accounts[0]._id.toString(), tipper._id.toString(), 'tipper._id correct');
-
-        t.equal(accounts[1]._id.toString(), tip.tippee_id.toString(), 'tip.tippee_id correct');
-        t.equal(accounts[1]._id.toString(), tippee._id.toString(), 'tippee._id correct');
-
-        t.end();
-      });
+      }, 2000);
     });
   });
 
@@ -120,13 +91,21 @@ test('- API controller', function (t) {
       amount: amount
     };
 
-    logic.createTip(accounts[0], opts, function (err, tip, tipper, tippee) {
+    logic.createTip(wallet_a, opts, function (err) {
       t.error(err, 'createTip');
 
-      t.equal(tippee._id, tip.tippee_id, 'tippee_id correct');
-      t.equal(opts.username, tippee.username, 'tippee.username correct');
-      t.equal(opts.provider, tippee.provider, 'tippee.provider correct');
-      t.end();
+      setTimeout(function () {
+        rpc({
+          method: 'listtransactions',
+          params: [ wallet_a._id, 1 ]
+        }, function (err, result) {
+          t.error(err);
+          result = result[0];
+          t.equal(result.amount, -amount, 'dogecoind amount correct');
+          t.equal(result.otheraccount, '', 'dogecoind otheraccount correct');
+          t.end();
+        });
+      }, 2000);
     });
   });
 

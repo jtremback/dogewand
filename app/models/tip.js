@@ -23,7 +23,7 @@ var TipSchema = new Schema({
 
 TipSchema.statics = {
 
-  create: function (tipper, tippee, amount, callback) {
+  create: function (tipper, tippee, amount, tip_id, callback) {
     var Self = this;
 
     tipper.updateBalance(function (err, tipper) {
@@ -32,6 +32,7 @@ TipSchema.statics = {
 
       if ((balance - amount) > 0) { // Check funds
         new Self({
+          _id: tip_id,
           tipper_id: tipper._id,
           tippee_id: tippee._id,
           amount: amount,
@@ -126,9 +127,5 @@ TipSchema.statics = {
   }
 };
 
-TipSchema.methods = {
-
-
-};
 
 mongoose.model('Tip', TipSchema);

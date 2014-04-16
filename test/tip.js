@@ -9,7 +9,7 @@ var utility = require('../test-utility');
 
 
 
-test('- Tip model', function (t) {
+test('---------------------------------------- tip.js', function (t) {
   // Connect to mongodb
   mongoose.connect(config.db, {
     auto_reconnect: true,
@@ -20,13 +20,8 @@ test('- Tip model', function (t) {
     }
   });
 
-  // Bootstrap models
-  var fs = require('fs');
-  var path = require('path');
-  var models_path = path.resolve(__dirname, '../app/models');
-  fs.readdirSync(models_path).forEach(function (file) {
-    if (~file.indexOf('.js')) require(models_path + '/' + file);
-  });
+  require('../app/models/account.js');
+  require('../app/models/tip.js');
 
   var Tip = mongoose.model('Tip');
   var Account = mongoose.model('Account');
@@ -44,36 +39,25 @@ test('- Tip model', function (t) {
       provider: 'farcebook'
     }];
 
-    async.series([
-      async.apply(utility.resetMongo, [ Tip, Account ]),
-      async.apply(utility.fakeAccounts, Account, accounts),
-      utility.resetBalances
-    ], function (err, results) {
-      t.error(err);
-      wallet_a = results[1][0];
-      wallet_b = results[1][1];
-      seedFunds();
+    utility.init(Tip, Account, accounts, function (err, wallet_a1, wallet_b1) {
+      wallet_a = wallet_a1;
+      wallet_b = wallet_b1;
+      t.end();
     });
-
-    function seedFunds () {
-      rpc({
-        method: 'move', // Move some funds to test with
-        params: ['', wallet_a._id, 6]
-      }, function (err) {
-        t.notOk(err, 'move');
-        t.end();
-      });
-    }
   });
+
+
+
 
   // Action
   t.test('create', function (t) {
+    var tip_id = mongoose.Types.ObjectId();
 
     rpc({
       method: 'getbalance', // Check balance beforehand
       params: [ wallet_a._id ]
     }, function (err, old_balance) {
-      Tip.create(wallet_a, wallet_b, amount, function (err, tip) {
+      Tip.create(wallet_a, wallet_b, amount, tip_id, function (err, tip) {
         t.error(err, 'Tip.create');
         t.equal(tip.tipper_id, wallet_a._id, 'mongo tipper correct');
         t.equal(tip.tippee_id, wallet_b._id, 'mongo tippee_id correct');
@@ -100,15 +84,18 @@ test('- Tip model', function (t) {
   });
 
   t.test('insufficient', function (t) {
+    var tip_id = mongoose.Types.ObjectId();
     // Check for rejection on insufficient funds
-    Tip.create(wallet_a, wallet_b, Infinity, function (err) {
+    Tip.create(wallet_a, wallet_b, Infinity, tip_id, function (err) {
       t.equal(err, 402, 'err insufficient');
       t.end();
     });
   });
 
   t.test('claim', function (t) {
-    Tip.create(wallet_a, wallet_b, amount, function (err, tip) {
+    var tip_id = mongoose.Types.ObjectId();
+
+    Tip.create(wallet_a, wallet_b, amount, tip_id, function (err, tip) {
       rpc({
         method: 'getbalance', // Check balance beforehand
         params: [wallet_a._id]
@@ -125,7 +112,9 @@ test('- Tip model', function (t) {
   });
 
   t.test('cancel', function (t) {
-    Tip.create(wallet_a, wallet_b, amount, function (err, tip) {
+    var tip_id = mongoose.Types.ObjectId();
+
+    Tip.create(wallet_a, wallet_b, amount, tip_id, function (err, tip) {
       rpc({
         method: 'getbalance', // Check balance beforehand
         params: [wallet_b._id]
@@ -144,6 +133,7 @@ test('- Tip model', function (t) {
   t.test('end', function (t) {
     mongoose.disconnect(function () {
       t.end();
+      process.exit();
     });
   });
 });

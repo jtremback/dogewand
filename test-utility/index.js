@@ -17,10 +17,8 @@ exports.resetBalances = function (callback) {
       if (pair[1] === 0 || pair[0] === '') return cb(); // If account balance is 0 or account is root
 
       var params;
-      if (pair[1] < 0) params = [ '', pair[0], pair[1] ]; // If balance is less than 0, move other direction
+      if (pair[1] < 0) params = [ '', pair[0], -pair[1] ]; // If balance is less than 0, move other direction
       else params = [ pair[0], '', pair[1] ]; // Otherwise move amount to root
-
-      console.log('params', params);
 
       rpc({
         method: 'move',
@@ -41,4 +39,32 @@ exports.fakeAccounts = function (Account, opts, callback) {
   async.map(opts, function (opts, cb) {
     Account.upsert(opts, cb);
   }, callback);
+};
+
+exports.init = function (Tip, Account, accounts, callback) {
+
+  async.series([
+    async.apply(exports.resetMongo, [ Tip, Account ]),
+    async.apply(exports.fakeAccounts, Account, accounts),
+    exports.resetBalances
+  ], function (err, results) {
+    if (err) return callback(err);
+    var wallet_a = results[1][0];
+    var wallet_b = results[1][1];
+    seedFunds(wallet_a, wallet_b);
+  });
+
+  function seedFunds (wallet_a, wallet_b) {
+    rpc({
+      method: 'move', // Move some funds to test with
+      params: ['', wallet_a._id, 6]
+    }, function (err) {
+      if (err) return callback(err);
+      wallet_a.updateBalance(function (err) {
+        if (err) return callback(err);
+        return callback(null, wallet_a, wallet_b);
+      });
+    });
+  }
+
 };
