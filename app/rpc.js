@@ -20,7 +20,7 @@ module.exports = function(config) { // Saves config in scope
         config.ip + ':' +
         config.port;
 
-    elapse.time('request.post' + opts_str);
+    // elapse.time('request.post' + opts_str);
 
     request.post({
       url: url,
@@ -30,8 +30,9 @@ module.exports = function(config) { // Saves config in scope
       if (error) return callback(error);
 
       body = JSON.parse(body);
-      elapse.timeEnd('request.post' + opts_str);
-      console.log('rpc returns: ', JSON.stringify(body.result).substring(0, 420));
+      // elapse.timeEnd('request.post' + opts_str);
+      console.log(Date.now(), 'request.post' + opts_str);
+      console.log(Date.now(), 'rpc returns: ', JSON.stringify(body.result).substring(0, 420));
       if (body.error) return callback(body.error, body);
       callback(error, body.result);
     });

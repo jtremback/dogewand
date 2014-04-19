@@ -126,7 +126,7 @@ AccountSchema.methods = {
       query.where({ state: 'canceled' });
     }
     else if (state === 'created') {
-      query.where({ state: 'canceled' });
+      query.where({ state: 'created' });
     }
     else if (state === 'all') {
       query.where({ state: { $in: [ 'claimed', 'canceled', 'created' ] } });

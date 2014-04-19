@@ -1,9 +1,9 @@
 'use strict';
 
 var mongoose = require('mongoose');
-var Account = mongoose.model('Account');
+// var Account = mongoose.model('Account');
 var config = require('../../config/config')();
-var _ = require('lodash');
+// var _ = require('lodash');
 var Schema = mongoose.Schema;
 var ObjectID = require('mongodb').ObjectID;
 
@@ -30,20 +30,31 @@ TipSchema.statics = {
       if (err) return callback(err);
       var balance = tipper.balance;
 
+      console.log(Date.now(), 'TIP CREATE TIPPER BALANCE', tipper.balance, tippee.username)
+
+      var tip = new Self({
+        _id: tip_id,
+        tipper_id: tipper._id,
+        tippee_id: tippee._id,
+        amount: amount,
+      });
+
       if ((balance - amount) > 0) { // Check funds
-        new Self({
-          _id: tip_id,
-          tipper_id: tipper._id,
-          tippee_id: tippee._id,
-          amount: amount,
-          state: 'creating'
-        }).save(function (err, tip) { // Create tip in db
-          if (err) return callback(err);
-          return move(tip, tipper); // Next step
-        });
+        tip.state = 'creating';
       }
 
-      else return callback(402); // You are BROKE!
+      else { // If insufficient funds
+        tip.state = 'insufficient';
+      }
+
+      tip.save(function (err, tip) { // Create tip in db
+        if (err) return callback(err);
+        if (tip.state === 'creating') { // Only move if there are enough funds
+          return move(tip, tipper); // Next step
+        }
+      });
+
+
     });
 
     function move (tip, tipper) {
@@ -59,6 +70,7 @@ TipSchema.statics = {
         tipper.updateBalance(function (err, tipper) { // Update account with new balance
           if (err) return callback(err);
           tip.save(function (err, tip) {
+            console.log(Date.now(), 'TIP SAVE', tip, tippee.username)
             return callback(err, tip, tipper, tippee);
           }); // Done
         });
@@ -74,15 +86,15 @@ TipSchema.statics = {
     Self.findOne({ _id: tip_id }, function (err, tip) {
       if (!tip) return callback(new Error('Tip not found.'));
 
-      if ((user_id !== tipper_id) || (user_id !== tippee_id)) return callback(new Error('This is not your tip.'));
-
       var user_id = user._id.toString();
       var tipper_id = tip.tipper_id.toString();
       var tippee_id = tip.tippee_id.toString();
 
-      if (tip.state === 'claimed') return callback(new Error('Tip has already been claimed.'));
-      if (tip.state === 'canceled') return callback(new Error('Tip has been cancelled.'));
-      if (tip.state !== 'created') return callback(new Error('Tip error. Contact support.'));
+      if ((user_id !== tipper_id) || (user_id !== tippee_id)) return callback(new Error('Incorrect tip user.'));
+
+      if (tip.state === 'claimed' || tip.state === 'canceled' || tip.state !== 'created') {
+        return callback(new Error('Incorrect tip state.'));
+      }
 
       // Check what kind of resolution this is
       var action;
@@ -91,9 +103,6 @@ TipSchema.statics = {
       }
       else if (user_id === tippee_id) {
         action = 'claim';
-      }
-      else {
-        return callback(new Error('This is not your tip.'));
       }
 
       tip.state = action + 'ing';
@@ -115,10 +124,10 @@ TipSchema.statics = {
           tip.recipient_id = user_id;
           tip.state = action + 'ed'; // We did it
 
-          tip.save(function (err, tip) {
+          tip.save(function (err) {
             if (err) return callback(err);
-            user.updateBalance(function (err, user) {
-              callback(err, tip, user);
+            user.updateBalance(function (err) {
+              callback(err);
             });
           });
         });

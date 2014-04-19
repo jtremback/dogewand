@@ -44,6 +44,10 @@ exports.resolveTip = function (user, tip_id, callback) {
   if (!check.unemptyString(tip_id)) return callback(new Error(400));
 
   Tip.findOne({ _id: tip_id }, function (err, tip) {
+    if (tip.state === 'claimed') return callback(new Error('Tip has already been claimed.')); // This should be considered insecure
+    if (tip.state === 'canceled') return callback(new Error('Tip has been cancelled.')); // The real checking happens in the model
+    if (tip.state !== 'created') return callback(new Error('Tip error. Contact support.'));
+
     if (err) return callback(err);
     queue.pushCommand('Tip', 'resolve', [user, tip_id]);
     return callback(null, tip.amount + user.balance);

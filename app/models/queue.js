@@ -33,17 +33,18 @@ var worker = function () {
     worker();
   }
 
-  process.nextTick(function () {
+  setTimeout(function () {
     if (queue.length) { // If there are commands in the queue
+      console.log('QUEUE', queue)
       var command = queue.shift(); // Take command off front of queue
       command.args.push(callback); // Add callback
-      models[command.model][command.method].apply(models[command.model], command.args); // Run command
+      return models[command.model][command.method].apply(models[command.model], command.args); // Run command
     }
 
-    setTimeout(function () {
-      worker();
-    }, 100); // Timeout on rechecking an empty queue (maybe this is uneccesary?)
-  });
+    // setTimeout(function () {
+      return worker();
+    // }, 100); // Timeout on rechecking an empty queue (maybe this is uneccesary?)
+  }, 300);
 };
 
 

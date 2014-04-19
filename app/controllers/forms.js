@@ -1,8 +1,6 @@
 'use strict';
 
-var mongoose = require('mongoose');
 var logic = require('./logic');
-
 
 exports.createTip = function (req, res, next) {
   var opts = {
