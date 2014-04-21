@@ -12,7 +12,7 @@ var rpc = require('../rpc')(config.rpc);
 
 var TipSchema = new Schema({
   amount: Number,
-  state: String, // In case of accidents
+  state: String,
   tipper_id: { type: Schema.Types.ObjectId, ref: 'Account' },
   tippee_id: { type: Schema.Types.ObjectId, ref: 'Account' },
   recipient_id: { type: Schema.Types.ObjectId, ref: 'Account' },
@@ -39,7 +39,8 @@ TipSchema.statics = {
         amount: amount,
       });
 
-      if ((balance - amount) > 0) { // Check funds
+
+      if ((balance - amount) >= 0) { // Check funds
         tip.state = 'creating';
       }
 
@@ -51,6 +52,9 @@ TipSchema.statics = {
         if (err) return callback(err);
         if (tip.state === 'creating') { // Only move if there are enough funds
           return move(tip, tipper); // Next step
+        } else {
+          return tip.save();
+          // return callback(new Error(402));
         }
       });
 
@@ -67,11 +71,12 @@ TipSchema.statics = {
         if (err) return callback(err);
 
         tip.state = 'created'; // We did it
-        tipper.updateBalance(function (err, tipper) { // Update account with new balance
+        tipper.updateBalance(function (err) { // Update account with new balance
           if (err) return callback(err);
           tip.save(function (err, tip) {
-            console.log(Date.now(), 'TIP SAVE', tip, tippee.username)
-            return callback(err, tip, tipper, tippee);
+            if (err) return callback(err);
+            console.log(Date.now(), 'TIP SAVE', tip)
+            return callback(null, tip);
           }); // Done
         });
       });
@@ -90,7 +95,9 @@ TipSchema.statics = {
       var tipper_id = tip.tipper_id.toString();
       var tippee_id = tip.tippee_id.toString();
 
-      if ((user_id !== tipper_id) || (user_id !== tippee_id)) return callback(new Error('Incorrect tip user.'));
+      console.log(user_id, tipper_id, tippee_id)
+
+      if ((user_id !== tipper_id) && (user_id !== tippee_id)) return callback(new Error('Incorrect tip user.'));
 
       if (tip.state === 'claimed' || tip.state === 'canceled' || tip.state !== 'created') {
         return callback(new Error('Incorrect tip state.'));
@@ -127,7 +134,7 @@ TipSchema.statics = {
           tip.save(function (err) {
             if (err) return callback(err);
             user.updateBalance(function (err) {
-              callback(err);
+              callback(err, tip, user);
             });
           });
         });

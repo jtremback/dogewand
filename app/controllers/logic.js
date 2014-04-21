@@ -26,11 +26,9 @@ exports.createTip = function (user, opts, callback) {
   }, function (err, tippee) {
     if (err) return callback(err);
 
-    console.log('createTip', user.balance, opts.amount)
-
     var new_balance = user.balance - opts.amount;
 
-    if (new_balance > 0) { // Insecure balance check to improve UX
+    if (new_balance >= 0) { // Insecure balance check to improve UX
       queue.pushCommand('Tip', 'create', [user, tippee, opts.amount, tip_id]);
       return callback(null, new_balance, tip_id);
     } else {
@@ -44,6 +42,7 @@ exports.resolveTip = function (user, tip_id, callback) {
   if (!check.unemptyString(tip_id)) return callback(new Error(400));
 
   Tip.findOne({ _id: tip_id }, function (err, tip) {
+    if ((user._id !== tip.tipper_id) && (user._id !== tip.tippee_id)) return callback(new Error('This is not your tip.'));
     if (tip.state === 'claimed') return callback(new Error('Tip has already been claimed.')); // This should be considered insecure
     if (tip.state === 'canceled') return callback(new Error('Tip has been cancelled.')); // The real checking happens in the model
     if (tip.state !== 'created') return callback(new Error('Tip error. Contact support.'));

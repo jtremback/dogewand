@@ -86,8 +86,8 @@ test('---------------------------------------- tip.js', function (t) {
   t.test('insufficient', function (t) {
     var tip_id = mongoose.Types.ObjectId();
     // Check for rejection on insufficient funds
-    Tip.create(wallet_a, wallet_b, Infinity, tip_id, function (err) {
-      t.equal(err, 402, 'err insufficient');
+    Tip.create(wallet_a, wallet_b, Infinity, tip_id, function (err, tip) {
+      t.ok(err, 'err insufficient');
       t.end();
     });
   });

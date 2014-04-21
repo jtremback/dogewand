@@ -21,7 +21,7 @@ function getBalances(_ids, callback) {
   }
 }
 
-var TIMEOUT = 2000;
+var TIMEOUT = 1000;
 
 test('---------------------------------------- logic.js', function (t) {
   // Connect to mongodb
@@ -52,6 +52,7 @@ test('---------------------------------------- logic.js', function (t) {
     }];
 
     utility.init(Tip, Account, accounts, function (err, wallet_a1, wallet_b1) {
+      t.error(err);
       wallet_a = wallet_a1;
       wallet_b = wallet_b1;
       t.end();
@@ -59,128 +60,180 @@ test('---------------------------------------- logic.js', function (t) {
   });
 
 
+  t.test('createTip to existing account', function (t) {
+    var opts = {
+      username: wallet_b.username,
+      provider: wallet_b.provider,
+      amount: amount
+    };
+
+    checkTipStarted(t, wallet_a, opts);
+  });
 
 
-  // t.test('createTip to existing account', function (t) {
-  //   var opts = {
-  //     username: wallet_b.username,
-  //     provider: wallet_b.provider,
-  //     amount: amount
-  //   };
 
-  //   logic.createTip(wallet_a, opts, function (err) {
-  //     t.error(err, 'createTip');
+  t.test('createTip to nonexistant account', function (t) {
+    var opts = {
+      username: 'Chewbacca',
+      provider: 'farcebook',
+      amount: amount
+    };
 
-  //     setTimeout(function () {
-  //       // Check tip in mongo
-  //       // Check transaction
-  //       // Check sender account in mongo
-  //       // Check sender balance
-  //       // Check receiver account in mongo
+    checkTipStarted(t, wallet_a, opts);
+  });
 
-  //       rpc({
-  //         method: 'listtransactions',
-  //         params: [ wallet_a._id, 1 ]
-  //       }, function (err, result) {
-  //         t.error(err);
-  //         result = result[0];
-  //         t.equal(result.amount, -amount, 'dogecoind amount correct');
-  //         t.equal(result.otheraccount, '', 'dogecoind otheraccount correct');
-  //         getBalances([wallet_a._id, wallet_b._id], function (err, new_balances) {
-  //           // t.equal(old_balances[0] - amount, new_balances[0], 'tipper acct. debited');
-  //           // t.equal(old_balances[1] + amount, new_balances[1], 'root acct. credited');
-  //           console.log('balances', new_balances)
-  //           t.end();
-  //         });
-  //       });
-  //     }, TIMEOUT);
-  //   });
-  // });
 
-  // t.test('createTip to nonexistant account', function (t) {
-  //   var opts = {
-  //     username: 'Chewbacca',
-  //     provider: 'farcebook',
-  //     amount: amount
-  //   };
+  function checkTipStarted (t, account, opts) {
+    utility.seedFunds(wallet_a, opts.amount, function () {
+      logic.createTip(wallet_a, opts, function (err) {
+        t.error(err, 'createTip');
+        // Check new balance
+        // Check tip_id
 
-  //   logic.createTip(wallet_a, opts, function (err) {
-  //     t.error(err, 'createTip');
 
-  //     setTimeout(function () {
-  //       // Check tip in mongo
-  //       // Check transaction
-  //       // Check sender account in mongo
-  //       // Check sender balance
-  //       // Check receiver account in mongo
+        setTimeout(function () {
+          checkTipFinished(t, account, opts);
+        }, TIMEOUT);
+      });
+    });
+  }
 
-  //       rpc({
-  //         method: 'listtransactions',
-  //         params: [ wallet_a._id, 1 ]
-  //       }, function (err, result) {
-  //         t.error(err);
-  //         result = result[0];
-  //         t.equal(result.amount, -amount, 'dogecoind amount correct');
-  //         t.equal(result.otheraccount, '', 'dogecoind otheraccount correct');
 
-  //         getBalances([wallet_a._id, wallet_b._id], function (err, new_balances) {
-  //           // t.equal(old_balances[0] - amount, new_balances[0], 'tipper acct. debited');
-  //           // t.equal(old_balances[1] + amount, new_balances[1], 'root acct. credited');
-  //           console.log('balances', new_balances);
-  //           t.end();
-  //         });
+  function checkTipFinished (t, tipper, opts) {
+    Account.findOne({ username: opts.username }, function (err, tippee) {
+      async.parallel({
 
-  //       });
+        tipper_balance: async.apply(rpc, {
+          method: 'getbalance',
+          params: [tipper._id]
+        })
 
-  //     }, TIMEOUT);
-  //   });
-  // });
+        ,
+
+        transaction: async.apply(rpc, {
+          method: 'listtransactions',
+          params: [ tipper._id, 1 ]
+        })
+
+        ,
+
+        tip: function (cb) {
+          Tip.findOne({ tippee_id: tippee._id }, {}, { sort: { 'created_at' : -1 } }, cb);
+        }
+
+        ,
+
+        tipper: function (cb) {
+          Account.findOne({ _id: tipper._id }, cb);
+        }
+
+      }, function (err, results) {
+        t.error(err);
+
+        // console.log('OPTS', opts)
+        // console.log('TIPPER', tipper)
+        // console.log('RESULTS', results)
+
+        t.equal(results.tipper.balance, results.tipper_balance, 'dogecoind tipper balance');
+
+        t.equal(opts.amount, -results.transaction[0].amount, 'dogecoind amount');
+
+        t.equal(opts.username, tippee.username, 'mongo tippee username');
+        t.equal(opts.provider, tippee.provider, 'mongo tippee provider');
+
+        t.equal(tipper._id.toString(), results.tip.tipper_id.toString(), 'mongo tip tipper_id');
+        t.equal(tippee._id.toString(), results.tip.tippee_id.toString(), 'mongo tip tippee _id');
+        t.equal(opts.amount, results.tip.amount, 'mongo tip amount');
+        t.equal('created', results.tip.state, 'mongo tip state');
+
+        utility.emptyAccount(wallet_a, function () {
+          t.end();
+        });
+      });
+    });
+  }
+
+
 
   t.test('Try to hack', function (t) {
     var opts1 = {
-      username: wallet_b.username,
-      provider: wallet_b.provider,
-      amount: 3
+      username: 'Lando',
+      provider: 'farcebook',
+      amount: 4
     };
-
     var opts2 = {
-      username: 'Chewbacca',
+      username: 'Han.solo',
       provider: 'farcebook',
       amount: 3
     };
 
+    utility.seedFunds(wallet_a, 6, function () {
+      // Create two tips in quick succesion to try to fool system into allowing negative balance
+      //
+      // Check that account is not debited
+      // Check that 'insufficient' tip is recorded
+      logic.createTip(wallet_a, opts1, function (err) {
+        t.error(err, 'createTip 1');
+      });
+      logic.createTip(wallet_a, opts2, function (err) {
+        t.error(err, 'createTip 2');
 
-    logic.createTip(wallet_a, opts1, function (err) {
-      t.error(err, 'createTip');
-    });
+        setTimeout(function () {
+          async.parallel({
+            tipper_balance: async.apply(rpc, {
+              method: 'getbalance',
+              params: [wallet_a._id]
+            })
 
-    logic.createTip(wallet_a, opts2, function (err) {
-      t.error(err, 'createTip');
+            ,
 
-      setTimeout(function () {
-        rpc({
-          method: 'listtransactions',
-          params: [ wallet_a._id, 2 ]
-        }, function (err, result) {
-          console.log('TRANSACTION', result)
-          // t.error(err);
-          // result = result[0];
-          // t.equal(result.amount, -6, 'dogecoind amount correct');
-          // t.equal(result.otheraccount, '', 'dogecoind otheraccount correct');
-          getBalances([wallet_a._id], function (err, new_balances) {
-            // t.equal(old_balances[0] - amount, new_balances[0], 'tipper acct. debited');
-            // t.equal(old_balances[1] + amount, new_balances[1], 'root acct. credited');
-            console.log('BALANCE', new_balances);
-            t.end();
+            failed_tip: function (callback) {
+              Account.find({ username: opts2.username }, function (err, account) {
+                t.error(err);
+                // console.log('ACCOUNT', account)
+                Tip.find({ tippee_id: account[0]._id }, {}, { sort: { 'created_at' : 1 } }, callback);
+              });
+            }
+          },
+
+          function (err, results) {
+            t.error(err);
+            // console.log('ASYNC RESULTS', results)
+            t.equals(results.failed_tip[0].state, 'insufficient', 'tip marked insufficient');
+            t.equals(2, results.tipper_balance, 'tipper balance is right');
+            utility.emptyAccount(wallet_a, function () {
+              t.end();
+            });
           });
-        });
-      }, TIMEOUT);
+
+        }, TIMEOUT);
+      });
     });
   });
 
-  t.test('end', function (t) {
-    mongoose.disconnect(function () {
-      t.end();
+  t.test('claim', function (t) {
+    var opts = {
+      username: 'Chewbacca',
+      provider: 'farcebook',
+      amount: amount
+    };
+
+    utility.seedFunds(wallet_a, opts.amount, function () {
+      logic.createTip(wallet_a, opts, function (err) {
+        t.error(err, 'createTip');
+
+
+        setTimeout(function () {
+          checkTip(t, wallet_a, opts);
+        }, TIMEOUT);
+      });
+    });
+
+    t.test('end', function (t) {
+      mongoose.disconnect(function () {
+        t.end();
+        process.exit();
+      });
     });
   });
 });

@@ -25,6 +25,7 @@ exports.pushCommand = function (model, method, args) {
 
 var worker = function () {
   function callback (err) {
+    // console.log(Date.now(), 'WORKER CALLBACK', err)
     if (err) { // For bad, unexpected errors, log it and crash. (Expected errors are saved to db inside the method)
       console.error(err);
       process.exit();
@@ -35,16 +36,14 @@ var worker = function () {
 
   setTimeout(function () {
     if (queue.length) { // If there are commands in the queue
-      console.log('QUEUE', queue)
+      // console.log(Date.now(), 'QUEUE', queue)
       var command = queue.shift(); // Take command off front of queue
       command.args.push(callback); // Add callback
       return models[command.model][command.method].apply(models[command.model], command.args); // Run command
     }
 
-    // setTimeout(function () {
-      return worker();
-    // }, 100); // Timeout on rechecking an empty queue (maybe this is uneccesary?)
-  }, 300);
+    return worker();
+  }, 100);
 };
 
 

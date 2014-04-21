@@ -51,20 +51,34 @@ exports.init = function (Tip, Account, accounts, callback) {
     if (err) return callback(err);
     var wallet_a = results[1][0];
     var wallet_b = results[1][1];
-    seedFunds(wallet_a, wallet_b);
+    callback(null, wallet_a, wallet_b);
   });
+};
 
-  function seedFunds (wallet_a, wallet_b) {
-    rpc({
-      method: 'move', // Move some funds to test with
-      params: ['', wallet_a._id, 6]
-    }, function (err) {
+
+// Moves funds from main account to wallets directly
+exports.seedFunds = function (account, amount, callback) {
+  rpc({
+    method: 'move', // Move some funds to test with
+    params: [ '', account._id, amount ]
+  }, function (err) {
+    if (err) return callback(err);
+    account.updateBalance(function (err) {
       if (err) return callback(err);
-      wallet_a.updateBalance(function (err) {
-        if (err) return callback(err);
-        return callback(null, wallet_a, wallet_b);
-      });
+      return callback(null, account);
     });
-  }
+  });
+};
 
+exports.emptyAccount = function (account, callback) {
+  rpc({
+    method: 'getbalance',
+    params: [ account._id ]
+  }, function (err, result) {
+    if (err) return callback(err);
+    rpc({
+      method: 'move',
+      params: [account._id, '', result]
+    }, callback);
+  });
 };
