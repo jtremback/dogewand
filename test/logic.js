@@ -21,6 +21,10 @@ function getBalances(_ids, callback) {
   }
 }
 
+function asyncTimeout (fn, timeout) {
+    setTimeout(fn, timeout);
+}
+
 var TIMEOUT = 1000;
 
 test('---------------------------------------- logic.js', function (t) {
@@ -64,10 +68,10 @@ test('---------------------------------------- logic.js', function (t) {
     var opts = {
       username: wallet_b.username,
       provider: wallet_b.provider,
-      amount: amount
+      amount: 1.35
     };
 
-    checkTipStarted(t, wallet_a, opts);
+    checkTipCreatedStarted(t, wallet_a, opts);
   });
 
 
@@ -76,14 +80,14 @@ test('---------------------------------------- logic.js', function (t) {
     var opts = {
       username: 'Chewbacca',
       provider: 'farcebook',
-      amount: amount
+      amount: 1.57
     };
 
-    checkTipStarted(t, wallet_a, opts);
+    checkTipCreatedStarted(t, wallet_a, opts);
   });
 
 
-  function checkTipStarted (t, account, opts) {
+  function checkTipCreatedStarted (t, account, opts) {
     utility.seedFunds(wallet_a, opts.amount, function () {
       logic.createTip(wallet_a, opts, function (err) {
         t.error(err, 'createTip');
@@ -91,15 +95,15 @@ test('---------------------------------------- logic.js', function (t) {
         // Check tip_id
 
 
-        setTimeout(function () {
-          checkTipFinished(t, account, opts);
+        asyncTimeout(function () {
+          checkTipCreatedFinished(t, account, opts);
         }, TIMEOUT);
       });
     });
   }
 
 
-  function checkTipFinished (t, tipper, opts) {
+  function checkTipCreatedFinished (t, tipper, opts) {
     Account.findOne({ username: opts.username }, function (err, tippee) {
       async.parallel({
 
@@ -130,9 +134,6 @@ test('---------------------------------------- logic.js', function (t) {
       }, function (err, results) {
         t.error(err);
 
-        // console.log('OPTS', opts)
-        // console.log('TIPPER', tipper)
-        // console.log('RESULTS', results)
 
         t.equal(results.tipper.balance, results.tipper_balance, 'dogecoind tipper balance');
 
@@ -141,10 +142,10 @@ test('---------------------------------------- logic.js', function (t) {
         t.equal(opts.username, tippee.username, 'mongo tippee username');
         t.equal(opts.provider, tippee.provider, 'mongo tippee provider');
 
-        t.equal(tipper._id.toString(), results.tip.tipper_id.toString(), 'mongo tip tipper_id');
-        t.equal(tippee._id.toString(), results.tip.tippee_id.toString(), 'mongo tip tippee _id');
+        t.equal(tipper.id, results.tip.tipper_id.toString(), 'mongo tip tipper_id');
+        t.equal(tippee.id, results.tip.tippee_id.toString(), 'mongo tip tippee _id');
         t.equal(opts.amount, results.tip.amount, 'mongo tip amount');
-        t.equal('created', results.tip.state, 'mongo tip state');
+        t.equal(results.tip.state, 'created', 'mongo tip state');
 
         utility.emptyAccount(wallet_a, function () {
           t.end();
@@ -178,7 +179,7 @@ test('---------------------------------------- logic.js', function (t) {
       logic.createTip(wallet_a, opts2, function (err) {
         t.error(err, 'createTip 2');
 
-        setTimeout(function () {
+        asyncTimeout(function () {
           async.parallel({
             tipper_balance: async.apply(rpc, {
               method: 'getbalance',
@@ -190,7 +191,6 @@ test('---------------------------------------- logic.js', function (t) {
             failed_tip: function (callback) {
               Account.find({ username: opts2.username }, function (err, account) {
                 t.error(err);
-                // console.log('ACCOUNT', account)
                 Tip.find({ tippee_id: account[0]._id }, {}, { sort: { 'created_at' : 1 } }, callback);
               });
             }
@@ -198,7 +198,6 @@ test('---------------------------------------- logic.js', function (t) {
 
           function (err, results) {
             t.error(err);
-            // console.log('ASYNC RESULTS', results)
             t.equals(results.failed_tip[0].state, 'insufficient', 'tip marked insufficient');
             t.equals(2, results.tipper_balance, 'tipper balance is right');
             utility.emptyAccount(wallet_a, function () {
@@ -211,29 +210,108 @@ test('---------------------------------------- logic.js', function (t) {
     });
   });
 
-  t.test('claim', function (t) {
+// RESOLVE
+// tippee has increased balance
+// main has decreased balance
+// tip state is correct
+// tip recipient_id is correct
+
+  t.test('cancel', function (t) {
     var opts = {
       username: 'Chewbacca',
       provider: 'farcebook',
-      amount: amount
+      amount: 1.94
     };
 
-    utility.seedFunds(wallet_a, opts.amount, function () {
-      logic.createTip(wallet_a, opts, function (err) {
+    utility.seedFunds(wallet_a, opts.amount, function (err, account) {
+      t.error(err, 'seedfunds');
+      logic.createTip(account, opts, function (err, balance, tip_id) {
         t.error(err, 'createTip');
-
-
-        setTimeout(function () {
-          checkTip(t, wallet_a, opts);
+        asyncTimeout(function () {
+          checkTipResolvedStarted(t, account, opts, tip_id);
         }, TIMEOUT);
       });
     });
+  });
 
-    t.test('end', function (t) {
-      mongoose.disconnect(function () {
-        t.end();
-        process.exit();
+  t.test('claim', function (t) {
+    var opts = {
+      username: wallet_b.username,
+      provider: wallet_b.provider,
+      amount: 1.12
+    };
+
+    utility.seedFunds(wallet_a, opts.amount, function (err, account) {
+      t.error(err);
+      logic.createTip(account, opts, function (err, balance, tip_id) {
+        t.error(err, 'createTip');
+        asyncTimeout(function () {
+          checkTipResolvedStarted(t, wallet_b, opts, tip_id);
+        }, TIMEOUT);
       });
+    });
+  });
+
+  function checkTipResolvedStarted (t, account, opts, tip_id) {
+    logic.resolveTip(tip_id, account, function (err, balance) {
+      t.error(err, 'resolveTip');
+      // Check balance
+      asyncTimeout(function () {
+        checkTipResolvedFinished(t, account, opts, tip_id);
+      }, TIMEOUT);
+    });
+  }
+
+  function checkTipResolvedFinished (t, account, opts, tip_id) {
+    async.parallel({
+      transaction: async.apply(rpc, {
+        method: 'listtransactions',
+        params: [ account.id, 1 ]
+      })
+
+      ,
+
+      tip: function (cb) {
+        Tip.findOne({ _id: tip_id }, cb);
+      }
+    }, function (err, results) {
+      // Convert the goddamn mongo objectids
+      var recipient_id = results.tip.recipient_id.toString();
+      var resolved_id = results.tip.resolved_id.toString();
+      var tippee_id = results.tip.tippee_id.toString();
+      var tipper_id = results.tip.tipper_id.toString();
+
+      console.log('RESULTS TRANSACTION', results.transaction);
+
+      // Check state
+      // Check resolved_id
+      // Check recipient_id
+      t.equals(account.id, recipient_id, 'mongo recipient_id correct');
+
+      if (account.id === tippee_id) {
+        t.equals(results.tip.state, 'claimed', 'mongo tip state is correct');
+      } else if (account.id === tipper_id) {
+        t.equals(results.tip.state, 'canceled', 'mongo tip state is correct');
+      } else {
+        t.fail('wrong account resolved');
+      }
+
+      // Check transaction
+      var transaction = results.transaction[0];
+
+      t.equals(transaction.account, account.id, 'accounts match');
+      t.equals(transaction.amount, opts.amount, 'amounts match');
+      t.equals(transaction.otheraccount, '', 'otheraccount correct');
+      t.equals(transaction.comment, resolved_id, 'resolved id and tx comment');
+      t.end();
+
+    });
+  }
+
+  t.test('end', function (t) {
+    mongoose.disconnect(function () {
+      t.end();
+      process.exit();
     });
   });
 });

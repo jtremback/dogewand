@@ -53,7 +53,7 @@ TipSchema.statics = {
         if (tip.state === 'creating') { // Only move if there are enough funds
           return move(tip, tipper); // Next step
         } else {
-          return tip.save();
+          return tip.save(callback);
           // return callback(new Error(402));
         }
       });
@@ -85,61 +85,57 @@ TipSchema.statics = {
 
   ,
 
-  resolve: function (tip_id, user, callback) {
+  resolve: function (tip, account, callback) {
     var Self = this;
 
-    Self.findOne({ _id: tip_id }, function (err, tip) {
-      if (!tip) return callback(new Error('Tip not found.'));
+    if (!tip) return callback(new Error('Not tip provided.'));
 
-      var user_id = user._id.toString();
-      var tipper_id = tip.tipper_id.toString();
-      var tippee_id = tip.tippee_id.toString();
+    var account_id = account._id.toString();
+    var tipper_id = tip.tipper_id.toString();
+    var tippee_id = tip.tippee_id.toString();
 
-      console.log(user_id, tipper_id, tippee_id)
+    if ((account_id !== tipper_id) && (account_id !== tippee_id)) return callback(new Error('Incorrect tip account.'));
 
-      if ((user_id !== tipper_id) && (user_id !== tippee_id)) return callback(new Error('Incorrect tip user.'));
+    if (tip.state === 'claimed' || tip.state === 'canceled' || tip.state !== 'created') {
+      return callback(new Error('Incorrect tip state.'));
+    }
 
-      if (tip.state === 'claimed' || tip.state === 'canceled' || tip.state !== 'created') {
-        return callback(new Error('Incorrect tip state.'));
-      }
+    // Check what kind of resolution this is
+    var action;
+    if (account_id === tipper_id) {
+      action = 'cancel';
+    }
+    else if (account_id === tippee_id) {
+      action = 'claim';
+    }
 
-      // Check what kind of resolution this is
-      var action;
-      if (user_id === tipper_id) {
-        action = 'cancel';
-      }
-      else if (user_id === tippee_id) {
-        action = 'claim';
-      }
+    tip.state = action + 'ing';
+    tip.resolved_id = new ObjectID(); // resolved_id identifies the tip later
+    tip.save(function (err, tip) {
+      if (err) return callback(err);
+      return move(tip);
+    });
 
-      tip.state = action + 'ing';
-      tip.resolved_id = new ObjectID(); // resolved_id identifies the tip later
-      tip.save(function (err, tip) {
+    function move (tip) {
+      var body = {
+        method: 'move',
+        params: [ '', account_id, tip.amount, 6, tip.resolved_id ],
+      };
+
+      rpc(body, function (err) {
         if (err) return callback(err);
-        return move(tip);
-      });
 
-      function move (tip) {
-        var body = {
-          method: 'move',
-          params: [ '', user_id, tip.amount, 6, tip.resolved_id ],
-        };
+        tip.recipient_id = account_id;
+        tip.state = action + 'ed'; // We did it
 
-        rpc(body, function (err) {
+        tip.save(function (err) {
           if (err) return callback(err);
-
-          tip.recipient_id = user_id;
-          tip.state = action + 'ed'; // We did it
-
-          tip.save(function (err) {
-            if (err) return callback(err);
-            user.updateBalance(function (err) {
-              callback(err, tip, user);
-            });
+          account.updateBalance(function (err) {
+            callback(err, tip, account);
           });
         });
-      }
-    });
+      });
+    }
   }
 };
 
