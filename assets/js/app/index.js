@@ -1,5 +1,7 @@
 'use strict';
 
+var URL = '<%= url %>';
+
 (function () {
   function $ (selector, el) {
        if (!el) {el = document;}

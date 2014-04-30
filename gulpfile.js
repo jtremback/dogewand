@@ -76,42 +76,34 @@ gulp.task('app-styles', function () {
     .pipe(gulpNotify({ message: 'app-styles task complete' }));
 });
 
-// gulp.task('app-html', function () {
-//   return gulp.src('assets/templates/app/**/*.jade')
-//     .pipe(gulpJade())
-//     .pipe(gulpTap(varWrap)) // Wrap in variable for use in js
-//     .pipe(gulp.dest('incremental/app'))
-//     .pipe(gulpNotify({ message: 'app-html task complete' }));
-// });
-
-gulp.task('app-js', function () {
-  return gulp.src(['assets/js/app/**/*.js', 'assets/js/shared/**/*.js'])
-    .pipe(gulpTemplate({url: config.url})) // Add magic numbers like url etc.
-    .pipe(gulp.dest('incremental/app')) // Put into incremental folder for further processing
-    .pipe(gulpNotify({ message: 'app-js task complete' }));
+gulp.task('app-html', function () {
+  return gulp.src('assets/templates/app/**/*.jade')
+    .pipe(gulpJade())
+    .pipe(gulp.dest('public/app'))
+    .pipe(gulpNotify({ message: 'app-html task complete' }));
 });
 
-gulp.task('app-incremental', function () {
-  return gulp.src('incremental/app/index.js')
+gulp.task('app-js', function () {
+  return gulp.src(['assets/js/app/**/*.js'])
+    .pipe(gulpTemplate({url: config.url})) // Add magic numbers like url etc.
     .pipe(gulpInclude()) // Bring it all together
     .pipe(gulpRename('app.js'))
     .pipe(gulp.dest('public/js'))
-    .pipe(gulpNotify({ message: 'app-incremental task complete' }));
+    .pipe(gulpNotify({ message: 'app-js task complete' }));
 });
 
 
 
 //// WATCH
 gulp.task('watch', function () {
+  gulp.watch('assets/templates/app/**', ['app-html']);
   gulp.watch('assets/stylus/**', ['app-styles', 'loader-styles']);
   gulp.watch('assets/js/**', ['app-js', 'loader-js']);
 
-  // gulp.watch('assets/templates/app/**', ['app-html']);
-  gulp.watch('incremental/app/**', ['app-incremental']);
   gulp.watch('incremental/loader/**', ['loader-incremental']);
 });
 
 
 
 // BUILD
-gulp.task('build', ['app-js', 'app-styles', 'app-incremental', 'loader-styles', 'loader-js']);
+gulp.task('build', ['app-js', 'app-html', 'app-styles', 'loader-styles', 'loader-js']);

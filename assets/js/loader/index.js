@@ -35,7 +35,7 @@
   var VERSION = 1; // If this is not consistent with the server's version, the user will get an update modal!
   var PROVIDER = providerFinder(window.location.host);
 
-  if ($('.dgw-dogewand').length) $('.dgw-dogewand').remove(); // remove app if exists
+  if ($('.dgw-frame').length) $('.dgw-frame').remove(); // remove app if exists
 
   $('head').append('<style dgw-styles="dgw-styles">' + style_css + '</style>'); // add style to header
 
