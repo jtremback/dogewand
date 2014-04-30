@@ -7,7 +7,7 @@ var Tip = mongoose.model('Tip');
 var check = require('check-types');
 var queue = require('../models/queue');
 
-exports.createTip = function (user, opts, callback) {
+exports.createTip = function (account, opts, callback) {
   var tip_id = mongoose.Types.ObjectId().toString(); // Make ObjectId out here to return it
   var valid = check.every(
     check.map(opts, {
@@ -18,7 +18,7 @@ exports.createTip = function (user, opts, callback) {
   );
 
   if (!valid) return callback(new Error(400));
-  if (opts.username === user.username) callback(new Error('You cannot tip yourself.'));
+  if (opts.username === account.username) callback(new Error('You cannot tip yourself.'));
 
 
   Account.upsert({
@@ -27,10 +27,10 @@ exports.createTip = function (user, opts, callback) {
   }, function (err, tippee) {
     if (err) return callback(err);
 
-    var new_balance = user.balance - opts.amount;
+    var new_balance = account.balance - opts.amount;
 
     if (new_balance >= 0) { // Insecure balance check to improve UX
-      queue.pushCommand('Tip', 'create', [user, tippee, opts.amount, tip_id]);
+      queue.pushCommand('Tip', 'create', [account, tippee, opts.amount, tip_id]);
       return callback(null, new_balance, tip_id);
     } else {
       return callback(new Error('Not enough doge.'));
@@ -40,8 +40,10 @@ exports.createTip = function (user, opts, callback) {
 
 
 exports.resolveTip = function (tip_id, account, callback) {
-
+  if (!check.unemptyString(tip_id)) return callback(new Error('No tip_id supplied.'));
   Tip.findOne({ _id: tip_id }, function (err, tip) {
+    if (err) return callback(err);
+
     var account_id = account._id.toString();
     var tipper_id = tip.tipper_id.toString();
     var tippee_id = tip.tippee_id.toString();
