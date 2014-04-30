@@ -54,7 +54,6 @@ TipSchema.statics = {
           return move(tip, tipper); // Next step
         } else {
           return tip.save(callback);
-          // return callback(new Error(402));
         }
       });
 
