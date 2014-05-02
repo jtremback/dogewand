@@ -23,7 +23,8 @@
     "express": "^3.4.8",
     "check-types": "^1.2.0",
     "elapse": "^0.1.1",
-    "connect-flash": "^0.1.1"
+    "connect-flash": "^0.1.1",
+    "coinstring": "^0.2.0"
   },
   "devDependencies": {
     "gulp-stylus": "^0.1.0",

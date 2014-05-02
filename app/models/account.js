@@ -4,6 +4,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var config = require('../../config/config')();
 var rpc = require('../rpc')(config.rpc);
+var check = require('check-types');
 
 var AccountSchema = new Schema({
   balance: { type: Number, default: 0 }, // updateBalance should be used whenever the balance is changed or read from dogecoind
@@ -51,6 +52,30 @@ AccountSchema.statics = {
       });
     });
   }
+
+  ,
+
+
+  // Must be called by queue
+  withdraw: function (account, to_address, amount, callback) {
+    if (!check.positiveNumber(amount)) return callback(new Error('Invalid amount.'));
+
+    account.updateBalance(function (err, tipper) {
+      var balance = tipper.balance;
+
+      if ((balance - amount) >= 0) { // Check funds
+        rpc({
+          method: 'sendfrom',
+          params: [ account.id, to_address, amount ]
+        }, function (err) {
+          if (err) return callback(err);
+          account.updateBalance(callback);
+        });
+      }
+
+      return console.log('Not enough dogecoin to withdraw.', tipper, amount);
+    });
+  }
 };
 
 
@@ -82,21 +107,6 @@ AccountSchema.methods = {
       method: 'getnewaddress',
       params: [ self._id ]
     }, callback);
-  }
-
-  ,
-
-  withdraw: function (to_address, amount, callback) {
-    var self = this;
-
-    rpc({
-      method: 'sendfrom',
-      params: [ self._id, to_address, amount ]
-    }, function (err, result) {
-      console.log(result);
-      if (err) return callback(err);
-      self.updateBalance(callback);
-    });
   }
 };
 
