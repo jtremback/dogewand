@@ -39,7 +39,7 @@ POST /api/tips/resolve - resolves tip
 POST /api/account/withdraw - sends to address, returns whether it is likely to have succeeded
   to_address
   amount
-GET /api/account/deposit_address - returns address linked to current acct.
+GET /api/account/address - returns address linked to current acct.
 
 postMessage API:
 
