@@ -23,6 +23,7 @@ var TipSchema = new Schema({
 
 TipSchema.statics = {
 
+  // Must be called by queue
   create: function (tipper, tippee, amount, tip_id, callback) {
     var Self = this;
 
@@ -84,8 +85,8 @@ TipSchema.statics = {
 
   ,
 
+  // Must be called by queue
   resolve: function (tip, account, callback) {
-    var Self = this;
 
     if (!tip) return callback(new Error('Not tip provided.'));
 

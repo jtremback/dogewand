@@ -70,7 +70,7 @@ exports.withdraw = function (account, to_address, amount, callback) {
 
   var new_balance = account.balance - amount;
   if (new_balance < 0) {
-    return callback(new Error('Not enough dogecoin.'));
+    return callback(new Error('Not enough dogecoin.')); // insecure
   }
 
   queue.pushCommand('Account', 'withdraw', [account, to_address, amount]);

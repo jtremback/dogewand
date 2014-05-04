@@ -15,9 +15,7 @@ alert('Wow ' + URL);
        return Array.prototype.slice.call(el.querySelectorAll(selector));
   }
 
-  // var PROVIDER_ORIGIN = $('.js-provider').textContent; // Will need to use postMessage here instead.
-
-  var PROVIDER_ORIGIN = 'https://www.facebook.com/';
+  var PROVIDER_ORIGIN = 'https://www.facebook.com/'; // Will need to use postMessage here instead.
 
   var toolbar = $('.js-toolbar');
   if (toolbar) return _toolbar(toolbar);

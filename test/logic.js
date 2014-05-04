@@ -256,6 +256,8 @@ test('---------------------------------------- logic.js', function (t) {
     logic.resolveTip(tip_id, account, function (err, balance) {
       t.error(err, 'resolveTip');
       // Check balance
+      // TODO test immediate response
+
       asyncTimeout(function () {
         checkTipResolvedFinished(t, account, opts, tip_id);
       }, TIMEOUT);
@@ -307,6 +309,25 @@ test('---------------------------------------- logic.js', function (t) {
 
     });
   }
+
+
+  // t.test('withdraw', function (t) {
+
+  //   function checkWithdrawStarted (t, account, opts) {
+  //     logic.withdraw(account, opts.to_address, opts.amount, function (err, new_balance) {
+  //       if (err) return (err);
+  //       asyncTimeout(function () {
+  //         checkWithdrawFinished(t, account, opts);
+  //       });
+  //     });
+  //   }
+
+  //   function checkWithdrawFinished (t, account, opts) {
+
+  //   }
+
+  // }
+
 
   t.test('end', function (t) {
     mongoose.disconnect(function () {
