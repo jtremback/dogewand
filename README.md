@@ -25,6 +25,47 @@ TO DO:
 
 The extension can be built by running `gulp watch` in the root. I will be adding build scripts for the site as well.
 
+Server API:
+
+GET /iframe - returns iframe app html
+GET /api/account - returns account info
+GET /api/tips - get list of tips for account
+POST /api/tips/create - creates tip
+  username
+  provider
+  amount
+POST /api/tips/resolve - resolves tip
+  tip_id
+POST /api/account/withdraw - sends to address, returns whether it is likely to have succeeded
+  to_address
+  amount
+GET /api/account/deposit_address - returns address linked to current acct.
+
+postMessage API:
+
+iframe -> loader:
+  { "method": "tipMode" } - enters tipping mode, wand etc
+
+  { "method": "exit" } - exits everything
+
+  { "method": 'size',
+  "data": {
+    width: <>,
+    height: <>
+  }} - sets size of iframe
+
+loader -> iframe
+  { "method": "tipCreate"
+    "data": {
+      "username": <>,
+      "provider": <>
+    }
+  }
+
+
+
+
+
 ---
 
 AGPL
