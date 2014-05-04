@@ -7,32 +7,25 @@ var check = require('check-types');
 var Account = mongoose.model('Account');
 var Tip = mongoose.model('Tip');
 
-exports.login = function (req, res) {
-  if (req.user) return res.render('extension/modals/login', { user: req.user });
-  return res.render('extension/modals/login');
-};
 
 exports.address = function (req, res, next) {
   Account.newAddress(function (err, address) {
     if (err) return next(err);
-    res.render('extension/modals/address', {
-      address: address,
-      user: req.user
+    res.json({
+      address: address
     });
   });
 };
 
-exports.account = function (req, res) {
+exports.account = function (req, res, next) {
   res.json(req.user);
 };
 
-
-
 exports.createTip = function (req, res, next) {
   var opts = {
-    username: req.param('username'),
-    provider: req.param('provider'),
-    amount: parseInt(req.body.amount, 10) // Coerce to int
+    username: req.query.username,
+    provider: req.query.provider,
+    amount: parseInt(req.query.amount, 10) // Coerce to int
   };
 
   logic.createTip(req.user, opts, function (err, new_balance, tip_id) {
@@ -45,12 +38,8 @@ exports.createTip = function (req, res, next) {
   });
 };
 
-
 exports.resolveTip = function (req, res, next) {
-  var tip_id = req.tip_id;
-  var account = req.user;
-
-  logic.resolveTip(account, tip_id, function (err, new_balance) {
+  logic.resolveTip(req.user, req.query.tip_id, function (err, new_balance) {
     if (err) return next(err);
 
     return res.json({
