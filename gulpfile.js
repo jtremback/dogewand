@@ -68,37 +68,35 @@ gulp.task('loader-incremental', function () {
 
 
 // IFRAME CONTENTS
-gulp.task('app-styles', function () {
-  return gulp.src('assets/stylus/app.styl')
+gulp.task('iframe-styles', function () {
+  return gulp.src('assets/stylus/iframe.styl')
     .pipe(lazyStylus())
-    .pipe(gulpRename('app.css'))
+    .pipe(gulpRename('iframe.css'))
     .pipe(gulp.dest('public/css')) // Put into public folder for good caching
-    .pipe(gulpNotify({ message: 'app-styles task complete' }));
+    .pipe(gulpNotify({ message: 'iframe-styles task complete' }));
 });
 
-gulp.task('app-html', function () {
-  return gulp.src('assets/templates/app/**/*.jade')
+gulp.task('iframe-html', function () {
+  return gulp.src('assets/templates/iframe/**/*.jade')
     .pipe(gulpJade())
-    .pipe(gulp.dest('public/app'))
-    .pipe(gulpNotify({ message: 'app-html task complete' }));
+    .pipe(gulp.dest('public/iframe'))
+    .pipe(gulpNotify({ message: 'iframe-html task complete' }));
 });
 
-gulp.task('app-js', function () {
-  return gulp.src(['assets/js/app/**/*.js'])
+gulp.task('iframe-js', function () {
+  return gulp.src(['assets/js/iframe/**/*.js'])
     .pipe(gulpTemplate({url: config.url})) // Add magic numbers like url etc.
     .pipe(gulpInclude()) // Bring it all together
-    .pipe(gulpRename('app.js'))
+    .pipe(gulpRename('iframe.js'))
     .pipe(gulp.dest('public/js'))
-    .pipe(gulpNotify({ message: 'app-js task complete' }));
+    .pipe(gulpNotify({ message: 'iframe-js task complete' }));
 });
-
-
 
 //// WATCH
 gulp.task('watch', function () {
-  gulp.watch('assets/templates/app/**', ['app-html']);
-  gulp.watch('assets/stylus/**', ['app-styles', 'loader-styles']);
-  gulp.watch('assets/js/**', ['app-js', 'loader-js']);
+  gulp.watch('assets/templates/iframe/**', ['iframe-html']);
+  gulp.watch('assets/stylus/**', ['iframe-styles', 'loader-styles']);
+  gulp.watch('assets/js/**', ['iframe-js', 'loader-js']);
 
   gulp.watch('incremental/loader/**', ['loader-incremental']);
 });
@@ -106,4 +104,4 @@ gulp.task('watch', function () {
 
 
 // BUILD
-gulp.task('build', ['app-js', 'app-html', 'app-styles', 'loader-styles', 'loader-js']);
+gulp.task('build', ['iframe-js', 'iframe-html', 'iframe-styles', 'loader-styles', 'loader-js']);

@@ -2,6 +2,8 @@
 
 var URL = '<%= url %>';
 
+alert('Wow ' + URL);
+
 (function () {
   function $ (selector, el) {
        if (!el) {el = document;}
@@ -13,7 +15,9 @@ var URL = '<%= url %>';
        return Array.prototype.slice.call(el.querySelectorAll(selector));
   }
 
-  var PROVIDER_ORIGIN = $('.js-provider').textContent;
+  // var PROVIDER_ORIGIN = $('.js-provider').textContent; // Will need to use postMessage here instead.
+
+  var PROVIDER_ORIGIN = 'https://www.facebook.com/';
 
   var toolbar = $('.js-toolbar');
   if (toolbar) return _toolbar(toolbar);
