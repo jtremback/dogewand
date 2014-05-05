@@ -1,10 +1,9 @@
 'use strict';
 
-var express = require('express')
-  , fs = require('fs')
-  , passport = require('passport')
-  , config = require('./config/config')()
-  , mongoose = require('mongoose');
+var express = require('express');
+var passport = require('passport');
+var config = require('./config/config')();
+var mongoose = require('mongoose');
 
 
 // Connect to mongodb

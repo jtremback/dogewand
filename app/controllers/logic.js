@@ -8,6 +8,12 @@ var check = require('check-types');
 var queue = require('../models/queue');
 var coinstring = require('coinstring');
 
+var NamedError = function(message, name) {
+    var error = new Error(message);
+    error.name = name;
+    return error;
+};
+
 exports.createTip = function (account, opts, callback) {
   var tip_id = mongoose.Types.ObjectId().toString(); // Make ObjectId out here to return it
   var valid = check.every(
@@ -34,7 +40,11 @@ exports.createTip = function (account, opts, callback) {
       queue.pushCommand('Tip', 'create', [account, tippee, opts.amount, tip_id]);
       return callback(null, new_balance, tip_id);
     } else {
-      return callback(new Error('Not enough doge.'));
+      // var error = new Error('Not enough doge.');
+      // error.name = 402;
+      // return callback(error);
+
+      return callback(new NamedError('Not enough doge.', 402));
     }
   });
 };

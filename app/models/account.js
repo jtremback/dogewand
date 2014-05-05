@@ -12,7 +12,6 @@ var AccountSchema = new Schema({
   username: String
 });
 
-
 AccountSchema.statics = {
 
   // opts = {
@@ -106,7 +105,9 @@ AccountSchema.methods = {
     rpc({
       method: 'getnewaddress',
       params: [ self._id ]
-    }, callback);
+    }, function (err, response) {
+      return callback(null, response);
+    });
   }
 };
 

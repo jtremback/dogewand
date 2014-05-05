@@ -4,13 +4,14 @@ var api = require('../app/controllers/api');
 
 module.exports = function (app, passport) {
 
-  app.post('/api/tips/create', ensureAuthenticated, api.createTip);
+  app.post('/api/v1/tips/create', ensureAuthenticated, api.createTip);
 
-  app.post('/api/tips/resolve', ensureAuthenticated, api.resolveTip);
+  app.post('/api/v1/tips/resolve', ensureAuthenticated, api.resolveTip);
 
-  app.get('/api/account', ensureAuthenticated, api.account);
+  app.get('/api/v1/account', ensureAuthenticated, api.account);
 
-  app.get('/app/account/address', ensureAuthenticated, api.address);
+  app.get('/api/v1/account/address', ensureAuthenticated, api.address);
+
 
   app.get('/auth/facebook', passport.authenticate('facebook'), function () {});
 

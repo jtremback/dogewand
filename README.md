@@ -23,27 +23,36 @@ TO DO:
 * automatic wallet backup
 * scaling tweaks
 
-The extension can be built by running `gulp watch` in the root. I will be adding build scripts for the site as well.
+The extension can be built by running `gulp build`, and then 'gulp watch' in the root. I will be adding build scripts for the site as well.
 
-Server API:
+###Server API:
 
-GET /iframe - returns iframe app html
-GET /api/account - returns account info
-GET /api/tips - get list of tips for account
-POST /api/tips/create - creates tip
+* GET /iframe - returns iframe app html
+* GET /api/account - returns account info
+* GET /api/tips - get list of tips for account
+* POST /api/tips/create - creates tip
   username
   provider
   amount
-POST /api/tips/resolve - resolves tip
+* POST /api/tips/resolve - resolves tip
   tip_id
-POST /api/account/withdraw - sends to address, returns whether it is likely to have succeeded
+* POST /api/account/withdraw - sends to address
   to_address
   amount
-GET /api/account/address - returns address linked to current acct.
+* GET /api/account/address - returns address linked to current acct.
 
-postMessage API:
+*Server responses:*
+Status: <Number>
 
-iframe -> loader:
+{
+  'status': <Number>,
+  'error': <Boolean>,
+  'data': <Anything>
+}
+
+###postMessage API:
+
+*iframe -> loader:*
   { "method": "tipMode" } - enters tipping mode, wand etc
 
   { "method": "exit" } - exits everything
@@ -54,7 +63,7 @@ iframe -> loader:
     height: <>
   }} - sets size of iframe
 
-loader -> iframe
+*loader -> iframe*
   { "method": "tipCreate"
     "data": {
       "username": <>,

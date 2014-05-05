@@ -7,18 +7,25 @@ var check = require('check-types');
 var Account = mongoose.model('Account');
 var Tip = mongoose.model('Tip');
 
+function Success (data) {
+  return {
+    status: 200,
+    error: false,
+    data: data
+  };
+}
+
 
 exports.address = function (req, res, next) {
-  Account.newAddress(function (err, address) {
+  req.user.newAddress(function (err, address) {
     if (err) return next(err);
-    res.json({
-      address: address
-    });
+
+    res.json(new Success(address));
   });
 };
 
 exports.account = function (req, res, next) {
-  res.json(req.user);
+  res.json(new Success(req.user));
 };
 
 exports.createTip = function (req, res, next) {
