@@ -41,35 +41,37 @@ The extension can be built by running `gulp build`, and then 'gulp watch' in the
   amount
 * GET /api/account/address - returns address linked to current acct.
 
-*Server responses:*
-Status: <Number>
+####Server responses:
+Status: Number
 
-{
-  'status': <Number>,
-  'error': <Boolean>,
-  'data': <Anything>
-}
+    {
+      'status': Number,
+      'error': Boolean,
+      'data': Anything
+    }
 
 ###postMessage API:
 
-*iframe -> loader:*
-  { "method": "tipMode" } - enters tipping mode, wand etc
+####iframe -> loader:
 
-  { "method": "exit" } - exits everything
+    { "method": "enter.tipping" } // enters tipping mode
 
-  { "method": 'size',
-  "data": {
-    width: <>,
-    height: <>
-  }} - sets size of iframe
+    { "method": "exit" } // exits everything
 
-*loader -> iframe*
-  { "method": "tipCreate"
-    "data": {
-      "username": <>,
-      "provider": <>
+    { "method": "size", // sets size of iframe
+      "data": {
+        "width": Css,
+        "height": Css,
+      }
     }
-  }
+
+####loader -> iframe
+    { "method": "create.tip"
+      "data": {
+        "username": String,
+        "provider": String
+      }
+    }
 
 
 
