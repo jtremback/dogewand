@@ -64,9 +64,9 @@ exports.resolveTip = function (tip_id, account, callback) {
     // These are re-checked in the model when the request is made
     if (err) return callback(err);
     if (!tip) return callback(new Error('No tip found.'));
-    if ((account_id !== tipper_id) && (account_id !== tippee_id)) return callback(new Error('This is not your tip.'));
-    if (tip.state === 'claimed') return callback(new Error('Tip has already been claimed.')); // This should be considered insecure
-    if (tip.state === 'canceled') return callback(new Error('Tip has been cancelled.')); // The real checking happens in the model
+    if ((account_id !== tipper_id) && (account_id !== tippee_id)) return callback(new NamedError('This is not your tip.', 403));
+    if (tip.state === 'claimed') return callback(new NamedError('Tip has already been claimed.', 403)); // This should be considered insecure
+    if (tip.state === 'canceled') return callback(new NamedError('Tip has been cancelled.', 403)); // The real checking happens in the model
     if (tip.state !== 'created') return callback(new Error('Tip error.'));
 
     queue.pushCommand('Tip', 'resolve', [tip, account]);
@@ -75,12 +75,12 @@ exports.resolveTip = function (tip_id, account, callback) {
 };
 
 exports.withdraw = function (account, to_address, amount, callback) {
-  if (!check.positiveNumber(amount)) return callback(new Error('Invalid amount.'));
-  if (!coinstring.validate(0x1E, to_address)) return callback(new Error('Not a valid dogecoin address.'));
+  if (!check.positiveNumber(amount)) return callback(new NamedError('Invalid amount.', 400));
+  if (!coinstring.validate(0x1E, to_address)) return callback(new NamedError('Not a valid dogecoin address.', 400));
 
   var new_balance = account.balance - amount;
   if (new_balance < 0) {
-    return callback(new Error('Not enough dogecoin.')); // insecure
+    return callback(new NamedError('Not enough dogecoin.', 402)); // insecure
   }
 
   queue.pushCommand('Account', 'withdraw', [account, to_address, amount]);

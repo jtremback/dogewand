@@ -7,7 +7,7 @@ var check = require('check-types');
 var Account = mongoose.model('Account');
 var Tip = mongoose.model('Tip');
 
-function Success (data) {
+function SuccessResponse (data) {
   return {
     status: 200,
     error: false,
@@ -20,12 +20,12 @@ exports.address = function (req, res, next) {
   req.user.newAddress(function (err, address) {
     if (err) return next(err);
 
-    res.json(new Success(address));
+    res.json(new SuccessResponse(address));
   });
 };
 
 exports.account = function (req, res, next) {
-  res.json(new Success(req.user));
+  res.json(new SuccessResponse(req.user));
 };
 
 exports.createTip = function (req, res, next) {
@@ -46,11 +46,18 @@ exports.createTip = function (req, res, next) {
 };
 
 exports.resolveTip = function (req, res, next) {
-  logic.resolveTip(req.user, req.query.tip_id, function (err, new_balance) {
+  logic.resolveTip(req.query.tip_id, req.user, function (err, new_balance) {
     if (err) return next(err);
 
     return res.json({
       new_balance: new_balance
     });
+  });
+};
+
+exports.updateBalance = function (req, res, next) {
+  req.user.updateBalance(function (err, account) {
+    if (err) return next(err);
+    res.json(account.balance);
   });
 };

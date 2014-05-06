@@ -12,6 +12,8 @@ module.exports = function (app, passport) {
 
   app.get('/api/v1/account/address', ensureAuthenticated, api.address);
 
+  app.get('/api/v1/account/balance', ensureAuthenticated, api.updateBalance);
+
 
   app.get('/auth/facebook', passport.authenticate('facebook'), function () {});
 
