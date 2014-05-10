@@ -24,7 +24,9 @@
     "check-types": "^1.2.0",
     "elapse": "^0.1.1",
     "connect-flash": "^0.1.1",
-    "coinstring": "^0.2.0"
+    "coinstring": "^0.2.0",
+    "bcrypt": "^0.7.8",
+    "passport-local": "^1.0.0"
   },
   "devDependencies": {
     "gulp-stylus": "^0.1.0",

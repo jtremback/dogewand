@@ -2,6 +2,7 @@
 
 var mongoose = require('mongoose');
 var FacebookStrategy = require('passport-facebook').Strategy;
+var LocalStrategy = require('passport-local').Strategy;
 var Account = mongoose.model('Account');
 
 
@@ -30,4 +31,21 @@ module.exports = function (passport, config) {
       }, done);
     }
   ));
+
+  // use local strategy
+  passport.use(new LocalStrategy(function(username, password, done) {
+    Account.findOne({ username: username, provider: 'dogewand' }, function(err, account) {
+      if (err) { return done(err); }
+      if (!account) { return done(null, false, { message: 'Unknown username ' + username }); }
+      account.authenticate(password, function(err, isMatch) {
+        if (err) return done(err);
+        console.log(isMatch)
+        if(isMatch) {
+          return done(null, account);
+        } else {
+          return done(null, false, { message: 'Invalid password' });
+        }
+      });
+    });
+  }));
 };

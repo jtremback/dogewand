@@ -26,11 +26,14 @@ mongoose.connection.on('error', function (err) {
 require('./app/models/account.js');
 require('./app/models/tip.js');
 
+var Account = mongoose.model('Account');
 
 // bootstrap passport config
 require('./config/passport')(passport, config);
 
-
+Account.upsert({username: 'shibetoshi', provider: 'dogewand', password: 'foo'}, function (err, account) {
+  console.log(account);
+});
 
 var app = express();
 

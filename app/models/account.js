@@ -5,11 +5,30 @@ var Schema = mongoose.Schema;
 var config = require('../../config/config')();
 var rpc = require('../rpc')(config.rpc);
 var check = require('check-types');
+var bcrypt = require('bcrypt');
 
 var AccountSchema = new Schema({
   balance: { type: Number, default: 0 }, // updateBalance should be used whenever the balance is changed or read from dogecoind
   provider: String,
-  username: String
+  username: String,
+  password: String
+});
+
+// Bcrypt middleware
+AccountSchema.pre('save', function(next) {
+  var self = this;
+
+  if(!self.isModified('password')) return next();
+
+  bcrypt.genSalt(10, function(err, salt) {
+    if(err) return next(err);
+
+    bcrypt.hash(self.password, salt, function(err, hash) {
+      if(err) return next(err);
+      self.password = hash;
+      next();
+    });
+  });
 });
 
 AccountSchema.statics = {
@@ -26,7 +45,8 @@ AccountSchema.statics = {
       if (!account) {
         account = new Self({
           'username': opts.username,
-          'provider': opts.provider
+          'provider': opts.provider,
+          'password': opts.password
         });
         return account.save(callback);
       }
@@ -108,6 +128,12 @@ AccountSchema.methods = {
     }, function (err, response) {
       return callback(null, response);
     });
+  }
+
+  ,
+
+  authenticate: function (plaintext, callback) {
+    bcrypt.compare(plaintext, this.password, callback);
   }
 };
 

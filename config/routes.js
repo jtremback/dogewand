@@ -23,6 +23,8 @@ module.exports = function (app, passport) {
       res.redirect('/iframe');
     });
 
+  app.post('/auth/dogewand', passport.authenticate('local'), api.account);
+
   app.get('/logout', function(req, res){
     req.logout();
     res.redirect('/');
