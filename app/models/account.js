@@ -40,7 +40,7 @@ AccountSchema.statics = {
   upsert: function (opts, callback) {
     var Self = this;
 
-    Self.findOne(opts, function (err, account) {
+    Self.findOne({ provider: opts.provider, username: opts.username }, function (err, account) {
       if (err) { return callback(err); }
       if (!account) {
         account = new Self({
@@ -124,6 +124,19 @@ AccountSchema.methods = {
 
     rpc({
       method: 'getnewaddress',
+      params: [ self._id ]
+    }, function (err, response) {
+      return callback(null, response);
+    });
+  }
+
+  ,
+
+  getAddress: function (callback) {
+    var self = this;
+
+    rpc({
+      method: 'getaccountaddress',
       params: [ self._id ]
     }, function (err, response) {
       return callback(null, response);

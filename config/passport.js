@@ -39,7 +39,6 @@ module.exports = function (passport, config) {
       if (!account) { return done(null, false, { message: 'Unknown username ' + username }); }
       account.authenticate(password, function(err, isMatch) {
         if (err) return done(err);
-        console.log(isMatch)
         if(isMatch) {
           return done(null, account);
         } else {

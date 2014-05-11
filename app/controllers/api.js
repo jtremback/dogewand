@@ -17,7 +17,7 @@ function SuccessResponse (data) {
 
 
 exports.address = function (req, res, next) {
-  req.user.newAddress(function (err, address) {
+  req.user.getAddress(function (err, address) {
     if (err) return next(err);
 
     res.json(new SuccessResponse(address));
