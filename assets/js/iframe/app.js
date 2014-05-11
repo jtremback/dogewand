@@ -1,2 +1,10 @@
 
-angular.module('dogewand',function (){});
+angular.module('dogewand',[],function (){
+
+})
+.controller('iframe', function () {
+
+})
+.directive('backdrop', function () {
+
+})
