@@ -18,13 +18,14 @@ var AccountSchema = new Schema({
 AccountSchema.pre('save', function(next) {
   var self = this;
 
-  if(!self.isModified('password')) return next();
+  if (self.provider !== 'dogewand') return next();
+  if (!self.isModified('password')) return next();
 
   bcrypt.genSalt(10, function(err, salt) {
-    if(err) return next(err);
+    if (err) return next(err);
 
     bcrypt.hash(self.password, salt, function(err, hash) {
-      if(err) return next(err);
+      if (err) return next(err);
       self.password = hash;
       next();
     });
@@ -88,11 +89,11 @@ AccountSchema.statics = {
           params: [ account.id, to_address, amount ]
         }, function (err) {
           if (err) return callback(err);
-          account.updateBalance(callback);
+          return tipper.updateBalance(callback);
         });
       }
 
-      return console.log('Not enough dogecoin to withdraw.', tipper, amount);
+      else return console.log('Not enough dogecoin to withdraw.', tipper, amount);
     });
   }
 };

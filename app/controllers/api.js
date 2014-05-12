@@ -61,3 +61,13 @@ exports.updateBalance = function (req, res, next) {
     res.json(account.balance);
   });
 };
+
+exports.withdraw = function (next) {
+  logic.withdraw(req.user.id, req.query.address, req.query.amount, function (err, new_balance) {
+    if (err) return next(err);
+
+    return res.json({
+      new_balance: new_balance
+    });
+  });
+};

@@ -6,7 +6,22 @@ var async = require('async');
 var config = require('../config/config')('test');
 var rpc = require('../app/rpc')(config.rpc);
 var utility = require('../test-utility');
+require('../app/models/account.js');
+require('../app/models/tip.js');
+var logic = require('../app/controllers/logic.js');
 
+
+function asyncTimeout (fn, timeout) {
+    setTimeout(fn, timeout);
+}
+
+function decimalRound (number, divisions) {
+  var integer = number * divisions;
+  return Math.round(integer) / divisions;
+}
+
+var TIMEOUT = 1000;
+var FEE = 1;
 
 test('---------------------------------------- account.js', function (t) {
   // Connect to mongodb
@@ -18,9 +33,6 @@ test('---------------------------------------- account.js', function (t) {
       }
     }
   });
-
-  require('../app/models/account.js');
-  require('../app/models/tip.js');
 
   var Tip = mongoose.model('Tip');
   var Account = mongoose.model('Account');
@@ -65,40 +77,62 @@ test('---------------------------------------- account.js', function (t) {
   });
 
 
-  t.test('send and recieve', function (t) {
 
-    function findOne (conditions, callback) {
-      Account.findOne(conditions, function (err, account) {
-        var results = { account: account };
-        callback(err, results);
-      });
-    }
+  t.test('deposit and withdraw', function (t) {
 
-    function newAddress (results, callback) {
-      results.account.newAddress(function (err, address) {
-        results.address = address;
-        callback(err, results);
-      });
-    }
+    var sender = wallet_a;
+    var reciever = wallet_b;
 
-    function withdraw (results, callback) {
-      results.account.withdraw(results.address, 1, function (err, account) {
-        results.account = account;
-        callback(err, results);
-      });
-    }
+    var start_balance = 3.09;
+    var amount = 1;
 
-    var send = async.compose(withdraw, newAddress, findOne);
+    utility.resetBalances(function () {
+      utility.seedFunds(sender, start_balance, function (err, sender) {
+        t.error(err);
 
-    send({ _id: wallet_a }, function (err, results) {
-      rpc({
-        method: 'listtransactions',
-        params: [ results.account._id, 1 ]
-      }, function (err, transaction) {
-        t.equal(transaction[0].address, results.address, 'transaction address correct');
-        t.equal(transaction[0].category, 'send', 'transaction category correct');
-        t.equal(transaction[0].amount, -1, 'transaction amount correct');
-        t.end();
+        reciever.getAddress(function (err, address) {
+          t.error(err);
+
+          logic.withdraw(sender, address, amount, function (err, new_balance) {
+            t.error(err);
+            t.equal(new_balance, start_balance - amount);
+
+            asyncTimeout(function () {
+              async.parallel({
+
+                sender_balance: async.apply(rpc, {
+                  method: 'getbalance',
+                  params: [sender._id]
+                })
+
+                ,
+
+                transaction: async.apply(rpc, {
+                  method: 'listtransactions',
+                  params: [ sender._id, 1 ]
+                })
+
+                ,
+
+                sender: function (cb) {
+                  Account.findOne({ _id: sender._id }, cb);
+                }
+
+              }, function (err, results) {
+                t.error(err);
+
+                t.equal(decimalRound(start_balance - amount - FEE, 100), results.sender_balance, 'right sender balance');
+                t.equal(results.sender.balance, results.sender_balance, 'dogecoind and mongo sender balance');
+
+                t.equal(amount, -results.transaction[0].amount, 'dogecoind amount');
+                t.equal(FEE, -results.transaction[0].fee, 'dogecoind fee');
+
+                t.end();
+              });
+            }, TIMEOUT);
+
+          });
+        });
       });
     });
   });
@@ -106,6 +140,7 @@ test('---------------------------------------- account.js', function (t) {
   t.test('end', function (t) {
     mongoose.disconnect(function () {
       t.end();
+      process.exit();
     });
   });
 });
