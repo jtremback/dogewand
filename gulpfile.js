@@ -12,6 +12,8 @@ var gulpMinifyCss = require('gulp-minify-css');
 var gulpJade = require('gulp-jade');
 var gulpDataUri = require('gulp-data-uri');
 var gulpTemplate = require('gulp-template');
+var concat = require('gulp-concat');
+
 
 var lazypipe = require('lazypipe');
 var config = require('./config/config')();
@@ -77,8 +79,8 @@ gulp.task('iframe-styles', function () {
 });
 
 gulp.task('iframe-html', function () {
-  return gulp.src('assets/templates/iframe/**/*.jade')
-    .pipe(gulpJade())
+  return gulp.src('assets/templates/iframe/**/*.html')
+    //.pipe(gulpJade())
     .pipe(gulp.dest('public/iframe'))
     .pipe(gulpNotify({ message: 'iframe-html task complete' }));
 });
@@ -87,7 +89,8 @@ gulp.task('iframe-js', function () {
   return gulp.src(['assets/js/iframe/**/*.js'])
     .pipe(gulpTemplate({url: config.url})) // Add magic numbers like url etc.
     .pipe(gulpInclude()) // Bring it all together
-    .pipe(gulpRename('iframe.js'))
+    //.pipe(gulpRename('iframe.js'))
+  	.pipe(concat('iframe.js'))
     .pipe(gulp.dest('public/js'))
     .pipe(gulpNotify({ message: 'iframe-js task complete' }));
 });
@@ -100,8 +103,6 @@ gulp.task('watch', function () {
 
   gulp.watch('incremental/loader/**', ['loader-incremental']);
 });
-
-
 
 // BUILD
 gulp.task('build', ['iframe-js', 'iframe-html', 'iframe-styles', 'loader-styles', 'loader-js']);

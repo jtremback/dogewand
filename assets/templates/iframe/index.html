@@ -1,13 +1,19 @@
 <!DOCTYPE html>
-<html data-ng-app="dogewand">
+<html lang="en" data-ng-app="dogewand">
 <head>
   <title>DogeWand</title>
-  <link rel="stylesheet" href="./css/iframe.css">
+  <link rel="stylesheet" href="../css/iframe.css">
 </head>
 <body data-ng-controller="iframe">
-  <div class="container"></div>
-  <div class="backdrop" data-backdrop ></div>
-  <div class="modal" data-modal ></div>
-  <script src="./js/iframe.js"></script>
+  <div class="container">
+    <nav class='menu' data-ng-controller="menu">
+      <button data-ng-click="close()">Close</button>
+      <button data-ng-click="toggleModal()">Open</button>
+    </nav>
+  </div>
+  
+  <modal show='modal.show' width='auto' height='60%'></modal>
+  
+  <script src="../js/iframe.js"  ></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 
 var URL = '<%= url %>';
 
-alert('Wow ' + URL);
+//alert('Wow ' + URL);
 
 (function () {
   function $ (selector, el) {
@@ -14,7 +14,12 @@ alert('Wow ' + URL);
        if (!el) {el = document;}
        return Array.prototype.slice.call(el.querySelectorAll(selector));
   }
-
+  
+	function $$$ (selector, el ) {
+    if (!el) {el = document;}
+    return angular.element(el.querySelector(selector));
+  }
+  
   var PROVIDER_ORIGIN = 'https://www.facebook.com/'; // Will need to use postMessage here instead.
 
   var toolbar = $('.js-toolbar');
