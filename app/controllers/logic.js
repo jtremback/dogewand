@@ -84,5 +84,5 @@ exports.withdraw = function (account, to_address, amount, callback) {
   }
 
   queue.pushCommand('Account', 'withdraw', [account, to_address, amount]);
-  return callback(null, account.balance);
+  return callback(null, new_balance);
 };

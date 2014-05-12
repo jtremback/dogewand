@@ -14,6 +14,7 @@ module.exports = function (app, passport) {
 
   app.get('/api/v1/account/balance', ensureAuthenticated, api.updateBalance);
 
+  app.post('/api/v1/account/withdraw', ensureAuthenticated, api.withdraw);
 
   app.get('/auth/facebook', passport.authenticate('facebook'), function () {});
 

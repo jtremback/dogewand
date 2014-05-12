@@ -10,17 +10,6 @@ require('../app/models/account.js');
 require('../app/models/tip.js');
 var logic = require('../app/controllers/logic.js');
 
-function getBalances(_ids, callback) {
-  async.map(_ids, iterator, callback);
-
-  function iterator (_id, cb) {
-    rpc({
-      method: 'getbalance',
-      params: [_id]
-    }, cb);
-  }
-}
-
 function asyncTimeout (fn, timeout) {
     setTimeout(fn, timeout);
 }
@@ -41,7 +30,6 @@ test('---------------------------------------- logic.js', function (t) {
   var Tip = mongoose.model('Tip');
   var Account = mongoose.model('Account');
 
-  var amount = 1;
   var wallet_a;
   var wallet_b;
 
@@ -310,23 +298,6 @@ test('---------------------------------------- logic.js', function (t) {
     });
   }
 
-
-  // t.test('withdraw', function (t) {
-
-  //   function checkWithdrawStarted (t, account, opts) {
-  //     logic.withdraw(account, opts.to_address, opts.amount, function (err, new_balance) {
-  //       if (err) return (err);
-  //       asyncTimeout(function () {
-  //         checkWithdrawFinished(t, account, opts);
-  //       });
-  //     });
-  //   }
-
-  //   function checkWithdrawFinished (t, account, opts) {
-
-  //   }
-
-  // }
 
 
   t.test('end', function (t) {
