@@ -12,7 +12,7 @@ var gulpMinifyCss = require('gulp-minify-css');
 var gulpJade = require('gulp-jade');
 var gulpDataUri = require('gulp-data-uri');
 var gulpTemplate = require('gulp-template');
-var concat = require('gulp-concat');
+var gulpConcat = require('gulp-concat');
 
 
 var lazypipe = require('lazypipe');
@@ -90,7 +90,7 @@ gulp.task('iframe-js', function () {
     .pipe(gulpTemplate({url: config.url})) // Add magic numbers like url etc.
     .pipe(gulpInclude()) // Bring it all together
     //.pipe(gulpRename('iframe.js'))
-  	.pipe(concat('iframe.js'))
+  	.pipe(gulpConcat('iframe.js'))
     .pipe(gulp.dest('public/js'))
     .pipe(gulpNotify({ message: 'iframe-js task complete' }));
 });
