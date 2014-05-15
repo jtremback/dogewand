@@ -7,6 +7,8 @@
 var express = require('express');
 var connectMongo = require('connect-mongo')(express);
 // var flash = require('connect-flash');
+var ECT = require('ect');
+
 
 
 module.exports = function (app, config, passport) {
@@ -19,8 +21,13 @@ module.exports = function (app, config, passport) {
   app.use(express.logger()); // LOGGING
 
   // set views path, template engine and default layout
-  app.set('views', './assets/templates/server');
-  app.set('view engine', 'jade');
+  var ectRenderer = ECT({ watch: true, root: __dirname + '/assets/templates/server', ext : '.ect' });
+
+  app.set('view engine', 'ect');
+  app.engine('ect', ectRenderer.render);
+
+  // app.set('views', './assets/templates/server');
+  // app.set('view engine', 'jade');
 
 
   // cookieParser should be above session

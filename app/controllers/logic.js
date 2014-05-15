@@ -40,10 +40,6 @@ exports.createTip = function (account, opts, callback) {
       queue.pushCommand('Tip', 'create', [account, tippee, opts.amount, tip_id]);
       return callback(null, new_balance, tip_id);
     } else {
-      // var error = new Error('Not enough doge.');
-      // error.name = 402;
-      // return callback(error);
-
       return callback(new NamedError('Not enough doge.', 402));
     }
   });

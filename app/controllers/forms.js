@@ -12,7 +12,7 @@ exports.createTip = function (req, res, next) {
   logic.createTip(req.user, opts, function (err, tip, tipper, tippee) {
     if (err) return next(err);
 
-    return res.render('modals/tip-created', {
+    return res.render('/tip-created', {
       tip: tip,
       tipper: tipper,
       tippee: tippee
