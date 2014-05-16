@@ -27,7 +27,8 @@ exports.tip = function (req, res, next) {
     if (!tip) {
       return res.send('Tip not found.');
     }
-    // if (path_amount !== tip.amount) return next('Amount not correct.'); // Check to make sure the amount in the path is correct
+    console.log(path_amount, tip.amount)
+    if (path_amount != tip.amount) return res.send('Tip not found.'); // Check to make sure the amount in the path is correct
 
     var role;
     if (!req.user) role = false;
