@@ -46,7 +46,7 @@ exports.createTip = function (req, res, next) {
 };
 
 exports.resolveTip = function (req, res, next) {
-  logic.resolveTip(req.query.tip_id, req.user, function (err, new_balance) {
+  logic.resolveTip(req.param.tip_id, req.user, function (err, new_balance) {
     if (err) return next(err);
 
     return res.json({

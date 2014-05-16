@@ -1,0 +1,25 @@
+extend layout
+
+block message
+  p You just claimed a D#{amount} tip from #{tipper}!
+  p Your current balance is #{balance}
+  br
+  form(action="", method="POST")
+    input(type="hidden", name="_csrf", value=csrftoken)
+
+    p
+      |Withdraw&nbsp;
+      input(type="number")
+      |&nbsp;dogecoins.
+
+    p
+      |Send to&nbsp;
+      input(type="text", placeholder="Your address")
+
+    p
+      button(type="submit")
+
+
+  p Or, to tip other people, drag the&nbsp;
+  a(href="javascript:#{bookmarklet_code}") bookmarklet
+  |&nbsp;to your bookmarks bar.

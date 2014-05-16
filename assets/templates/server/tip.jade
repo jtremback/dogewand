@@ -1,0 +1,24 @@
+extend layout
+
+block content
+  h1 Wow!
+
+
+  h2 #{tip.amount} dogecoins
+  p from: #{tip.tipper_id.username} on #{tip.tipper_id.provider}
+  p to: #{tip.tippee_id.username} on #{tip.tippee_id.provider}
+
+  if tip.state === 'claimed' || tip.state === 'canceled'
+    p this tip has been #{tip.state}
+
+  else if role
+    p
+      form(action="#{tip_path}", method="POST")
+        input(type="hidden", name="_csrf", value="#{csrf_token}")
+        if role === 'tippee'
+          button(type="submit") Claim them!
+
+        if role === 'tipper'
+          button(type="submit") Cancel this tip.
+  else
+    p If this is you, <a href="/auth/facebook?redirect_to=tips/#{tip_path}">sign in with facebook</a> to claim your tip.

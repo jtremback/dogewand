@@ -2,31 +2,59 @@
 
 var mongoose = require('mongoose');
 var config = require('../../config/config')();
+var logic = require('./logic.js');
 var check = require('check-types');
 var Account = mongoose.model('Account');
 var Tip = mongoose.model('Tip');
 
 exports.tip = function (req, res, next) {
-  var path = req.params.tip;
-  var path_matched = path.match(/(.*)doge\-(.*)/);
+  var tip_path = req.params.tip;
+  var path_matched = tip_path.match(/(.*)doge\-(.*)/);
 
   if (!path_matched) return next('Invalid tip ID.');
 
   var path_amount = path_matched[1];
   var tip_id = path_matched[2];
 
-  Tip.findOne({_id: tip_id}, function (err, tip) {
+  console.log(tip_id)
+
+  Tip.findOne({_id: tip_id})
+  .populate('tipper_id', 'username provider')
+  .populate('tippee_id', 'username provider')
+  .exec(function (err, tip) {
+    console.log(tip)
     if (err) return next(err);
     if (!tip) {
       return res.send('Tip not found.');
     }
-    if (path_amount !== tip.amount) return next('Tip not found.'); // Check to make sure the amount in the path is correct
+    // if (path_amount !== tip.amount) return next('Amount not correct.'); // Check to make sure the amount in the path is correct
 
-    return res.render('/tip', {
+    var role;
+    if (!req.user) role = false;
+    else if (req.user.id === tip.tippee_id.id) role = 'tippee';
+    else if (req.user.id === tip.tipper_id.id) role = 'tipper';
+    else role = false;
+
+    return res.render('tip.jade', {
       url: config.url,
       user: req.user,
+      role: role,
       tip: tip,
-      path: path
+      tip_path: tip_path
+    });
+  });
+};
+
+exports.resolveTip = function (req, res, next) {
+  var tip = req.params.tip;
+  var tip_id = tip.substr(tip.length - 24);
+
+  console.log(req.params)
+  logic.resolveTip(tip_id, req.user, function (err, new_balance) {
+    if (err) return next(err);
+
+    return res.json({
+      new_balance: new_balance
     });
   });
 };

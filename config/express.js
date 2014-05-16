@@ -7,8 +7,6 @@
 var express = require('express');
 var connectMongo = require('connect-mongo')(express);
 // var flash = require('connect-flash');
-var ECT = require('ect');
-
 
 
 module.exports = function (app, config, passport) {
@@ -21,14 +19,9 @@ module.exports = function (app, config, passport) {
   app.use(express.logger()); // LOGGING
 
   // set views path, template engine and default layout
-  var ectRenderer = ECT({ watch: true, root: __dirname + '/assets/templates/server', ext : '.ect' });
-
-  app.set('view engine', 'ect');
-  app.engine('ect', ectRenderer.render);
-
-  // app.set('views', './assets/templates/server');
-  // app.set('view engine', 'jade');
-
+  app.set('views', config.root + '/assets/templates/server');
+  app.set('view engine', 'jade');
+  app.disable('view cache');
 
   // cookieParser should be above session
   app.use(express.cookieParser());
@@ -81,9 +74,11 @@ module.exports = function (app, config, passport) {
   // routes should be at the last
   app.use(app.router);
 
+  // error
   app.use(function(err, req, res, next) {
     console.log(err);
     if (typeof err.name === 'string') {
+      console.log(err.stack);
       return res.send(500, 'wow such error.');
     }
     else if (typeof err.name === 'number') {
