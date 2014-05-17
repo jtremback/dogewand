@@ -31,8 +31,8 @@ module.exports = function(config) { // Saves config in scope
 
       body = JSON.parse(body);
       // elapse.timeEnd('request.post' + opts_str);
-      console.log(Date.now(), 'request.post' + opts_str);
-      console.log(Date.now(), 'rpc returns: ', JSON.stringify(body.result).substring(0, 420));
+      // console.log(Date.now(), 'request.post' + opts_str);
+      // console.log(Date.now(), 'rpc returns: ', JSON.stringify(body.result).substring(0, 420));
       if (body.error) return callback(body.error, body);
       callback(error, body.result);
     });

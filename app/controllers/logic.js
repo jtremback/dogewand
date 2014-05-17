@@ -27,18 +27,19 @@ exports.createTip = function (account, opts, callback) {
   if (!valid) return callback(new Error(400));
   if (opts.username === account.username) callback(new Error('You cannot tip yourself.'));
 
-
   Account.upsert({
     username: opts.username,
     provider: opts.provider
   }, function (err, tippee) {
     if (err) return callback(err);
 
-    var new_balance = account.balance - opts.amount;
-
-    if (new_balance >= 0) { // Insecure balance check to improve UX
+    if ((account.balance - opts.amount) >= 0) { // Insecure balance check to improve UX
       queue.pushCommand('Tip', 'create', [account, tippee, opts.amount, tip_id]);
-      return callback(null, new_balance, tip_id);
+
+      account.pending = account.pending - opts.amount;
+      return account.save(function () {
+        callback(null, account, tip_id);
+      });
     } else {
       return callback(new NamedError('Not enough doge.', 402));
     }
@@ -55,6 +56,7 @@ exports.resolveTip = function (tip_id, account, callback) {
     var tipper_id = tip.tipper_id.toString();
     var tippee_id = tip.tippee_id.toString();
 
+
     console.log('LOGIC JS RESOLVETIP TIP, ACCOUNT', tip, account);
     // There are many different error states here.
     // These are re-checked in the model when the request is made
@@ -66,7 +68,9 @@ exports.resolveTip = function (tip_id, account, callback) {
     if (tip.state !== 'created') return callback(new Error('Tip error.'));
 
     queue.pushCommand('Tip', 'resolve', [tip, account]);
-    return callback(null, tip.amount + account.balance);
+
+    account.pending = account.pending + tip.amount;
+    return account.save(callback);
   });
 };
 
@@ -74,11 +78,12 @@ exports.withdraw = function (account, to_address, amount, callback) {
   if (!check.positiveNumber(amount)) return callback(new NamedError('Invalid amount.', 400));
   if (!coinstring.validate(0x1E, to_address)) return callback(new NamedError('Not a valid dogecoin address.', 400));
 
-  var new_balance = account.balance - amount;
-  if (new_balance < 0) {
+  if (account.balance - amount) {
     return callback(new NamedError('Not enough dogecoin.', 402)); // insecure
   }
 
   queue.pushCommand('Account', 'withdraw', [account, to_address, amount]);
-  return callback(null, new_balance);
+
+  account.pending = account.pending - amount;
+  account.save(callback);
 };

@@ -47,6 +47,7 @@ TipSchema.statics = {
 
       else { // If insufficient funds
         tip.state = 'insufficient';
+        tipper.pending = tipper.pending + tip.amount; // And close out pending
       }
 
       tip.save(function (err, tip) { // Create tip in db
@@ -71,14 +72,16 @@ TipSchema.statics = {
         if (err) return callback(err);
 
         tip.state = 'created'; // We did it
-        tipper.updateBalance(function (err) { // Update account with new balance
+        tip.save(function (err, tip) {
           if (err) return callback(err);
-          tip.save(function (err, tip) {
-            if (err) return callback(err);
-            console.log(Date.now(), 'TIP SAVE', tip)
+          console.log(Date.now(), 'TIP SAVE', tip)
+
+          tipper.balance = tipper.balance - tip.amount;
+          tipper.pending = tipper.pending + tip.amount;
+          tipper.save(function (err) {
             return callback(null, tip);
-          }); // Done
-        });
+          });
+        }); // Done
       });
     }
   }
@@ -130,7 +133,9 @@ TipSchema.statics = {
 
         tip.save(function (err) {
           if (err) return callback(err);
-          account.updateBalance(function (err) {
+          account.balance = account.balance + tip.amount;
+          account.pending = account.pending - tip.amount;
+          account.save(function (err) {
             callback(err, tip, account);
           });
         });

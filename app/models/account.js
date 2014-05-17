@@ -9,6 +9,7 @@ var bcrypt = require('bcrypt');
 
 var AccountSchema = new Schema({
   balance: { type: Number, default: 0 }, // updateBalance should be used whenever the balance is changed or read from dogecoind
+  pending: { type: Number, default: 0 },
   provider: String,
   username: String,
   password: String

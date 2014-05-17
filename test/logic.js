@@ -127,6 +127,8 @@ test('---------------------------------------- logic.js', function (t) {
 
         t.equal(opts.amount, -results.transaction[0].amount, 'dogecoind amount');
 
+        t.equals(results.tipper.pending, 0, 'pending resolved');
+
         t.equal(opts.username, tippee.username, 'mongo tippee username');
         t.equal(opts.provider, tippee.provider, 'mongo tippee provider');
 
@@ -264,6 +266,12 @@ test('---------------------------------------- logic.js', function (t) {
       tip: function (cb) {
         Tip.findOne({ _id: tip_id }, cb);
       }
+
+      ,
+
+      account: function (cb) {
+        Account.findOne({ _id: account._id }, cb);
+      }
     }, function (err, results) {
       // Convert the goddamn mongo objectids
       var recipient_id = results.tip.recipient_id.toString();
@@ -286,6 +294,8 @@ test('---------------------------------------- logic.js', function (t) {
         t.fail('wrong account resolved');
       }
 
+      t.equals(results.account.pending, 0, 'pending resolved');
+
       // Check transaction
       var transaction = results.transaction[0];
 
@@ -302,8 +312,10 @@ test('---------------------------------------- logic.js', function (t) {
 
   t.test('end', function (t) {
     mongoose.disconnect(function () {
-      t.end();
-      process.exit();
+      asyncTimeout(function () {
+        t.end();
+        process.exit();
+      }, TIMEOUT);
     });
   });
 });
