@@ -35,12 +35,13 @@ exports.createTip = function (req, res, next) {
     amount: parseInt(req.query.amount, 10) // Coerce to int
   };
 
-  logic.createTip(req.user, opts, function (err, new_balance, tip_id) {
+  logic.createTip(req.user, opts, function (err, account, tip_id) {
     if (err) return next(err);
 
     return res.json({
       tip_id: tip_id,
-      new_balance: new_balance
+      amount: opts.amount,
+      account: account
     });
   });
 };

@@ -78,7 +78,7 @@ exports.withdraw = function (account, to_address, amount, callback) {
   if (!check.positiveNumber(amount)) return callback(new NamedError('Invalid amount.', 400));
   if (!coinstring.validate(0x1E, to_address)) return callback(new NamedError('Not a valid dogecoin address.', 400));
 
-  if (account.balance - amount) {
+  if (account.balance - amount < 0) {
     return callback(new NamedError('Not enough dogecoin.', 402)); // insecure
   }
 
