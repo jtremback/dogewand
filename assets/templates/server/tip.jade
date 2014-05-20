@@ -2,7 +2,8 @@ extend layout
 
 block content
   h1 Wow!
-
+  p #{tip}
+  p #{user}
 
   h2 #{tip.amount} dogecoins
   p from: #{tip.tipper_id.username} on #{tip.tipper_id.provider}
