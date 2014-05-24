@@ -1,7 +1,7 @@
 'use strict';
 
 var mongoose = require('mongoose');
-// var Account = mongoose.model('Account');
+var Account = mongoose.model('Account');
 var config = require('../../config/config')();
 // var _ = require('lodash');
 var Schema = mongoose.Schema;

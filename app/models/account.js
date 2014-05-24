@@ -6,28 +6,36 @@ var config = require('../../config/config')();
 var rpc = require('../rpc')(config.rpc);
 var check = require('check-types');
 var bcrypt = require('bcrypt');
+var _ = require('lodash');
 
-var AccountSchema = new Schema({
-  balance: { type: Number, default: 0 }, // updateBalance should be used whenever the balance is changed or read from dogecoind
-  pending: { type: Number, default: 0 },
+var ProvidersSchema = new Schema({
   provider: String,
   username: String,
   password: String
 });
 
+var AccountSchema = new Schema({
+  balance: { type: Number, default: 0 }, // updateBalance should be used whenever the balance is changed or read from dogecoind
+  pending: { type: Number, default: 0 },
+  providers: [ProvidersSchema],
+  username: String
+});
+
 // Bcrypt middleware
 AccountSchema.pre('save', function(next) {
   var self = this;
-
-  if (self.provider !== 'dogewand') return next();
-  if (!self.isModified('password')) return next();
+  var localInfo = _.find(self.providers, function(provider) {
+    return provider.provider === 'dogewand';
+  });
+  if (localInfo === undefined) return next();
+  if (!localInfo.isModified('password')) return next();
 
   bcrypt.genSalt(10, function(err, salt) {
     if (err) return next(err);
 
-    bcrypt.hash(self.password, salt, function(err, hash) {
+    bcrypt.hash(localInfo.password, salt, function(err, hash) {
       if (err) return next(err);
-      self.password = hash;
+      localInfo.password = hash;
       next();
     });
   });
@@ -42,13 +50,12 @@ AccountSchema.statics = {
   upsert: function (opts, callback) {
     var Self = this;
 
-    Self.findOne({ provider: opts.provider, username: opts.username }, function (err, account) {
+    Self.findOne({ providers: { $elemMatch: { 'provider': opts.provider, 'username': opts.username } } }, function (err, account) {
       if (err) { return callback(err); }
       if (!account) {
         account = new Self({
           'username': opts.username,
-          'provider': opts.provider,
-          'password': opts.password
+          'providers': [{ provider: opts.provider, username: opts.username, password: opts.password }]
         });
         return account.save(callback);
       }
@@ -148,7 +155,20 @@ AccountSchema.methods = {
   ,
 
   authenticate: function (plaintext, callback) {
-    bcrypt.compare(plaintext, this.password, callback);
+    var self = this;
+
+    var localInfo = _.find(self.providers, function(provider) {
+      return provider.provider === 'dogewand';
+    });
+    bcrypt.compare(plaintext, localInfo.password, callback);
+  }
+
+  ,
+
+  linkAccount: function(username, provider, password) {
+    var self = this;
+    self.providers.push({ username: username, provider: provider, password: password });
+    self.save();
   }
 };
 

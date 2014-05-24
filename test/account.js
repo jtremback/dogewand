@@ -120,7 +120,6 @@ test('---------------------------------------- account.js', function (t) {
 
               }, function (err, results) {
                 t.error(err);
-
                 t.equal(decimalRound(start_balance - amount - FEE, 100), results.sender_balance, 'right sender balance');
                 t.equal(results.sender.balance, results.sender_balance, 'dogecoind and mongo sender balance');
 

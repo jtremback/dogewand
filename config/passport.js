@@ -5,7 +5,6 @@ var FacebookStrategy = require('passport-facebook').Strategy;
 var LocalStrategy = require('passport-local').Strategy;
 var Account = mongoose.model('Account');
 
-
 module.exports = function (passport, config) {
 
   // serialize sessions
@@ -23,8 +22,13 @@ module.exports = function (passport, config) {
   passport.use(new FacebookStrategy({
       clientID: config.facebook.clientID,
       clientSecret: config.facebook.clientSecret,
-      callbackURL: config.url +  '/auth/facebook/callback'
-    }, function (accessToken, refreshToken, profile, done) {
+      callbackURL: config.url +  '/auth/facebook/callback',
+      passReqToCallback: true
+    }, function (req, accessToken, refreshToken, profile, done) {
+      if(req.user) {
+        req.user.linkAccount(profile.displayName, 'facebook');
+        return done(null, req.user);
+      } 
       Account.upsert({
         provider: 'facebook',
         username: profile.username
@@ -34,7 +38,7 @@ module.exports = function (passport, config) {
 
   // use local strategy
   passport.use(new LocalStrategy(function(username, password, done) {
-    Account.findOne({ username: username, provider: 'dogewand' }, function(err, account) {
+    Account.findOne({ providers: { $elemMatch: { 'provider': 'dogewand', 'username': username } } }, function(err, account) {
       if (err) { return done(err); }
       if (!account) { return done(null, false, { message: 'Unknown username ' + username }); }
       account.authenticate(password, function(err, isMatch) {
