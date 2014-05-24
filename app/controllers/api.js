@@ -64,7 +64,7 @@ exports.updateBalance = function (req, res, next) {
 };
 
 exports.withdraw = function (next) {
-  logic.withdraw(req.user.id, req.query.address, req.query.amount, function (err, new_balance) {
+  logic.withdraw(req.user.id, req.param('address'), req.param('amount'), function (err, new_balance) {
     if (err) return next(err);
 
     return res.json({
