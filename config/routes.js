@@ -25,7 +25,7 @@ module.exports = function (app, passport) {
 
   function setRedirect() {
     return function(req, res, next) {
-      req.session.foo = req.query.redirect_to;
+      req.session.foo = req.param('redirect_to');
       console.log(req.session);
       return next();
     }
@@ -42,7 +42,7 @@ module.exports = function (app, passport) {
     });
 
   app.post('/auth/dogewand', passport.authenticate('local'), function (req, res) {
-    if (req.query.page) return res.redirect(req.query.page);
+    if (req.param('page')) return res.redirect(req.param('page'));
     return res.redirect('/iframe');
   });
 

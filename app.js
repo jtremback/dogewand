@@ -28,8 +28,10 @@ require('./app/models/tip.js');
 
 var Account = mongoose.model('Account');
 
+
 // bootstrap passport config
 require('./config/passport')(passport, config);
+
 
 Account.upsert({username: 'shibetoshi', provider: 'dogewand', password: 'foo'}, function (err, account) {
   console.log(account);

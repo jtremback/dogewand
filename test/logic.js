@@ -8,7 +8,6 @@ var rpc = require('../app/rpc')(config.rpc);
 var utility = require('../test-utility');
 require('../app/models/account.js');
 require('../app/models/tip.js');
-var logic = require('../app/controllers/logic.js');
 
 function asyncTimeout (fn, timeout) {
     setTimeout(fn, timeout);
@@ -55,10 +54,9 @@ test('---------------------------------------- logic.js', function (t) {
   t.test('createTip to existing account', function (t) {
     var opts = {
       username: wallet_b.username,
-      provider: wallet_b.provider,
+      provider: 'farcebook',
       amount: 1.35
     };
-
     checkTipCreatedStarted(t, wallet_a, opts);
   });
 
@@ -130,7 +128,7 @@ test('---------------------------------------- logic.js', function (t) {
         t.equals(results.tipper.pending, 0, 'pending resolved');
 
         t.equal(opts.username, tippee.username, 'mongo tippee username');
-        t.equal(opts.provider, tippee.provider, 'mongo tippee provider');
+        t.equal(opts.provider, tippee.providers[0].provider, 'mongo tippee provider');
 
         t.equal(tipper.id, results.tip.tipper_id.toString(), 'mongo tip tipper_id');
         t.equal(tippee.id, results.tip.tippee_id.toString(), 'mongo tip tippee _id');
@@ -227,7 +225,7 @@ test('---------------------------------------- logic.js', function (t) {
   t.test('claim', function (t) {
     var opts = {
       username: wallet_b.username,
-      provider: wallet_b.provider,
+      provider: 'farcebook',
       amount: 1.12
     };
 
