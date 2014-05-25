@@ -16,21 +16,22 @@ exports.tip = function (req, res, next) {
   var path_amount = path_matched[1];
   var tip_id = path_matched[2];
 
-  console.log(tip_id)
 
   Tip.findOne({_id: tip_id})
   .populate('tipper_id', 'username provider')
   .populate('tippee_id', 'username provider')
   .exec(function (err, tip) {
-    console.log(tip)
     if (err) return next(err);
     if (!tip) {
       return res.send('Tip not found.');
     }
-    console.log(path_amount, tip.amount)
+
     if (path_amount != tip.amount) return res.send('Tip not found.'); // Check to make sure the amount in the path is correct
 
+    console.log(req.user, tip)
+
     var role;
+
     if (!req.user) role = false;
     else if (req.user.id === tip.tippee_id.id) role = 'tippee';
     else if (req.user.id === tip.tipper_id.id) role = 'tipper';
@@ -50,12 +51,9 @@ exports.resolveTip = function (req, res, next) {
   var tip = req.params.tip;
   var tip_id = tip.substr(tip.length - 24);
 
-  console.log(req.params)
   logic.resolveTip(tip_id, req.user, function (err, new_balance) {
     if (err) return next(err);
 
-    return res.json({
-      new_balance: new_balance
-    });
+    return res.redirect
   });
 };

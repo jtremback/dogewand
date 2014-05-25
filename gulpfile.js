@@ -9,6 +9,7 @@ var gulpAutoprefixer = require('gulp-autoprefixer');
 var gulpStylus = require('gulp-stylus');
 var gulpMinifyCss = require('gulp-minify-css');
 // var gulpMinifyHtml = require('gulp-htmlmin');
+var gulpLess = require('gulp-less');
 var gulpJade = require('gulp-jade');
 var gulpDataUri = require('gulp-data-uri');
 var gulpTemplate = require('gulp-template');
@@ -38,6 +39,12 @@ var lazyStylus = lazypipe() // dry
   .pipe(gulpDataUri)
   .pipe(gulpMinifyCss);
 
+var lazyLess = lazypipe() // dry
+  .pipe(gulpLess, { paths: ['/assets/less'] })
+  .pipe(gulpAutoprefixer, 'last 5 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 4')
+  .pipe(gulpDataUri)
+  .pipe(gulpMinifyCss);
+
 
 
 // IFRAME LOADER
@@ -49,8 +56,8 @@ gulp.task('loader-js', function () {
 });
 
 gulp.task('loader-styles', function () {
-  return gulp.src('assets/stylus/loader.styl')
-    .pipe(lazyStylus())
+  return gulp.src('assets/less/loader.less')
+    .pipe(lazyLess())
     .pipe(gulpRename('style.css'))
     .pipe(gulpTap(varWrap))
     .pipe(gulp.dest('incremental/loader'))
@@ -71,16 +78,16 @@ gulp.task('loader-incremental', function () {
 
 // IFRAME CONTENTS
 gulp.task('iframe-styles', function () {
-  return gulp.src('assets/stylus/iframe.styl')
-    .pipe(lazyStylus())
+  return gulp.src('assets/less/iframe.less')
+    .pipe(lazyLess())
     .pipe(gulpRename('iframe.css'))
     .pipe(gulp.dest('public/css')) // Put into public folder for good caching
     .pipe(gulpNotify({ message: 'iframe-styles task complete' }));
 });
 
 gulp.task('iframe-html', function () {
-  return gulp.src('assets/templates/iframe/**/*.html')
-    //.pipe(gulpJade())
+  return gulp.src('assets/templates/iframe/**/*.jade')
+    .pipe(gulpJade())
     .pipe(gulp.dest('public/iframe'))
     .pipe(gulpNotify({ message: 'iframe-html task complete' }));
 });
@@ -88,9 +95,7 @@ gulp.task('iframe-html', function () {
 gulp.task('iframe-js', function () {
   return gulp.src(['assets/js/iframe/**/*.js'])
     .pipe(gulpTemplate({url: config.url})) // Add magic numbers like url etc.
-    .pipe(gulpInclude()) // Bring it all together
-    //.pipe(gulpRename('iframe.js'))
-  	.pipe(gulpConcat('iframe.js'))
+    .pipe(gulpConcat('iframe.js'))
     .pipe(gulp.dest('public/js'))
     .pipe(gulpNotify({ message: 'iframe-js task complete' }));
 });
@@ -98,7 +103,7 @@ gulp.task('iframe-js', function () {
 //// WATCH
 gulp.task('watch', function () {
   gulp.watch('assets/templates/iframe/**', ['iframe-html']);
-  gulp.watch('assets/stylus/**', ['iframe-styles', 'loader-styles']);
+  gulp.watch('assets/less/**', ['iframe-styles', 'loader-styles']);
   gulp.watch('assets/js/**', ['iframe-js', 'loader-js']);
 
   gulp.watch('incremental/loader/**', ['loader-incremental']);

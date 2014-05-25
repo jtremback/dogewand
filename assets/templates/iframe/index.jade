@@ -1,7 +1,12 @@
 doctype html
-html
+html(lang='en', data-ng-app='dogewand')
   head
-    script(src="/js/iframe.js")
-    link(rel="stylesheet", type="text/css", href="/css/iframe.css")
-  body
-    p.wow Wow.
+    title DogeWand
+      link(rel='stylesheet', href='../css/iframe.css')
+  body(data-ng-controller='iframe')
+    .container
+      nav.menu(data-ng-controller='menu')
+        button(data-ng-click='close()') Close
+        button(data-ng-click='toggleModal()') Open
+    modal(show='modal.show', width='auto', height='60%')
+    script(src='../js/iframe.js')

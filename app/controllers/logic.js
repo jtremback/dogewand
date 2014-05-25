@@ -48,6 +48,7 @@ exports.createTip = function (account, opts, callback) {
 
 
 exports.resolveTip = function (tip_id, account, callback) {
+  console.log('tip_id', tip_id)
   if (!check.unemptyString(tip_id)) return callback(new Error('No tip_id supplied.'));
   Tip.findOne({ _id: tip_id }, function (err, tip) {
     if (err) return callback(err);

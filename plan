@@ -1,6 +1,12 @@
 plan
 
+TODO:
 
+* Set up angular for iframe
+* API tests
+* Automatically update balances from deposits
+* Deal with remaining login jank
+*
 
 
 Putting whole thing in iframe-
