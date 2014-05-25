@@ -3,7 +3,7 @@
 var gulp = require('gulp');
 var gulpRename = require('gulp-rename');
 var gulpNotify = require('gulp-notify');
-var gulpInclude = require('gulp-include');
+var gulpInclude = require('gulp-file-include');
 var gulpTap = require('gulp-tap');
 var gulpAutoprefixer = require('gulp-autoprefixer');
 var gulpStylus = require('gulp-stylus');
@@ -33,11 +33,11 @@ function varWrap (file) {
   ]);
 }
 
-var lazyStylus = lazypipe() // dry
-  .pipe(gulpStylus)
-  .pipe(gulpAutoprefixer, 'last 5 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 4')
-  .pipe(gulpDataUri)
-  .pipe(gulpMinifyCss);
+// var lazyStylus = lazypipe() // dry
+//   .pipe(gulpStylus)
+//   .pipe(gulpAutoprefixer, 'last 5 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 4')
+//   .pipe(gulpDataUri)
+//   .pipe(gulpMinifyCss);
 
 var lazyLess = lazypipe() // dry
   .pipe(gulpLess, { paths: ['/assets/less'] })
@@ -93,8 +93,9 @@ gulp.task('iframe-html', function () {
 });
 
 gulp.task('iframe-js', function () {
-  return gulp.src(['assets/js/iframe/**/*.js'])
+  return gulp.src(['assets/js/iframe/vue.0.10.4.js', 'assets/js/iframe/app.js'])
     .pipe(gulpTemplate({url: config.url})) // Add magic numbers like url etc.
+    // .pipe(gulpInclude('@@'))
     .pipe(gulpConcat('iframe.js'))
     .pipe(gulp.dest('public/js'))
     .pipe(gulpNotify({ message: 'iframe-js task complete' }));

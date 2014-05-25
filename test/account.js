@@ -95,7 +95,6 @@ test('---------------------------------------- account.js', function (t) {
 
           logic.withdraw(sender, address, amount, function (err, account) {
             t.error(err);
-            // t.equal(account.balance, start_balance - amount, 'right amount');
 
             asyncTimeout(function () {
               async.parallel({

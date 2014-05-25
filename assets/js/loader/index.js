@@ -31,7 +31,6 @@
   }
 
   var URL = '<%= url %>';
-  var UPDATE_URL = URL + '/update/'; // Where the update modal is
   var VERSION = 1; // If this is not consistent with the server's version, the user will get an update modal!
   var PROVIDER = providerFinder(window.location.host);
 
@@ -45,5 +44,5 @@
 
   _app($('body')); // Presenters are denoted with _
 
-  iframe.trigger('navigate', URL + '/app/toolbar');
+  iframe.trigger('navigate', URL + '/iframe');
 })();
