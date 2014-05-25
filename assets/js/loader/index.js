@@ -3,17 +3,6 @@
 
   /*global $, main_html, style_css, toolbar_html, presenters, models*/
 
-  // = include style.css
-
-  // = include vendor/zepto.1.1.3.js
-  // = include vendor/riot.0.9.8.js
-
-  // = include util/jq-plugins.js
-  // = include util/scrape-utils.js
-
-  // = include models.js
-  // = include presenters.js
-
   function providerFinder (host) {
     var cleaned = host
     .split("").reverse().join("")
