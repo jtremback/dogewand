@@ -58,20 +58,24 @@ gulp.task('loader-js', function () {
 gulp.task('loader-styles', function () {
   return gulp.src('assets/less/loader.less')
     .pipe(lazyLess())
-    .pipe(gulpRename('style.js'))
+    .pipe(gulpRename('style.css'))
     .pipe(gulpTap(varWrap))
     .pipe(gulp.dest('incremental/loader'))
     .pipe(gulpNotify({ message: 'loader-styles task complete' }));
 });
 
 gulp.task('loader-incremental', function () {
-  return gulp.src([
-    'incremental/loader/vendor/*.js',
-    'incremental/loader/util/*.js',
-    'incremental/loader/app/*.js',
-    'incremental/loader/style.js',
-    'incremental/loader/index.js'])
-    .pipe(gulpConcat('content_script.js'))
+  // return gulp.src([
+  //   'incremental/loader/style.css',
+  //   'incremental/loader/vendor/*.js',
+  //   'incremental/loader/util/*.js',
+  //   'incremental/loader/app/*.js',
+  //   'incremental/loader/index.js'])
+  //   .pipe(gulpConcat('content_script.js'))
+
+  return gulp.src(['incremental/loader/index.js'])
+    .pipe(gulpInclude('// = '))
+    .pipe(gulpRename('content_script.js'))
     .pipe(gulp.dest('loader/chrome'))
     .pipe(gulpRename('bookmarklet.js'))
     .pipe(gulp.dest('loader/bookmarklet'))

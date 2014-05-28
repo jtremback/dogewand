@@ -2,7 +2,7 @@
 
 /*global Vue*/
 
-var PROVIDER_ORIGIN = 'https://www.facebook.com/'; // Will need to use postMessage here instead.
+var PROVIDER_ORIGIN = 'http://vuejs.org//'; // Will need to use postMessage here instead.
 
 
 Vue.directive('only', {
@@ -43,7 +43,7 @@ Vue.component('bs-dropdown', {
   data: {
     show: false
   },
-  created: function () {
+  ready: function () {
     var self = this;
     self.$watch('show', function (bool) {
       self.$dispatch('show', bool);
@@ -58,7 +58,7 @@ Vue.component('bs-modal', {
   },
   template: '#bs-modal',
   replace: true,
-  created: function () {
+  ready: function () {
     var self = this;
     self.$watch('show', function (bool) {
       self.$dispatch('show', bool);
@@ -70,22 +70,28 @@ Vue.component('bs-modal', {
 new Vue({
   el: '#app',
   data: {
+    maximized: false,
     sir_modal: false
   },
   ready: function () {
     var self = this;
+    var toolbar = self.$el.querySelector('.toolbar');
     var resize = function (full) {
-      console.log('resize', full, self.$el.offsetHeight, self.$el.offsetWidth);
-      // parent.postMessage(JSON.stringify({
-      //   method: 'size',
-      //   data: {
-      //     width: full ? '100%' : self.$el.offsetHeight + 'px',
-      //     height: full ? '100%' : self.$el.offsetWidth + 'px'
-      //   }
-      // }), PROVIDER_ORIGIN);
+      Vue.nextTick(function () {
+        parent.postMessage(JSON.stringify({
+          method: 'size',
+          data: {
+            width: full ? '100%' : toolbar.offsetWidth + 'px',
+            height: full ? '100%' : toolbar.offsetHeight + 'px'
+          }
+        }), PROVIDER_ORIGIN);
+      });
     };
-
-    this.$on('show', resize);
+    resize();
+    self.$on('show', function (bool) {
+      self.maximized = bool;
+      resize(bool);
+    });
   }
 });
 

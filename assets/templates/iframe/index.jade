@@ -5,21 +5,24 @@ html(lang="en")
     link(rel="stylesheet" href="../css/iframe.css")
   body
     #app
-      nav.menu
-        button.btn.btn-primary Close
-        div.btn-group(v-component="bs-dropdown" v-ref="options_menu" class="{{open ? 'open' : ''}}")
-          button.btn.btn-primary.dropdown-toggle(v-on="click: show = !show") Options <span class="caret"></span>
-          ul.dropdown-menu
-            li
-              a(href="#") Withdraw
-            li
-              a(href="#") Deposit
-            li
-              a(href="#") Log Out
-        button.btn.btn-primary(v-on="click: sir_modal = !sir_modal") Much Tip!
+      .toolbar(v-class="maximized: maximized")
+        nav.menu
+          button.btn.btn-primary Close
+          div.btn-group.dropup(v-component="bs-dropdown" class="{{show ? 'open' : ''}}")
+            button.btn.btn-primary.dropdown-toggle(v-on="click: show = !show") Options <span class="caret"></span>
+            ul.dropdown-menu
+              li
+                a(href="#") Withdraw
+              li
+                a(href="#") Deposit
+              li
+                a(href="#") Log Out
+          button.btn.btn-primary(v-on="click: sir_modal = !sir_modal") Much Tip!
 
       bs-modal(v-with="show: sir_modal")
         p Hello sir {{show}}
+
+      //- div.modal-backdrop.in(v-if="maximized" style="z-index:0;opacity:0;")
 
     script#bs-modal(type="x-template")
       .modal(v-show="show" v-only="click: show = !show")
@@ -33,7 +36,7 @@ html(lang="en")
 
             content(select=".modal-footer")
               .modal-footer
-                button.btn.btn-default(type='button' data-dismiss='modal') Cancel
+                button.btn.btn-default(type='button') Cancel
                 button.btn.btn-primary(type='button') Ok
 
       div.modal-backdrop.in(v-if="show" v-on='click: show = false')

@@ -3,7 +3,7 @@
 /*global $*/
 
 function App () {
-  var self = $.observable(this);
+  var self = riot.observable(this);
 
   self.checkVersion = function (version) {
     if (version !== VERSION) {
@@ -18,7 +18,7 @@ function App () {
 
 
 function Iframe () {
-  var self = $.observable(this);
+  var self = riot.observable(this);
 
   window.addEventListener('message', function (event) { // signals from iframe
     if (event.origin === URL) { // Check if it's legit
