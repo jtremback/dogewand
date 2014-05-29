@@ -2,8 +2,8 @@
 
 /*global Vue*/
 
-var PROVIDER_ORIGIN = 'http://vuejs.org//'; // Will need to use postMessage here instead.
-
+var PROVIDER_ORIGIN = 'https://localhost:3700/'; // Will need to use postMessage here instead.
+var VERSION = 434;
 
 Vue.directive('only', {
   isFn: true,
@@ -71,7 +71,8 @@ new Vue({
   el: '#app',
   data: {
     maximized: false,
-    sir_modal: false
+    sir_modal: false,
+    update_modal: false
   },
   ready: function () {
     var self = this;
@@ -87,6 +88,33 @@ new Vue({
         }), PROVIDER_ORIGIN);
       });
     };
+
+    var hello = function () {
+      parent.postMessage(JSON.stringify({
+        method: 'hello'
+      }), PROVIDER_ORIGIN);
+    };
+
+    window.addEventListener('message', function (event) { // signals from parent
+      var message = JSON.parse(event.data);
+      console.log(message)
+      switch (message.method) {
+        case 'version':
+          if (message.data !== VERSION) {
+            self.update_modal = true;
+            console.log(JSON.stringify(self.$data))
+          }
+          break;
+        case 'size':
+          self.trigger('size', message.data);
+          break;
+        case 'tip':
+          self.trigger('enter:tipping', message.data);
+          break;
+      }
+    });
+
+    hello();
     resize();
     self.$on('show', function (bool) {
       self.maximized = bool;

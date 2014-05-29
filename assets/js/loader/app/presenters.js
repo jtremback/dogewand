@@ -58,4 +58,6 @@ function _iframe (container) {
   iframe.on('navigate', function (url) {
     contents.setAttribute('src', url);
   });
+
+  iframe.source = contents.contentWindow;
 }

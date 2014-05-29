@@ -1,8 +1,24 @@
 plan
 
+Iframe comms flow:
+
+option 1
+
+* Loader opens iframe
+* Saves reference to iframe
+* Sends version to iframe
+* iframe checks version, maybe pops update modal
+
+option 2
+
+* Loader opens Iframe
+* Iframe sends hello message
+* Loader saves reference to iframe
+* Sends version to iframe
+* iframe checks version, maybe pops update modal
+
 TODO:
 
-* Set up angular for iframe
 * API tests
 * Automatically update balances from deposits
 * Deal with remaining login jank
