@@ -29,6 +29,7 @@ exports.account = function (req, res, next) {
 };
 
 exports.createTip = function (req, res, next) {
+  console.log('req.body', req.body)
   var opts = {
     username: req.param('username'),
     provider: req.param('provider'),

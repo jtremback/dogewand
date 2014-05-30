@@ -49,7 +49,7 @@
 
   var URL = '<%= url %>';
   var VERSION = 1; // If this is not consistent with the server's version, the user will get an update modal!
-  // var PROVIDER = providerFinder(window.location.host);
+  var PROVIDER = providerFinder(window.location.host);
 
   var dgw_frame = $('.dgw-frame');
   if (dgw_frame && dgw_frame.tagName) dgw_frame.remove(); // remove app if exists

@@ -6,19 +6,10 @@ function _app (container) {
   _iframe(container);
   var links;
 
-  app.on('enter:tipping', enterTipping);
-
-  app.on('exit:tipping', function () {
-    container.classList.remove('dgw-wand');
-    container.removeEventListener('click', exitTipping);
-
-    links.forEach(function (el) {
-      el.classList.remove('dgw-link');
-      el.removeEventListener('click', exitTipping);
-    });
+  app.on('tipping', function (bool) {
+    if (bool) enterTipping();
+    else exitTipping();
   });
-
-  app.trigger('enter:tipping'); // Trigger immediately for convenience <- shouldn't be here
 
   function enterTipping() {
     container.classList.add('dgw-wand');
@@ -39,7 +30,13 @@ function _app (container) {
   }
 
   function exitTipping() {
-    app.trigger('exit:tipping');
+    container.classList.remove('dgw-wand');
+    container.removeEventListener('click', exitTipping);
+
+    links.forEach(function (el) {
+      el.classList.remove('dgw-link');
+      el.removeEventListener('click', exitTipping);
+    });
   }
 
 }

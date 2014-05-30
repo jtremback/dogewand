@@ -17,15 +17,26 @@ html(lang="en")
                 a(href="#") Deposit
               li
                 a(href="#") Log Out
-          button.btn.btn-primary(v-on="click: sir_modal = !sir_modal") Much Tip!
+          button.btn.btn-primary(v-on="click: tipping = true") Much Tip!
 
-      bs-modal(v-with="show: sir_modal")
-        p Hello sir {{show}}
+      bs-modal(v-ref="update_modal")
+        h4.modal-title Wow, such update!
+        .modal-body
+          p Update yo shit
+        .modal-footer
+          button.btn.btn-default(type='button') Cancel
+          button.btn.btn-primary(type='button') Ok
 
-      bs-modal(v-with="show: update_modal")
-        p Update yo shit
-
-      //- div.modal-backdrop.in(v-if="maximized" style="z-index:0;opacity:0;")
+      bs-modal(v-ref="create_tip_modal")
+        h4.modal-title Wow, such generos!
+        .modal-body
+          p Give {{username}} on {{provider}}
+          p
+            input(type="number" v-model="amount")
+            | dogecoins
+        .modal-footer
+          button.btn.btn-default(type='button') Cancel
+          button.btn.btn-primary(type='button') Ok
 
     script#bs-modal(type="x-template")
       .modal(v-show="show" v-only="click: show = !show")
@@ -33,14 +44,9 @@ html(lang="en")
           .modal-content
             .modal-header
               button.close(type='button', v-on="click: show = !show", aria-hidden='true') ×
-              h4.modal-title {{modal-title}}
-            .modal-body
-              content
-
+              content(select="h4.modal-title")
+            content(select=".modal-body")
             content(select=".modal-footer")
-              .modal-footer
-                button.btn.btn-default(type='button') Cancel
-                button.btn.btn-primary(type='button') Ok
 
       div.modal-backdrop.in(v-if="show" v-on='click: show = false')
 

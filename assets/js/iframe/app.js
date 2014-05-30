@@ -2,8 +2,34 @@
 
 /*global Vue*/
 
-var PROVIDER_ORIGIN = 'https://localhost:3700/'; // Will need to use postMessage here instead.
-var VERSION = 434;
+var PROVIDER_ORIGIN = 'https://www.facebook.com'; // Will need to use postMessage here instead.
+var VERSION = 4;
+
+function http (method, url, data, callback) {
+  var request = new XMLHttpRequest();
+  request.onreadystatechange = function () {
+    if (this.readyState == 4) {
+      if (this.status == 200) {
+        callback(null, this.response);
+      }
+      else {
+        callback(this.status, this.response);
+      }
+    }
+  };
+
+  request.open(method, url, true);
+  request.setRequestHeader('Content-Type', 'application/json');
+  request.send(JSON.stringify(data));
+}
+
+// function Backend () {
+//   var self = this;
+
+//   self.
+// }
+
+
 
 Vue.directive('only', {
   isFn: true,
@@ -71,8 +97,7 @@ new Vue({
   el: '#app',
   data: {
     maximized: false,
-    sir_modal: false,
-    update_modal: false
+    tipping: false
   },
   ready: function () {
     var self = this;
@@ -96,21 +121,22 @@ new Vue({
     };
 
     window.addEventListener('message', function (event) { // signals from parent
-      var message = JSON.parse(event.data);
-      console.log(message)
-      switch (message.method) {
-        case 'version':
-          if (message.data !== VERSION) {
-            self.update_modal = true;
-            console.log(JSON.stringify(self.$data))
-          }
-          break;
-        case 'size':
-          self.trigger('size', message.data);
-          break;
-        case 'tip':
-          self.trigger('enter:tipping', message.data);
-          break;
+      console.log('iframe receives', event)
+      if (event.origin === PROVIDER_ORIGIN) { // Check if it's legit
+        var message = JSON.parse(event.data);
+
+        switch (message.method) {
+          case 'version':
+            if (message.data !== VERSION) {
+              self.$.update_modal.show = true;
+            }
+            break;
+          case 'create_tip':
+            self.$.create_tip_modal.show = true;
+            self.$.create_tip_modal.username = message.data.username;
+            self.$.create_tip_modal.provider = message.data.provider;
+            break;
+        }
       }
     });
 
@@ -120,6 +146,12 @@ new Vue({
       self.maximized = bool;
       resize(bool);
     });
+
+    self.$watch('tipping', function (bool) {
+      parent.postMessage(JSON.stringify({
+        method: 'tipping',
+        data: bool
+      }), PROVIDER_ORIGIN);
+    });
   }
 });
-
