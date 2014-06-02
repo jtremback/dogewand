@@ -14,7 +14,7 @@ function _app (container) {
   function enterTipping() {
     container.classList.add('dgw-wand');
 
-    links = scrape_utils.link_finders.facebook();
+    links = scrape_utils.link_finders[PROVIDER]();
 
     links.forEach(function (el) {
       el.classList.add('dgw-link');
@@ -26,7 +26,7 @@ function _app (container) {
 
   function createTip (e) {
     e.preventDefault();
-    app.createTip(scrape_utils.username_finders.facebook(this));
+    app.createTip(scrape_utils.uuid_finders[PROVIDER](this));
   }
 
   function exitTipping() {
@@ -35,7 +35,7 @@ function _app (container) {
 
     links.forEach(function (el) {
       el.classList.remove('dgw-link');
-      el.removeEventListener('click', exitTipping);
+      el.removeEventListener('click', createTip);
     });
   }
 

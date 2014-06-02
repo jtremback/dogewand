@@ -2,8 +2,9 @@
 
 /*global Vue*/
 
+
 var PROVIDER_ORIGIN = 'https://www.facebook.com'; // Will need to use postMessage here instead.
-var VERSION = 4;
+var VERSION = 3;
 
 function http (method, url, data, callback) {
   var request = new XMLHttpRequest();
@@ -23,13 +24,35 @@ function http (method, url, data, callback) {
   request.send(JSON.stringify(data));
 }
 
-// function Backend () {
-//   var self = this;
+function messageListener () {
+  parent.postMessage(JSON.stringify({ // initiate comms
+    method: 'hello'
+  }), PROVIDER_ORIGIN);
 
-//   self.
-// }
+  window.addEventListener('message', function (event) { // signals from parent
+    console.log('iframe receives', event);
+    if (event.origin === PROVIDER_ORIGIN) { // Check if it's legit
+      var message = JSON.parse(event.data);
 
-
+      switch (message.method) {
+        case 'version':
+          if (message.data !== VERSION) {
+            app.currentModal = 'update-modal';
+          }
+          break;
+        case 'create_tip':
+          app.currentModal = 'create-tip-modal';
+          Vue.nextTick(function () {
+            app.$['modal'].display_name = message.data.display_name;
+            app.$['modal'].uuid = message.data.uuid;
+            app.$['modal'].provider = message.data.provider;
+            app.$['modal'].amount = '';
+          });
+          break;
+      }
+    }
+  });
+}
 
 Vue.directive('only', {
   isFn: true,
@@ -77,32 +100,66 @@ Vue.component('bs-dropdown', {
   }
 });
 
-
 Vue.component('bs-modal', {
-  data: {
-    show: false
-  },
   template: '#bs-modal',
   replace: true,
-  ready: function () {
-    var self = this;
-    self.$watch('show', function (bool) {
-      self.$dispatch('show', bool);
-    });
+  created: function () {
+    this.$dispatch('show', true);
+  },
+  afterDestroy: function () {
+    this.$dispatch('show', false);
   }
 });
 
+Vue.component('update-modal', {
+  template: '#update-modal'
+});
 
-new Vue({
+Vue.component('create-tip-modal', {
+  template: '#create-tip-modal',
+  data: {
+    display_name: '',
+    uuid: '',
+    amount: '',
+    provider: ''
+  },
+  methods: {
+    submit: function () {
+      var self = this;
+      http('POST', '/api/v1/tips/create', {
+        username: self.uuid,
+        provider: self.provider,
+        amount: self.amount
+      }, function (err, response) {
+        if (err) return console.log('shatner');
+        return console.log(response);
+      });
+    }
+  }
+});
+
+var app = new Vue({
   el: '#app',
   data: {
-    maximized: false,
-    tipping: false
+    currentModal: false
   },
   ready: function () {
-    var self = this;
-    var toolbar = self.$el.querySelector('.toolbar');
-    var resize = function (full) {
+    messageListener();
+    this.resize();
+
+    this.$on('show', function (bool) {
+      this.resize(bool);
+    });
+  },
+  methods: {
+    tipping: function () {
+      parent.postMessage(JSON.stringify({
+        method: 'tipping',
+        data: true
+      }), PROVIDER_ORIGIN);
+    },
+    resize: function (full) {
+      var toolbar = this.$el.querySelector('.toolbar');
       Vue.nextTick(function () {
         parent.postMessage(JSON.stringify({
           method: 'size',
@@ -112,46 +169,6 @@ new Vue({
           }
         }), PROVIDER_ORIGIN);
       });
-    };
-
-    var hello = function () {
-      parent.postMessage(JSON.stringify({
-        method: 'hello'
-      }), PROVIDER_ORIGIN);
-    };
-
-    window.addEventListener('message', function (event) { // signals from parent
-      console.log('iframe receives', event)
-      if (event.origin === PROVIDER_ORIGIN) { // Check if it's legit
-        var message = JSON.parse(event.data);
-
-        switch (message.method) {
-          case 'version':
-            if (message.data !== VERSION) {
-              self.$.update_modal.show = true;
-            }
-            break;
-          case 'create_tip':
-            self.$.create_tip_modal.show = true;
-            self.$.create_tip_modal.username = message.data.username;
-            self.$.create_tip_modal.provider = message.data.provider;
-            break;
-        }
-      }
-    });
-
-    hello();
-    resize();
-    self.$on('show', function (bool) {
-      self.maximized = bool;
-      resize(bool);
-    });
-
-    self.$watch('tipping', function (bool) {
-      parent.postMessage(JSON.stringify({
-        method: 'tipping',
-        data: bool
-      }), PROVIDER_ORIGIN);
-    });
+    }
   }
 });

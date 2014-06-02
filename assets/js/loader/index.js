@@ -39,9 +39,9 @@
 
     switch (cleaned) {
       case 'facebook.com':
-        return 'facebook';
-      case 'localhost:3700':
-        return 'localhost';
+        return 'Facebook';
+      case 'youtube.com':
+        return 'Youtube';
       default:
         return false;
     }

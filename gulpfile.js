@@ -101,7 +101,7 @@ gulp.task('iframe-html', function () {
 });
 
 gulp.task('iframe-js', function () {
-  return gulp.src(['assets/js/iframe/vue.0.10.4.js', 'assets/js/iframe/app.js'])
+  return gulp.src(['assets/js/iframe/vendor/vue.0.10.4.js', 'assets/js/iframe/app.js'])
     .pipe(gulpTemplate({url: config.url})) // Add magic numbers like url etc.
     // .pipe(gulpInclude('@@'))
     .pipe(gulpConcat('iframe.js'))

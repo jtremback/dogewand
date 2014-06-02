@@ -17,38 +17,40 @@ html(lang="en")
                 a(href="#") Deposit
               li
                 a(href="#") Log Out
-          button.btn.btn-primary(v-on="click: tipping = true") Much Tip!
+          button.btn.btn-primary(v-on="click: tipping()") Much Tip!
+      div(v-view="currentModal" v-ref="modal" v-with="show: currentModal")
+      div.modal-backdrop.in(v-if="currentModal" v-on='click: currentModal = false')
 
-      bs-modal(v-ref="update_modal")
+    script#update-modal(type="x-template")
+      bs-modal
         h4.modal-title Wow, such update!
         .modal-body
           p Update yo shit
-        .modal-footer
-          button.btn.btn-default(type='button') Cancel
-          button.btn.btn-primary(type='button') Ok
 
-      bs-modal(v-ref="create_tip_modal")
+    script#create-tip-modal(type="x-template")
+      bs-modal
         h4.modal-title Wow, such generos!
         .modal-body
-          p Give {{username}} on {{provider}}
+          p Give {{display_name}} on {{provider}}
           p
             input(type="number" v-model="amount")
-            | dogecoins
+            | &nbsp;dogecoins
         .modal-footer
-          button.btn.btn-default(type='button') Cancel
-          button.btn.btn-primary(type='button') Ok
+          button.btn.btn-default(type='button' v-on="click: show = false") Cancel
+          button.btn.btn-primary(type='button' v-on="click: submit") Ok
+
 
     script#bs-modal(type="x-template")
-      .modal(v-show="show" v-only="click: show = !show")
+      .modal(v-only="click: show = false")
         .modal-dialog
           .modal-content
             .modal-header
-              button.close(type='button', v-on="click: show = !show", aria-hidden='true') ×
+              button.close(type='button', v-on="click: show = false", aria-hidden='true') ×
               content(select="h4.modal-title")
             content(select=".modal-body")
             content(select=".modal-footer")
 
-      div.modal-backdrop.in(v-if="show" v-on='click: show = false')
+
 
 
     script(src="../js/iframe.js")

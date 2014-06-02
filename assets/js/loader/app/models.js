@@ -12,11 +12,12 @@ function App () {
     }), URL);
   };
 
-  self.createTip = function (username) {
+  self.createTip = function (user_info) {
     iframe.source.postMessage(JSON.stringify({
       method: 'create_tip',
       data: {
-        username: username,
+        uuid: user_info.uuid,
+        display_name: user_info.display_name,
         provider: PROVIDER
       }
     }), URL);

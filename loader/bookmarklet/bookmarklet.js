@@ -207,12 +207,14 @@ if (objCtr.defineProperty) {
 var scrape_utils = {
 
   link_finders: {
-    facebook: function () {
-      var attrs_a = $_('a').filter(function (el) { // hello $_
-        // console.log(el)
+    Facebook: function () {
+      var attrs_a = $_('a').filter(function (el) {
         var attr = el.getAttribute('data-hovercard');
-        if (attr) {
-          return attr.match(/hovercard\/user.php/);
+        if (attr && attr.match(/hovercard\/user.php/)) {
+          if (!el.children.length) {
+            return true;
+          }
+          return false;
         }
         return false;
       });
@@ -221,20 +223,21 @@ var scrape_utils = {
 
       return attrs_a.concat(attrs_b);
     }
-  }
+  },
 
-  ,
-
-  username_finders: {
-    facebook: function (that) {
-      var regex = /.*\/(.*)$/;
-      var link = that.getAttribute('href');
-      var username = link.match(regex)[1];
-
-      return username;
+  uuid_finders: {
+    Facebook: function (that) {
+      var uuid = that.getAttribute('data-hovercard').match(/id=(\d*).*$/)[1];
+      var display_name = that.textContent;
+      console.log('uuid', uuid)
+      return {
+        uuid: uuid,
+        display_name: display_name
+      };
     }
   }
 };
+
 
 
   'use strict';
@@ -251,11 +254,12 @@ function App () {
     }), URL);
   };
 
-  self.createTip = function (username) {
+  self.createTip = function (user_info) {
     iframe.source.postMessage(JSON.stringify({
       method: 'create_tip',
       data: {
-        username: username,
+        uuid: user_info.uuid,
+        display_name: user_info.display_name,
         provider: PROVIDER
       }
     }), URL);
@@ -303,7 +307,7 @@ function _app (container) {
   function enterTipping() {
     container.classList.add('dgw-wand');
 
-    links = scrape_utils.link_finders.facebook();
+    links = scrape_utils.link_finders[PROVIDER]();
 
     links.forEach(function (el) {
       el.classList.add('dgw-link');
@@ -315,7 +319,7 @@ function _app (container) {
 
   function createTip (e) {
     e.preventDefault();
-    app.createTip(scrape_utils.username_finders.facebook(this));
+    app.createTip(scrape_utils.uuid_finders[PROVIDER](this));
   }
 
   function exitTipping() {
@@ -324,7 +328,7 @@ function _app (container) {
 
     links.forEach(function (el) {
       el.classList.remove('dgw-link');
-      el.removeEventListener('click', exitTipping);
+      el.removeEventListener('click', createTip);
     });
   }
 
@@ -358,9 +362,9 @@ function _iframe (container) {
 
     switch (cleaned) {
       case 'facebook.com':
-        return 'facebook';
-      case 'localhost:3700':
-        return 'localhost';
+        return 'Facebook';
+      case 'youtube.com':
+        return 'Youtube';
       default:
         return false;
     }
