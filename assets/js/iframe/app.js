@@ -5,16 +5,18 @@
 
 var PROVIDER_ORIGIN = 'https://www.facebook.com'; // Will need to use postMessage here instead.
 var VERSION = 3;
+var app;
 
 function http (method, url, data, callback) {
   var request = new XMLHttpRequest();
   request.onreadystatechange = function () {
     if (this.readyState == 4) {
+      var response = JSON.parse(this.response);
       if (this.status == 200) {
-        callback(null, this.response);
+        callback(null, response);
       }
       else {
-        callback(this.status, this.response);
+        callback(this.status, response);
       }
     }
   };
@@ -115,6 +117,13 @@ Vue.component('update-modal', {
   template: '#update-modal'
 });
 
+Vue.component('error-modal', {
+  template: '#error-modal',
+  data: {
+    message: ''
+  }
+});
+
 Vue.component('create-tip-modal', {
   template: '#create-tip-modal',
   data: {
@@ -131,8 +140,16 @@ Vue.component('create-tip-modal', {
         provider: self.provider,
         amount: self.amount
       }, function (err, response) {
-        if (err) return console.log('shatner');
-        return console.log(response);
+        if (err) {
+          app.currentModal = 'error-modal';
+          Vue.nextTick(function () {
+            return app.$['modal'].message = response['data'];
+          });
+        }
+        else {
+          console.log(response);
+          // TODO lol
+        }
       });
     }
   }

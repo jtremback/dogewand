@@ -27,6 +27,12 @@ html(lang="en")
         .modal-body
           p Update yo shit
 
+    script#error-modal(type="x-template")
+      bs-modal
+        h4.modal-title Oh noes!
+        .modal-body
+          p {{message}}
+
     script#create-tip-modal(type="x-template")
       bs-modal
         h4.modal-title Wow, such generos!
