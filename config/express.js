@@ -82,7 +82,7 @@ module.exports = function (app, config, passport) {
       return res.send(500, 'wow such error.');
     }
     else if (typeof err.name === 'number') {
-      res.json({
+      res.json(err.name, {
         status: err.name,
         error: true,
         data: err.message
