@@ -203,11 +203,11 @@ test('---------------------------------------- logic.js', function (t) {
     });
   });
 
-// RESOLVE
-// tippee has increased balance
-// main has decreased balance
-// tip state is correct
-// tip recipient_id is correct
+  // RESOLVE
+  // tippee has increased balance
+  // main has decreased balance
+  // tip state is correct
+  // tip recipient_id is correct
 
   t.test('cancel', function (t) {
     var opts = {
@@ -216,22 +216,9 @@ test('---------------------------------------- logic.js', function (t) {
       amount: 1.94
     };
 
-    // utility.seedFunds(wallet_a, opts.amount, function (err, user) {
-    //   t.error(err, 'seedfunds');
-    //   logic.createTip(user, opts, function (err, balance, tip_id) {
-    //     t.error(err, 'createTip');
-    //     asyncTimeout(function () {
-    //       checkTipResolvedStarted(t, user, opts, tip_id);
-    //     }, TIMEOUT);
-    //   });
-    // });
-
-
     utility.resetBalances(function () {
       utility.seedFunds(wallet_a, opts.amount, function (err, user) {
-        t.error(err);
         logic.createTip(user, opts, function (err, balance, tip_id) {
-          t.error(err);
           asyncTimeout(function () {
             checkTipResolvedStarted(t, user, opts, tip_id);
           }, TIMEOUT);
@@ -239,6 +226,7 @@ test('---------------------------------------- logic.js', function (t) {
       });
     });
   });
+
 
   t.test('claim', function (t) {
     var opts = {
@@ -248,9 +236,7 @@ test('---------------------------------------- logic.js', function (t) {
     };
 
     utility.seedFunds(wallet_a, opts.amount, function (err, user) {
-      t.error(err);
       logic.createTip(user, opts, function (err, user, tip_id) {
-        t.error(err, 'createTip');
         asyncTimeout(function () {
           checkTipResolvedStarted(t, user, opts, tip_id);
         }, TIMEOUT);
@@ -323,8 +309,6 @@ test('---------------------------------------- logic.js', function (t) {
 
     });
   }
-
-
 
   t.test('end', function (t) {
     mongoose.disconnect(function () {

@@ -46,8 +46,6 @@ UserSchema.statics = {
   upsert: function (opts, callback) {
     var Self = this;
 
-    console.log('upsert opts', opts)
-
     Self.findOne({ accounts: { $elemMatch: { 'provider': opts.provider, 'uniqid': opts.uniqid } } }, function (err, user) {
       if (err) { return callback(err); }
       if (!user) {
@@ -67,23 +65,6 @@ UserSchema.statics = {
   }
 
   ,
-
-  // // Wraps methods in a findOne call
-  // findCall: function (method, conditions, callback) {
-  //   var Self = this;
-
-  //   Self.findOne(conditions, function (err, user) {
-  //     if (err) return callback(err);
-  //     if (!user) return callback('no user found');
-  //     user[method](function (err, user) {
-  //       if (err) return callback(err);
-  //       return callback(err, user);
-  //     });
-  //   });
-  // }
-
-  // ,
-
 
   // Must be called by queue
   withdraw: function (user, to_address, amount, callback) {

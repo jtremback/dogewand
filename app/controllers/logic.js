@@ -16,8 +16,6 @@ var NamedError = function(message, name) {
 exports.createTip = function (user, opts, callback) {
   var tip_id = mongoose.Types.ObjectId().toString(); // Make ObjectId out here to return it
 
-  console.log('OPTS', opts)
-
   var valid = check.every(
     check.map(opts, {
       uniqid: check.unemptyString,

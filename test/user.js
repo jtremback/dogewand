@@ -37,39 +37,34 @@ test('---------------------------------------- user.js', function (t) {
   var Tip = mongoose.model('Tip');
   var User = mongoose.model('User');
 
-  var amount = 1;
   var wallet_a;
-  var wallet_b;
 
   t.test('reset', function (t) {
-    var users = [{
-      username: 'Jehoon',
-      provider: 'farcebook'
-    }, {
-      username: 'C3P0',
-      provider: 'farcebook'
-    }];
+    var opts = {
+      provider: 'farcebook',
+      uniqid: 'Jehoon'
+    };
 
-    utility.init(Tip, User, users, function (err, wallet_a1, wallet_b1) {
-      wallet_a = wallet_a1;
-      wallet_b = wallet_b1;
-      t.end();
+    utility.resetMongo([ Tip, User ], function () {
+      User.upsert(opts, function (err, user) {
+        wallet_a = user;
+        t.end();
+      });
     });
   });
 
 
+  t.test('updateBalance', function (t) {
+    var opts = {
+      uniqid: 'Chewbacca',
+      provider: 'farcebook',
+      amount: 1.57
+    };
 
-
-
-  t.test('findCall and updateBalance', function (t) {
     utility.resetBalances(function () {
-      rpc({
-        method: 'move', // Move some funds to test with
-        params: ['', wallet_a._id, 6]
-      }, function (err) {
-        t.error(err);
-        User.findCall('updateBalance', { _id: wallet_a }, function (err, user) {
-          t.equal(6, user.balance);
+      utility.seedFunds(wallet_a, opts.amount, function (err, wallet_a) {
+        wallet_a.updateBalance(function (err, user) {
+          t.equal(opts.amount, user.balance);
           t.end();
         });
       });
@@ -77,23 +72,29 @@ test('---------------------------------------- user.js', function (t) {
   });
 
 
-
-  t.test('deposit and withdraw', function (t) {
+  t.test('deposit, getAddress, withdraw', function (t) {
 
     var sender = wallet_a;
-    var reciever = wallet_b;
+    var reciever;
+
+    var opts = {
+      provider: 'farcebook',
+      uniqid: 'Jehoon'
+    };
+
+    User.upsert(opts, function (err, user) {
+      reciever = user;
+    });
 
     var start_balance = 3.09;
     var amount = 1;
 
     utility.resetBalances(function () {
       utility.seedFunds(sender, start_balance, function (err, sender) {
-        t.error(err);
-
         reciever.getAddress(function (err, address) {
           t.error(err);
 
-          logic.withdraw(sender, address, amount, function (err, user) {
+          logic.withdraw(sender, address, amount, function (err) {
             t.error(err);
 
             asyncTimeout(function () {
@@ -142,3 +143,5 @@ test('---------------------------------------- user.js', function (t) {
     });
   });
 });
+
+
