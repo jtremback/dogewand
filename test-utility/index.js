@@ -9,8 +9,8 @@ exports.resetBalances = function (callback) {
   rpc({
     method: 'listaccounts',
     params: [0]
-  }, function (err, accounts) {
-    var pairs = _.pairs(accounts);
+  }, function (err, users) {
+    var pairs = _.pairs(users);
 
     async.each(pairs, function (pair, cb) {
 
@@ -35,17 +35,16 @@ exports.resetMongo = function (Models, callback) {
   }, callback);
 };
 
-exports.fakeAccounts = function (Account, opts, callback) {
+exports.fakeUsers = function (User, opts, callback) {
   async.map(opts, function (opts, cb) {
-    Account.upsert(opts, cb);
+    User.upsert(opts, cb);
   }, callback);
 };
 
-exports.init = function (Tip, Account, accounts, callback) {
-
+exports.init = function (Tip, User, users, callback) {
   async.series([
-    async.apply(exports.resetMongo, [ Tip, Account ]),
-    async.apply(exports.fakeAccounts, Account, accounts),
+    async.apply(exports.resetMongo, [ Tip, User ]),
+    async.apply(exports.fakeUsers, User, users),
     exports.resetBalances
   ], function (err, results) {
     if (err) return callback(err);
@@ -57,28 +56,28 @@ exports.init = function (Tip, Account, accounts, callback) {
 
 
 // Moves funds from main account to wallets directly
-exports.seedFunds = function (account, amount, callback) {
+exports.seedFunds = function (user, amount, callback) {
   rpc({
     method: 'move', // Move some funds to test with
-    params: [ '', account._id, amount ]
+    params: [ '', user._id, amount ]
   }, function (err) {
     if (err) return callback(err);
-    account.updateBalance(function (err) {
+    user.updateBalance(function (err) {
       if (err) return callback(err);
-      return callback(null, account);
+      return callback(null, user);
     });
   });
 };
 
-exports.emptyAccount = function (account, callback) {
+exports.emptyAccount = function (user, callback) {
   rpc({
     method: 'getbalance',
-    params: [ account._id ]
+    params: [ user._id ]
   }, function (err, result) {
     if (err) return callback(err);
     rpc({
       method: 'move',
-      params: [account._id, '', result]
+      params: [user._id, '', result]
     }, callback);
   });
 };

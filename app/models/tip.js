@@ -1,7 +1,7 @@
 'use strict';
 
 var mongoose = require('mongoose');
-var Account = mongoose.model('Account');
+var User = mongoose.model('User');
 var config = require('../../config/config')();
 // var _ = require('lodash');
 var Schema = mongoose.Schema;
@@ -13,9 +13,9 @@ var rpc = require('../rpc')(config.rpc);
 var TipSchema = new Schema({
   amount: Number,
   state: String,
-  tipper_id: { type: Schema.Types.ObjectId, ref: 'Account' },
-  tippee_id: { type: Schema.Types.ObjectId, ref: 'Account' },
-  recipient_id: { type: Schema.Types.ObjectId, ref: 'Account' },
+  tipper_id: { type: Schema.Types.ObjectId, ref: 'User' },
+  tippee_id: { type: Schema.Types.ObjectId, ref: 'User' },
+  recipient_id: { type: Schema.Types.ObjectId, ref: 'User' },
   resolved_id: { type: Schema.Types.ObjectId } // stored in dogecoind 'comment' field
 });
 
@@ -30,8 +30,6 @@ TipSchema.statics = {
     tipper.updateBalance(function (err, tipper) {
       if (err) return callback(err);
       var balance = tipper.balance;
-
-      console.log(Date.now(), 'TIP CREATE TIPPER BALANCE', tipper.balance, tippee.username)
 
       var tip = new Self({
         _id: tip_id,
@@ -89,15 +87,15 @@ TipSchema.statics = {
   ,
 
   // Must be called by queue
-  resolve: function (tip, account, callback) {
+  resolve: function (tip, user, callback) {
 
     if (!tip) return callback(new Error('Not tip provided.'));
 
-    var account_id = account._id.toString();
+    var user_id = user._id.toString();
     var tipper_id = tip.tipper_id.toString();
     var tippee_id = tip.tippee_id.toString();
 
-    if ((account_id !== tipper_id) && (account_id !== tippee_id)) return callback(new Error('Incorrect tip account.'));
+    if ((user_id !== tipper_id) && (user_id !== tippee_id)) return callback(new Error('Incorrect tip user.'));
 
     if (tip.state === 'claimed' || tip.state === 'canceled' || tip.state !== 'created') {
       return callback(new Error('Incorrect tip state.'));
@@ -105,10 +103,10 @@ TipSchema.statics = {
 
     // Check what kind of resolution this is
     var action;
-    if (account_id === tipper_id) {
+    if (user_id === tipper_id) {
       action = 'cancel';
     }
-    else if (account_id === tippee_id) {
+    else if (user_id === tippee_id) {
       action = 'claim';
     }
 
@@ -122,21 +120,21 @@ TipSchema.statics = {
     function move (tip) {
       var body = {
         method: 'move',
-        params: [ '', account_id, tip.amount, 6, tip.resolved_id ],
+        params: [ '', user_id, tip.amount, 6, tip.resolved_id ],
       };
 
       rpc(body, function (err) {
         if (err) return callback(err);
 
-        tip.recipient_id = account_id;
+        tip.recipient_id = user_id;
         tip.state = action + 'ed'; // We did it
 
         tip.save(function (err) {
           if (err) return callback(err);
-          account.balance = account.balance + tip.amount;
-          account.pending = account.pending - tip.amount;
-          account.save(function (err) {
-            callback(err, tip, account);
+          user.balance = user.balance + tip.amount;
+          user.pending = user.pending - tip.amount;
+          user.save(function (err) {
+            callback(err, tip, user);
           });
         });
       });

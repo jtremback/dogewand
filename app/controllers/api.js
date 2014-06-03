@@ -1,11 +1,6 @@
 'use strict';
 
-var mongoose = require('mongoose');
 var logic = require('./logic');
-var config = require('../../config/config')();
-var check = require('check-types');
-var Account = mongoose.model('Account');
-var Tip = mongoose.model('Tip');
 
 function SuccessResponse (data) {
   return {
@@ -24,25 +19,24 @@ exports.address = function (req, res, next) {
   });
 };
 
-exports.account = function (req, res, next) {
+exports.user = function (req, res) {
   res.json(new SuccessResponse(req.user));
 };
 
 exports.createTip = function (req, res, next) {
-  console.log('req.body', req.body)
   var opts = {
-    username: req.param('username'),
+    uniqid: req.param('uniqid'),
     provider: req.param('provider'),
     amount: parseInt(req.param('amount'), 10) // Coerce to int
   };
 
-  logic.createTip(req.user, opts, function (err, account, tip_id) {
+  logic.createTip(req.user, opts, function (err, user, tip_id) {
     if (err) return next(err);
 
     return res.json({
       tip_id: tip_id,
       amount: opts.amount,
-      account: account
+      user: user
     });
   });
 };
@@ -58,13 +52,13 @@ exports.resolveTip = function (req, res, next) {
 };
 
 exports.updateBalance = function (req, res, next) {
-  req.user.updateBalance(function (err, account) {
+  req.user.updateBalance(function (err, user) {
     if (err) return next(err);
-    res.json(account.balance);
+    res.json(user.balance);
   });
 };
 
-exports.withdraw = function (next) {
+exports.withdraw = function (req, res, next) {
   logic.withdraw(req.user.id, req.param('address'), req.param('amount'), function (err, new_balance) {
     if (err) return next(err);
 

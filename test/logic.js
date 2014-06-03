@@ -6,8 +6,9 @@ var async = require('async');
 var config = require('../config/config')('test');
 var rpc = require('../app/rpc')(config.rpc);
 var utility = require('../test-utility');
-require('../app/models/account.js');
+require('../app/models/user.js');
 require('../app/models/tip.js');
+var logic = require('../app/controllers/logic.js');
 
 function asyncTimeout (fn, timeout) {
     setTimeout(fn, timeout);
@@ -27,70 +28,76 @@ test('---------------------------------------- logic.js', function (t) {
   });
 
   var Tip = mongoose.model('Tip');
-  var Account = mongoose.model('Account');
+  var User = mongoose.model('User');
 
   var wallet_a;
-  var wallet_b;
 
   t.test('reset', function (t) {
+    var opts = {
+      provider: 'farcebook',
+      uniqid: 'Jehoon'
+    };
 
-    var accounts = [{
-      username: 'Jehoon',
-      provider: 'farcebook'
-    }, {
-      username: 'C3P0',
-      provider: 'farcebook'
-    }];
-
-    utility.init(Tip, Account, accounts, function (err, wallet_a1, wallet_b1) {
-      t.error(err);
-      wallet_a = wallet_a1;
-      wallet_b = wallet_b1;
-      t.end();
+    utility.resetMongo([ Tip, User ], function () {
+      User.upsert(opts, function (err, user) {
+        wallet_a = user;
+        t.end();
+      });
     });
   });
 
 
-  t.test('createTip to existing account', function (t) {
+  t.test('createTip to nonexistant user', function (t) {
     var opts = {
-      username: wallet_b.username,
-      provider: 'farcebook',
-      amount: 1.35
-    };
-    checkTipCreatedStarted(t, wallet_a, opts);
-  });
-
-
-
-  t.test('createTip to nonexistant account', function (t) {
-    var opts = {
-      username: 'Chewbacca',
+      uniqid: 'Chewbacca',
       provider: 'farcebook',
       amount: 1.57
     };
 
-    checkTipCreatedStarted(t, wallet_a, opts);
+    utility.resetBalances(function () {
+      utility.seedFunds(wallet_a, opts.amount, function () {
+        checkTipCreatedStarted(t, wallet_a, opts);
+      });
+    });
   });
 
 
-  function checkTipCreatedStarted (t, account, opts) {
-    utility.seedFunds(wallet_a, opts.amount, function () {
-      logic.createTip(wallet_a, opts, function (err) {
-        t.error(err, 'createTip');
-        // Check new balance
-        // Check tip_id
+  t.test('createTip to existing user', function (t) {
+    var opts = {
+      uniqid: 'hamster',
+      provider: 'farcebook',
+      amount: 1.35
+    };
 
-
-        asyncTimeout(function () {
-          checkTipCreatedFinished(t, account, opts);
-        }, TIMEOUT);
+    utility.resetBalances(function () {
+      utility.seedFunds(wallet_a, opts.amount, function () {
+        User.upsert(opts, function () {
+          checkTipCreatedStarted(t, wallet_a, opts);
+        });
       });
     });
+  });
+
+
+  function checkTipCreatedStarted (t, user, opts) {
+
+    logic.createTip(wallet_a, opts, function (err) {
+      t.error(err, 'createTip');
+      // Check new balance
+      // Check tip_id
+
+
+      asyncTimeout(function () {
+        checkTipCreatedFinished(t, user, opts);
+      }, TIMEOUT);
+    });
+
   }
 
 
   function checkTipCreatedFinished (t, tipper, opts) {
-    Account.findOne({ username: opts.username }, function (err, tippee) {
+    User.findOne({ accounts: { $elemMatch: { 'provider': opts.provider, 'uniqid': opts.uniqid } } }, function (err, tippee) {
+
       async.parallel({
 
         tipper_balance: async.apply(rpc, {
@@ -114,7 +121,7 @@ test('---------------------------------------- logic.js', function (t) {
         ,
 
         tipper: function (cb) {
-          Account.findOne({ _id: tipper._id }, cb);
+          User.findOne({ _id: tipper._id }, cb);
         }
 
       }, function (err, results) {
@@ -127,17 +134,15 @@ test('---------------------------------------- logic.js', function (t) {
 
         t.equals(results.tipper.pending, 0, 'pending resolved');
 
-        t.equal(opts.username, tippee.username, 'mongo tippee username');
-        t.equal(opts.provider, tippee.providers[0].provider, 'mongo tippee provider');
+        t.equal(opts.uniqid, tippee.accounts[0].uniqid, 'mongo tippee uniqid');
+        t.equal(opts.provider, tippee.accounts[0].provider, 'mongo tippee provider');
 
         t.equal(tipper.id, results.tip.tipper_id.toString(), 'mongo tip tipper_id');
         t.equal(tippee.id, results.tip.tippee_id.toString(), 'mongo tip tippee _id');
         t.equal(opts.amount, results.tip.amount, 'mongo tip amount');
         t.equal(results.tip.state, 'created', 'mongo tip state');
 
-        utility.emptyAccount(wallet_a, function () {
-          t.end();
-        });
+        t.end();
       });
     });
   }
@@ -146,12 +151,12 @@ test('---------------------------------------- logic.js', function (t) {
 
   t.test('Try to hack', function (t) {
     var opts1 = {
-      username: 'Lando',
+      uniqid: 'Lando',
       provider: 'farcebook',
       amount: 4
     };
     var opts2 = {
-      username: 'Han.solo',
+      uniqid: 'Han.solo',
       provider: 'farcebook',
       amount: 3
     };
@@ -177,9 +182,9 @@ test('---------------------------------------- logic.js', function (t) {
             ,
 
             failed_tip: function (callback) {
-              Account.find({ username: opts2.username }, function (err, account) {
+              User.find({ accounts: { $elemMatch: { 'uniqid': opts2.uniqid } } }, function (err, user) {
                 t.error(err);
-                Tip.find({ tippee_id: account[0]._id }, {}, { sort: { 'created_at' : 1 } }, callback);
+                Tip.find({ tippee_id: user[0]._id }, {}, { sort: { 'created_at' : 1 } }, callback);
               });
             }
           },
@@ -206,57 +211,70 @@ test('---------------------------------------- logic.js', function (t) {
 
   t.test('cancel', function (t) {
     var opts = {
-      username: 'Chewbacca',
+      uniqid: 'Chewbacca',
       provider: 'farcebook',
       amount: 1.94
     };
 
-    utility.seedFunds(wallet_a, opts.amount, function (err, account) {
-      t.error(err, 'seedfunds');
-      logic.createTip(account, opts, function (err, balance, tip_id) {
-        t.error(err, 'createTip');
-        asyncTimeout(function () {
-          checkTipResolvedStarted(t, account, opts, tip_id);
-        }, TIMEOUT);
+    // utility.seedFunds(wallet_a, opts.amount, function (err, user) {
+    //   t.error(err, 'seedfunds');
+    //   logic.createTip(user, opts, function (err, balance, tip_id) {
+    //     t.error(err, 'createTip');
+    //     asyncTimeout(function () {
+    //       checkTipResolvedStarted(t, user, opts, tip_id);
+    //     }, TIMEOUT);
+    //   });
+    // });
+
+
+    utility.resetBalances(function () {
+      utility.seedFunds(wallet_a, opts.amount, function (err, user) {
+        t.error(err);
+        logic.createTip(user, opts, function (err, balance, tip_id) {
+          t.error(err);
+          asyncTimeout(function () {
+            checkTipResolvedStarted(t, user, opts, tip_id);
+          }, TIMEOUT);
+        });
       });
     });
   });
 
   t.test('claim', function (t) {
     var opts = {
-      username: wallet_b.username,
+      uniqid: 'Hercules',
       provider: 'farcebook',
       amount: 1.12
     };
 
-    utility.seedFunds(wallet_a, opts.amount, function (err, account) {
+    utility.seedFunds(wallet_a, opts.amount, function (err, user) {
       t.error(err);
-      logic.createTip(account, opts, function (err, balance, tip_id) {
+      logic.createTip(user, opts, function (err, user, tip_id) {
         t.error(err, 'createTip');
         asyncTimeout(function () {
-          checkTipResolvedStarted(t, wallet_b, opts, tip_id);
+          checkTipResolvedStarted(t, user, opts, tip_id);
         }, TIMEOUT);
       });
     });
   });
 
-  function checkTipResolvedStarted (t, account, opts, tip_id) {
-    logic.resolveTip(tip_id, account, function (err, balance) {
+  function checkTipResolvedStarted (t, user, opts, tip_id) {
+    logic.resolveTip(tip_id, user, function (err, balance) {
       t.error(err, 'resolveTip');
       // Check balance
       // TODO test immediate response
 
       asyncTimeout(function () {
-        checkTipResolvedFinished(t, account, opts, tip_id);
+        checkTipResolvedFinished(t, user, opts, tip_id);
       }, TIMEOUT);
     });
   }
 
-  function checkTipResolvedFinished (t, account, opts, tip_id) {
+  function checkTipResolvedFinished (t, user, opts, tip_id) {
     async.parallel({
       transaction: async.apply(rpc, {
         method: 'listtransactions',
-        params: [ account.id, 1 ]
+        params: [ user.id, 1 ]
       })
 
       ,
@@ -267,8 +285,8 @@ test('---------------------------------------- logic.js', function (t) {
 
       ,
 
-      account: function (cb) {
-        Account.findOne({ _id: account._id }, cb);
+      user: function (cb) {
+        User.findOne({ _id: user._id }, cb);
       }
     }, function (err, results) {
       // Convert the goddamn mongo objectids
@@ -282,22 +300,22 @@ test('---------------------------------------- logic.js', function (t) {
       // Check state
       // Check resolved_id
       // Check recipient_id
-      t.equals(account.id, recipient_id, 'mongo recipient_id correct');
+      t.equals(user.id, recipient_id, 'mongo recipient_id correct');
 
-      if (account.id === tippee_id) {
+      if (user.id === tippee_id) {
         t.equals(results.tip.state, 'claimed', 'mongo tip state is correct');
-      } else if (account.id === tipper_id) {
+      } else if (user.id === tipper_id) {
         t.equals(results.tip.state, 'canceled', 'mongo tip state is correct');
       } else {
         t.fail('wrong account resolved');
       }
 
-      t.equals(results.account.pending, 0, 'pending resolved');
+      t.equals(results.user.pending, 0, 'pending resolved');
 
       // Check transaction
       var transaction = results.transaction[0];
 
-      t.equals(transaction.account, account.id, 'accounts match');
+      t.equals(transaction.account, user.id, 'users match');
       t.equals(transaction.amount, opts.amount, 'amounts match');
       t.equals(transaction.otheraccount, '', 'otheraccount correct');
       t.equals(transaction.comment, resolved_id, 'resolved id and tx comment');

@@ -1,12 +1,12 @@
 'use strict';
 
 var mongoose = require('mongoose');
-var Account = mongoose.model('Account');
+var User = mongoose.model('User');
 var Tip = mongoose.model('Tip');
 
 var models = {
   Tip: Tip,
-  Account: Account
+  User: User
 };
 
 function asyncTimeout (fn, timeout) {

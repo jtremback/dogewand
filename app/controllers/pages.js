@@ -3,8 +3,6 @@
 var mongoose = require('mongoose');
 var config = require('../../config/config')();
 var logic = require('./logic.js');
-var check = require('check-types');
-var Account = mongoose.model('Account');
 var Tip = mongoose.model('Tip');
 
 exports.tip = function (req, res, next) {
@@ -27,8 +25,6 @@ exports.tip = function (req, res, next) {
     }
 
     if (path_amount != tip.amount) return res.send('Tip not found.'); // Check to make sure the amount in the path is correct
-
-    console.log(req.user, tip)
 
     var role;
 

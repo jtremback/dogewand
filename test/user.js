@@ -6,7 +6,7 @@ var async = require('async');
 var config = require('../config/config')('test');
 var rpc = require('../app/rpc')(config.rpc);
 var utility = require('../test-utility');
-require('../app/models/account.js');
+require('../app/models/user.js');
 require('../app/models/tip.js');
 var logic = require('../app/controllers/logic.js');
 
@@ -23,7 +23,7 @@ function decimalRound (number, divisions) {
 var TIMEOUT = 1000;
 var FEE = 1;
 
-test('---------------------------------------- account.js', function (t) {
+test('---------------------------------------- user.js', function (t) {
   // Connect to mongodb
   mongoose.connect(config.db, {
     auto_reconnect: true,
@@ -35,14 +35,14 @@ test('---------------------------------------- account.js', function (t) {
   });
 
   var Tip = mongoose.model('Tip');
-  var Account = mongoose.model('Account');
+  var User = mongoose.model('User');
 
   var amount = 1;
   var wallet_a;
   var wallet_b;
 
   t.test('reset', function (t) {
-    var accounts = [{
+    var users = [{
       username: 'Jehoon',
       provider: 'farcebook'
     }, {
@@ -50,7 +50,7 @@ test('---------------------------------------- account.js', function (t) {
       provider: 'farcebook'
     }];
 
-    utility.init(Tip, Account, accounts, function (err, wallet_a1, wallet_b1) {
+    utility.init(Tip, User, users, function (err, wallet_a1, wallet_b1) {
       wallet_a = wallet_a1;
       wallet_b = wallet_b1;
       t.end();
@@ -68,8 +68,8 @@ test('---------------------------------------- account.js', function (t) {
         params: ['', wallet_a._id, 6]
       }, function (err) {
         t.error(err);
-        Account.findCall('updateBalance', { _id: wallet_a }, function (err, account) {
-          t.equal(6, account.balance);
+        User.findCall('updateBalance', { _id: wallet_a }, function (err, user) {
+          t.equal(6, user.balance);
           t.end();
         });
       });
@@ -93,7 +93,7 @@ test('---------------------------------------- account.js', function (t) {
         reciever.getAddress(function (err, address) {
           t.error(err);
 
-          logic.withdraw(sender, address, amount, function (err, account) {
+          logic.withdraw(sender, address, amount, function (err, user) {
             t.error(err);
 
             asyncTimeout(function () {
@@ -114,7 +114,7 @@ test('---------------------------------------- account.js', function (t) {
                 ,
 
                 sender: function (cb) {
-                  Account.findOne({ _id: sender._id }, cb);
+                  User.findOne({ _id: sender._id }, cb);
                 }
 
               }, function (err, results) {

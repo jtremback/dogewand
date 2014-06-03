@@ -9,13 +9,13 @@ module.exports = function (app, passport) {
 
   app.post('/api/v1/tips/resolve', ensureAuthenticated, api.resolveTip);
 
-  app.get('/api/v1/account', ensureAuthenticated, api.account);
+  app.get('/api/v1/user', ensureAuthenticated, api.user);
 
-  app.get('/api/v1/account/address', ensureAuthenticated, api.address);
+  app.get('/api/v1/user/address', ensureAuthenticated, api.address);
 
-  app.get('/api/v1/account/balance', ensureAuthenticated, api.updateBalance);
+  app.get('/api/v1/user/balance', ensureAuthenticated, api.updateBalance);
 
-  app.post('/api/v1/account/withdraw', ensureAuthenticated, api.withdraw);
+  app.post('/api/v1/user/withdraw', ensureAuthenticated, api.withdraw);
 
   app.get('/tips/:tip', pages.tip);
   app.post('/tips/:tip', pages.resolveTip);

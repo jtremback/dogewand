@@ -3,7 +3,7 @@
 var mongoose = require('mongoose');
 var FacebookStrategy = require('passport-facebook').Strategy;
 var LocalStrategy = require('passport-local').Strategy;
-var Account = mongoose.model('Account');
+var User = mongoose.model('User');
 
 module.exports = function (passport, config) {
 
@@ -13,8 +13,8 @@ module.exports = function (passport, config) {
   });
 
   passport.deserializeUser(function(id, done) {
-    Account.findOne({ _id: id }, function (err, account) {
-      done(err, account);
+    User.findOne({ _id: id }, function (err, user) {
+      done(err, user);
     });
   });
 
@@ -25,26 +25,30 @@ module.exports = function (passport, config) {
       callbackURL: config.url +  '/auth/facebook/callback',
       passReqToCallback: true
     }, function (req, accessToken, refreshToken, profile, done) {
-      if(req.user) {
-        req.user.linkAccount(profile.displayName, 'facebook');
-        return done(null, req.user);
-      } 
-      Account.upsert({
+      if (req.user) { // If they are signed in
+        return req.user.linkAccount({
+          username: profile.username,
+          uuid: profile.id,
+          provider: 'facebook'
+        }, done);
+      }
+      User.upsert({ // If this is a new account
         provider: 'facebook',
-        username: profile.username
+        username: profile.username,
+        uuid: profile.id
       }, done);
     }
   ));
 
   // use local strategy
   passport.use(new LocalStrategy(function(username, password, done) {
-    Account.findOne({ providers: { $elemMatch: { 'provider': 'dogewand', 'username': username } } }, function(err, account) {
+    User.findOne({ providers: { $elemMatch: { 'provider': 'dogewand', 'username': username } } }, function(err, user) {
       if (err) { return done(err); }
-      if (!account) { return done(null, false, { message: 'Unknown username ' + username }); }
-      account.authenticate(password, function(err, isMatch) {
+      if (!user) { return done(null, false, { message: 'Unknown username ' + username }); }
+      user.authenticate(password, function(err, isMatch) {
         if (err) return done(err);
         if(isMatch) {
-          return done(null, account);
+          return done(null, user);
         } else {
           return done(null, false, { message: 'Invalid password' });
         }
