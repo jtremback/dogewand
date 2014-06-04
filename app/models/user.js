@@ -10,7 +10,7 @@ var _ = require('lodash');
 
 var AccountSchema = new Schema({
   provider: String,
-  display_name: String,
+  name: String,
   uniqid: String,
   password: String
 });
@@ -52,7 +52,7 @@ UserSchema.statics = {
         user = new Self({
           accounts: [{
             provider: opts.provider,
-            display_name: opts.display_name,
+            name: opts.name,
             uniqid: opts.uniqid,
             password: opts.password
           }]

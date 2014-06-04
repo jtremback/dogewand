@@ -35,7 +35,8 @@ test('---------------------------------------- logic.js', function (t) {
   t.test('reset', function (t) {
     var opts = {
       provider: 'farcebook',
-      uniqid: 'Jehoon'
+      uniqid: 'jehoon',
+      name: 'Jehoon Trombock'
     };
 
     utility.resetMongo([ Tip, User ], function () {
@@ -49,7 +50,8 @@ test('---------------------------------------- logic.js', function (t) {
 
   t.test('createTip to nonexistant user', function (t) {
     var opts = {
-      uniqid: 'Chewbacca',
+      uniqid: 'chewbacca',
+      name: 'Chewbacca Rogers',
       provider: 'farcebook',
       amount: 1.57
     };
@@ -65,6 +67,7 @@ test('---------------------------------------- logic.js', function (t) {
   t.test('createTip to existing user', function (t) {
     var opts = {
       uniqid: 'hamster',
+      name: 'Hamster Hamster',
       provider: 'farcebook',
       amount: 1.35
     };
@@ -115,7 +118,7 @@ test('---------------------------------------- logic.js', function (t) {
         ,
 
         tip: function (cb) {
-          Tip.findOne({ tippee_id: tippee._id }, {}, { sort: { 'created_at' : -1 } }, cb);
+          Tip.findOne({ 'tippee._id': tippee._id }, {}, { sort: { 'created_at' : -1 } }, cb);
         }
 
         ,
@@ -137,8 +140,8 @@ test('---------------------------------------- logic.js', function (t) {
         t.equal(opts.uniqid, tippee.accounts[0].uniqid, 'mongo tippee uniqid');
         t.equal(opts.provider, tippee.accounts[0].provider, 'mongo tippee provider');
 
-        t.equal(tipper.id, results.tip.tipper_id.toString(), 'mongo tip tipper_id');
-        t.equal(tippee.id, results.tip.tippee_id.toString(), 'mongo tip tippee _id');
+        t.equal(tipper.id, results.tip.tipper._id.toString(), 'mongo tip tipper_id');
+        t.equal(tippee.id, results.tip.tippee._id.toString(), 'mongo tip tippee _id');
         t.equal(opts.amount, results.tip.amount, 'mongo tip amount');
         t.equal(results.tip.state, 'created', 'mongo tip state');
 
@@ -153,10 +156,12 @@ test('---------------------------------------- logic.js', function (t) {
     var opts1 = {
       uniqid: 'Lando',
       provider: 'farcebook',
+      name: 'Lando Calrisian',
       amount: 4
     };
     var opts2 = {
       uniqid: 'Han.solo',
+      name: 'Han Solo',
       provider: 'farcebook',
       amount: 3
     };
@@ -184,12 +189,13 @@ test('---------------------------------------- logic.js', function (t) {
             failed_tip: function (callback) {
               User.find({ accounts: { $elemMatch: { 'uniqid': opts2.uniqid } } }, function (err, user) {
                 t.error(err);
-                Tip.find({ tippee_id: user[0]._id }, {}, { sort: { 'created_at' : 1 } }, callback);
+                Tip.find({ 'tippee._id': user[0]._id }, {}, { sort: { 'created_at' : 1 } }, callback);
               });
             }
           },
 
           function (err, results) {
+            console.log('RESULTS FAILED TIP', results)
             t.error(err);
             t.equals(results.failed_tip[0].state, 'insufficient', 'tip marked insufficient');
             t.equals(2, results.tipper_balance, 'tipper balance is right');
@@ -211,7 +217,8 @@ test('---------------------------------------- logic.js', function (t) {
 
   t.test('cancel', function (t) {
     var opts = {
-      uniqid: 'Chewbacca',
+      uniqid: 'chewbacca',
+      name: 'Chewbacca Rogers',
       provider: 'farcebook',
       amount: 1.94
     };
@@ -230,7 +237,8 @@ test('---------------------------------------- logic.js', function (t) {
 
   t.test('claim', function (t) {
     var opts = {
-      uniqid: 'Hercules',
+      uniqid: 'hercules',
+      name: 'Herculars Herculous',
       provider: 'farcebook',
       amount: 1.12
     };
@@ -278,8 +286,8 @@ test('---------------------------------------- logic.js', function (t) {
       // Convert the goddamn mongo objectids
       var recipient_id = results.tip.recipient_id.toString();
       var resolved_id = results.tip.resolved_id.toString();
-      var tippee_id = results.tip.tippee_id.toString();
-      var tipper_id = results.tip.tipper_id.toString();
+      var tippee_id = results.tip.tippee._id.toString();
+      var tipper_id = results.tip.tipper._id.toString();
 
       console.log('RESULTS TRANSACTION', results.transaction);
 
