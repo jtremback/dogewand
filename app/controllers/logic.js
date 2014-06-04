@@ -15,12 +15,12 @@ exports.createTip = function (user, opts, callback) {
     check.map(opts, {
       uniqid: check.unemptyString,
       provider: check.unemptyString,
-      amount: check.number
+      amount: check.number,
+      name: check.unemptyString
     })
   );
 
   if (!valid) return callback(new utils.NamedError('Such not compute.', 400));
-  // if (opts.uniqid === user.uniqid) callback(new Error('You cannot tip yourself.')); // Unclear how this should work
 
   User.upsert({
     uniqid: opts.uniqid,
@@ -28,8 +28,10 @@ exports.createTip = function (user, opts, callback) {
   }, function (err, tippee) {
     if (err) return callback(err);
 
+    opts._id = tippee._id;
+
     if ((user.balance - opts.amount) >= 0) { // Insecure balance check to improve UX
-      queue.pushCommand('Tip', 'create', [user, tippee, opts.amount, tip_id]);
+      queue.pushCommand('Tip', 'create', [user, opts, tip_id]);
 
       user.pending = user.pending - opts.amount;
       return user.save(function () {
@@ -48,8 +50,8 @@ exports.resolveTip = function (tip_id, user, callback) {
     if (err) return callback(err);
 
     var user_id = user._id.toString();
-    var tipper_id = tip.tipper_id.toString();
-    var tippee_id = tip.tippee_id.toString();
+    var tipper_id = tip.tipper._id.toString();
+    var tippee_id = tip.tippee._id.toString();
 
 
     console.log('LOGIC JS RESOLVETIP TIP, USER', tip, user);

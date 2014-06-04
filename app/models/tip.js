@@ -2,6 +2,7 @@
 
 var mongoose = require('mongoose');
 var User = mongoose.model('User');
+var _ = require('lodash');
 var config = require('../../config/config')();
 // var _ = require('lodash');
 var Schema = mongoose.Schema;
@@ -13,8 +14,16 @@ var rpc = require('../rpc')(config.rpc);
 var TipSchema = new Schema({
   amount: Number,
   state: String,
-  tipper_id: { type: Schema.Types.ObjectId, ref: 'User' },
-  tippee_id: { type: Schema.Types.ObjectId, ref: 'User' },
+  tipper: {
+    _id: { type: Schema.Types.ObjectId, ref: 'User' },
+    provider: String,
+    name: String
+  },
+  tippee: {
+    _id: { type: Schema.Types.ObjectId, ref: 'User' },
+    provider: String,
+    name: String
+  },
   recipient_id: { type: Schema.Types.ObjectId, ref: 'User' },
   resolved_id: { type: Schema.Types.ObjectId } // stored in dogecoind 'comment' field
 });
@@ -24,22 +33,34 @@ var TipSchema = new Schema({
 TipSchema.statics = {
 
   // Must be called by queue
-  create: function (tipper, tippee, amount, tip_id, callback) {
+  create: function (tipper, opts, tip_id, callback) {
     var Self = this;
 
     tipper.updateBalance(function (err, tipper) {
       if (err) return callback(err);
       var balance = tipper.balance;
 
+      var tipper_account = _.find(tipper.accounts, function (account) {
+        return account.provider === opts.provider;
+      });
+
       var tip = new Self({
         _id: tip_id,
-        tipper_id: tipper._id,
-        tippee_id: tippee._id,
-        amount: amount,
+        tipper: {
+          _id: tipper._id,
+          name: tipper_account.name,
+          provider: opts.provider
+        },
+        tippee: {
+          _id: opts._id,
+          name: opts.name,
+          provider: opts.provider
+        },
+        amount: opts.amount,
       });
 
 
-      if ((balance - amount) >= 0) { // Check funds
+      if ((balance - opts.amount) >= 0) { // Check funds
         tip.state = 'creating';
       }
 
@@ -47,6 +68,8 @@ TipSchema.statics = {
         tip.state = 'insufficient';
         tipper.pending = tipper.pending + tip.amount; // And close out pending
       }
+
+      console.log(tip)
 
       tip.save(function (err, tip) { // Create tip in db
         if (err) return callback(err);
@@ -56,14 +79,12 @@ TipSchema.statics = {
           return tip.save(callback);
         }
       });
-
-
     });
 
     function move (tip, tipper) {
       var body = {
         method: 'move',
-        params: [ tip.tipper_id, '', tip.amount, 6, tip._id ],
+        params: [ tip.tipper._id, '', tip.amount, 6, tip._id ],
       };
 
       rpc(body, function (err) {
@@ -92,8 +113,8 @@ TipSchema.statics = {
     if (!tip) return callback(new Error('Not tip provided.'));
 
     var user_id = user._id.toString();
-    var tipper_id = tip.tipper_id.toString();
-    var tippee_id = tip.tippee_id.toString();
+    var tipper_id = tip.tipper._id.toString();
+    var tippee_id = tip.tippee._id.toString();
 
     if ((user_id !== tipper_id) && (user_id !== tippee_id)) return callback(new Error('Incorrect tip user.'));
 

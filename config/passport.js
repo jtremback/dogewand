@@ -28,11 +28,13 @@ module.exports = function (passport, config) {
       if (req.user) { // If they are signed in
         return req.user.linkAccount({
           provider: 'facebook',
+          name: profile.displayName,
           uniqid: profile.id
         }, done);
       }
       User.upsert({ // If this is a new account
         provider: 'facebook',
+        name: profile.displayName,
         uniqid: profile.id
       }, done);
     }
