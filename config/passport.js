@@ -27,24 +27,24 @@ module.exports = function (passport, config) {
     }, function (req, accessToken, refreshToken, profile, done) {
       if (req.user) { // If they are signed in
         return req.user.linkAccount({
-          username: profile.username,
-          uuid: profile.id,
-          provider: 'facebook'
+          provider: 'facebook',
+          uniqid: profile.id
         }, done);
       }
       User.upsert({ // If this is a new account
         provider: 'facebook',
-        username: profile.username,
-        uuid: profile.id
+        uniqid: profile.id
       }, done);
     }
   ));
 
   // use local strategy
-  passport.use(new LocalStrategy(function(username, password, done) {
-    User.findOne({ providers: { $elemMatch: { 'provider': 'dogewand', 'username': username } } }, function(err, user) {
+  passport.use(new LocalStrategy(function(uniqid, password, done) {
+    User.upsert({ // If this is a new account
+      provider: 'dogewand',
+      uniqid: uniqid
+    }, function (err, user) {
       if (err) { return done(err); }
-      if (!user) { return done(null, false, { message: 'Unknown username ' + username }); }
       user.authenticate(password, function(err, isMatch) {
         if (err) return done(err);
         if(isMatch) {

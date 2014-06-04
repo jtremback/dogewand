@@ -2,6 +2,7 @@
 
 var api = require('../app/controllers/api');
 var pages = require('../app/controllers/pages');
+var utils = require('../utils.js');
 
 module.exports = function (app, passport) {
 
@@ -28,7 +29,7 @@ module.exports = function (app, passport) {
       req.session.foo = req.param('redirect_to');
       console.log(req.session);
       return next();
-    }
+    };
   }
 
   app.get('/auth/facebook/callback',
@@ -36,7 +37,6 @@ module.exports = function (app, passport) {
     function(req, res) {
       var redirect_to = req.session.foo ? req.session.foo : '/iframe';
       delete req.session.redirect;
-      delete req.session.foo_to;
       //is authenticated ?
       res.redirect(redirect_to);
     });
@@ -56,5 +56,5 @@ module.exports = function (app, passport) {
 
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) { return next(); }
-  res.send(401, 'You need to log in.');
+  return next(new utils.NamedError('You need to sign in.', 401));
 }

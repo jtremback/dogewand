@@ -16,7 +16,7 @@ function App () {
     iframe.source.postMessage(JSON.stringify({
       method: 'create_tip',
       data: {
-        uuid: user_info.uuid,
+        uniqid: user_info.uniqid,
         display_name: user_info.display_name,
         provider: PROVIDER
       }

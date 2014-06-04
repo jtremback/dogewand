@@ -27,6 +27,7 @@ exports.createTip = function (req, res, next) {
   var opts = {
     uniqid: req.param('uniqid'),
     provider: req.param('provider'),
+    display_name: req.param('display_name'),
     amount: parseInt(req.param('amount'), 10) // Coerce to int
   };
 

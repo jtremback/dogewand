@@ -225,13 +225,12 @@ var scrape_utils = {
     }
   },
 
-  uuid_finders: {
+  uniqid_finders: {
     Facebook: function (that) {
-      var uuid = that.getAttribute('data-hovercard').match(/id=(\d*).*$/)[1];
+      var uniqid = that.getAttribute('data-hovercard').match(/id=(\d*).*$/)[1];
       var display_name = that.textContent;
-      console.log('uuid', uuid)
       return {
-        uuid: uuid,
+        uniqid: uniqid,
         display_name: display_name
       };
     }
@@ -258,7 +257,7 @@ function App () {
     iframe.source.postMessage(JSON.stringify({
       method: 'create_tip',
       data: {
-        uuid: user_info.uuid,
+        uniqid: user_info.uniqid,
         display_name: user_info.display_name,
         provider: PROVIDER
       }
@@ -319,7 +318,7 @@ function _app (container) {
 
   function createTip (e) {
     e.preventDefault();
-    app.createTip(scrape_utils.uuid_finders[PROVIDER](this));
+    app.createTip(scrape_utils.uniqid_finders[PROVIDER](this));
   }
 
   function exitTipping() {

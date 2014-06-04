@@ -33,7 +33,7 @@ var User = mongoose.model('User');
 require('./config/passport')(passport, config);
 
 
-User.upsert({username: 'shibetoshi', provider: 'dogewand', password: 'foo'}, function (err, user) {
+User.upsert({uniqid: 'shibetoshi', provider: 'dogewand', password: 'foo'}, function (err, user) {
   console.log(user);
 });
 

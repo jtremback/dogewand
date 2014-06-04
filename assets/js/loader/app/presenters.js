@@ -26,7 +26,7 @@ function _app (container) {
 
   function createTip (e) {
     e.preventDefault();
-    app.createTip(scrape_utils.uuid_finders[PROVIDER](this));
+    app.createTip(scrape_utils.uniqid_finders[PROVIDER](this));
   }
 
   function exitTipping() {

@@ -10,6 +10,7 @@ var _ = require('lodash');
 
 var AccountSchema = new Schema({
   provider: String,
+  display_name: String,
   uniqid: String,
   password: String
 });
@@ -17,8 +18,7 @@ var AccountSchema = new Schema({
 var UserSchema = new Schema({
   balance: { type: Number, default: 0 }, // updateBalance should be used whenever the balance is changed or read from dogecoind
   pending: { type: Number, default: 0 },
-  accounts: [ AccountSchema ],
-  username: String
+  accounts: [ AccountSchema ]
 });
 
 // Bcrypt middleware
@@ -52,6 +52,7 @@ UserSchema.statics = {
         user = new Self({
           accounts: [{
             provider: opts.provider,
+            display_name: opts.display_name,
             uniqid: opts.uniqid,
             password: opts.password
           }]
@@ -142,6 +143,7 @@ UserSchema.methods = {
     var localInfo = _.find(self.accounts, function(account) {
       return account.provider === 'dogewand';
     });
+
     bcrypt.compare(plaintext, localInfo.password, callback);
   }
 

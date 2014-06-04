@@ -11,6 +11,7 @@ function http (method, url, data, callback) {
   var request = new XMLHttpRequest();
   request.onreadystatechange = function () {
     if (this.readyState == 4) {
+      console.log(this.response)
       var response = JSON.parse(this.response);
       if (this.status == 200) {
         callback(null, response);
@@ -46,7 +47,7 @@ function messageListener () {
           app.currentModal = 'create-tip-modal';
           Vue.nextTick(function () {
             app.$['modal'].display_name = message.data.display_name;
-            app.$['modal'].uuid = message.data.uuid;
+            app.$['modal'].uniqid = message.data.uniqid;
             app.$['modal'].provider = message.data.provider;
             app.$['modal'].amount = '';
           });
@@ -117,6 +118,10 @@ Vue.component('update-modal', {
   template: '#update-modal'
 });
 
+Vue.component('login-modal', {
+  template: '#login-modal'
+});
+
 Vue.component('error-modal', {
   template: '#error-modal',
   data: {
@@ -128,7 +133,7 @@ Vue.component('create-tip-modal', {
   template: '#create-tip-modal',
   data: {
     display_name: '',
-    uuid: '',
+    uniqid: '',
     amount: '',
     provider: ''
   },
@@ -136,15 +141,21 @@ Vue.component('create-tip-modal', {
     submit: function () {
       var self = this;
       http('POST', '/api/v1/tips/create', {
-        username: self.uuid,
+        uniqid: self.uniqid,
+        display_name: self.display_name,
         provider: self.provider,
         amount: self.amount
       }, function (err, response) {
         if (err) {
-          app.currentModal = 'error-modal';
-          Vue.nextTick(function () {
-            return app.$['modal'].message = response['data'];
-          });
+          if (err === 401) {
+            self.currentModal = 'login-modal';
+          }
+          else {
+            app.currentModal = 'error-modal';
+            Vue.nextTick(function () {
+              return app.$['modal'].message = response['data'];
+            });
+          }
         }
         else {
           console.log(response);
@@ -158,17 +169,38 @@ Vue.component('create-tip-modal', {
 var app = new Vue({
   el: '#app',
   data: {
-    currentModal: false
+    currentModal: false,
+    user: {}
   },
   ready: function () {
     messageListener();
     this.resize();
+    this.userInfo();
 
     this.$on('show', function (bool) {
       this.resize(bool);
     });
   },
   methods: {
+    userInfo: function () {
+      var self = this;
+      http('GET', '/api/v1/user', null, function (err, response) {
+        if (err) {
+          if (err === 401) {
+            self.currentModal = 'login-modal';
+          }
+          else {
+            self.currentModal = 'error-modal';
+            Vue.nextTick(function () {
+              return self.$['modal'].message = response['data'];
+            });
+          }
+        }
+        else {
+          self.user = response.data;
+        }
+      });
+    },
     tipping: function () {
       parent.postMessage(JSON.stringify({
         method: 'tipping',

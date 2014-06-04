@@ -21,13 +21,12 @@ var scrape_utils = {
     }
   },
 
-  uuid_finders: {
+  uniqid_finders: {
     Facebook: function (that) {
-      var uuid = that.getAttribute('data-hovercard').match(/id=(\d*).*$/)[1];
+      var uniqid = that.getAttribute('data-hovercard').match(/id=(\d*).*$/)[1];
       var display_name = that.textContent;
-      console.log('uuid', uuid)
       return {
-        uuid: uuid,
+        uniqid: uniqid,
         display_name: display_name
       };
     }
