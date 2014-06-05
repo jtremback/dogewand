@@ -123,7 +123,12 @@ Vue.component('login-modal', {
 });
 
 Vue.component('confirm-tip-modal', {
-  template: '#confirm-tip-modal'
+  template: '#confirm-tip-modal',
+  data: {
+    tippee: '',
+    amount: '',
+    id: ''
+  }
 });
 
 Vue.component('error-modal', {
@@ -157,14 +162,16 @@ Vue.component('create-tip-modal', {
           else {
             app.currentModal = 'error-modal';
             Vue.nextTick(function () {
-              return app.$['modal'].message = response.data;
+              app.$['modal'].message = response.data;
             });
           }
         }
         else {
           app.currentModal = 'confirm-tip-modal';
           Vue.nextTick(function () {
-            return app.$['modal'].$data = response.data;
+            app.$.modal.$data.tippee = response.data.tip.tippee;
+            app.$.modal.$data.amount = response.data.tip.amount;
+            app.$.modal.$data.id = response.data.tip._id;
           });
         }
       });

@@ -34,15 +34,17 @@ exports.createTip = function (user, opts, callback) {
         _id: mongoose.Types.ObjectId().toString(), // Make ObjectId out here to return it
         amount: opts.amount,
         tippee: {
-          uniqid: opts.uniqid,
+          name: opts.name,
           provider: opts.provider,
-          name: opts.name
+          uniqid: opts.uniqid
         }
       };
 
       tip.tipper = _.find(user.accounts, function (account) {
         return account.provider === opts.provider; // Get account corresponding to provider of current tip
       });
+
+      tip.tipper._id = undefined; // Remove for consistency
 
       if (!tip.tipper) return callback(new utils.NamedError('Not signed in with ' + opts.provider, 401));
 
