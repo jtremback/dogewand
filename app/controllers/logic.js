@@ -34,6 +34,7 @@ exports.createTip = function (user, opts, callback) {
         _id: mongoose.Types.ObjectId().toString(), // Make ObjectId out here to return it
         amount: opts.amount,
         tippee: {
+          uniqid: opts.uniqid,
           provider: opts.provider,
           name: opts.name
         }
@@ -45,9 +46,6 @@ exports.createTip = function (user, opts, callback) {
 
       if (!tip.tipper) return callback(new utils.NamedError('Not signed in with ' + opts.provider, 401));
 
-      tip.tippee._id = tippee._id;
-      tip.tipper._id = user._id; // Add correct id, this is from the main doc instead of the subdoc
-      tip.tipper.uniqid = undefined; // Get rid of this just for consistency idunno
 
       queue.pushCommand('Tip', 'create', [user, tip]);
 
@@ -68,16 +66,18 @@ exports.resolveTip = function (user, tip_id, callback) {
     if (err) return callback(err);
     if (!tip) return callback(new utils.NamedError('No tip found.', 401));
 
-    var user_id = user._id.toString();
-    var tipper_id = tip.tipper._id.toString();
-    var tippee_id = tip.tippee._id.toString();
+    var is_tipper = _.find(user.accounts, function (account) {
+      return account.provider === tip.tipper.provider && account.uniqid === tip.tipper.uniqid; // Get account corresponding to provider of current tip
+    });
+
+    var is_tippee = _.find(user.accounts, function (account) {
+      return account.provider === tip.tippee.provider && account.uniqid === tip.tippee.uniqid; // Get account corresponding to provider of current tip
+    });
 
 
     // There are many different error states here.
     // These are re-checked in the model when the request is made
-    if (err) return callback(err);
-    if (!tip) return callback(new Error('No tip found.'));
-    if ((user_id !== tipper_id) && (user_id !== tippee_id)) return callback(new utils.NamedError('This is not your tip.', 403));
+    if (!is_tippee && !is_tipper) return callback(new utils.NamedError('This is not your tip.', 403));
     if (tip.state === 'claimed') return callback(new utils.NamedError('Tip has already been claimed.', 403)); // This should be considered insecure
     if (tip.state === 'canceled') return callback(new utils.NamedError('Tip has been cancelled.', 403)); // The real checking happens in the model
     if (tip.state !== 'created') return callback(new Error('Tip error.'));

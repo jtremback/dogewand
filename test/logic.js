@@ -118,7 +118,7 @@ test('---------------------------------------- logic.js', function (t) {
         ,
 
         tip: function (cb) {
-          Tip.findOne({ 'tippee._id': tippee._id }, {}, { sort: { 'created_at' : -1 } }, cb);
+          Tip.findOne({ 'tippee.uniqid': tippee.accounts[0].uniqid }, {}, { sort: { 'created_at' : -1 } }, cb);
         }
 
         ,
@@ -141,10 +141,10 @@ test('---------------------------------------- logic.js', function (t) {
         t.equal(opts.provider, tippee.accounts[0].provider, 'mongo tippee provider');
         // t.equal(opts.name, tippee.accounts[0].name, 'mongo tippee provider');
 
-        t.equal(tipper.id, results.tip.tipper._id.toString(), 'mongo tip tipper _id');
+        // t.equal(tipper.id, results.tip.tipper._id.toString(), 'mongo tip tipper _id');
         t.equal(tipper.accounts[0].name, results.tip.tipper.name, 'mongo tip tipper name');
         t.equal(tipper.accounts[0].provider, results.tip.tipper.provider, 'mongo tip tipper provider');
-        t.equal(tippee.id, results.tip.tippee._id.toString(), 'mongo tip tippee _id');
+        // t.equal(tippee.id, results.tip.tippee._id.toString(), 'mongo tip tippee _id');
 
         t.equal(opts.amount, results.tip.amount, 'mongo tip amount');
         t.equal(tippee.accounts[0].provider, results.tip.tippee.provider, 'mongo tip tippee provider');
@@ -192,9 +192,9 @@ test('---------------------------------------- logic.js', function (t) {
             ,
 
             failed_tip: function (callback) {
-              User.find({ accounts: { $elemMatch: { 'uniqid': opts2.uniqid } } }, function (err, user) {
+              User.findOne({ accounts: { $elemMatch: { 'uniqid': opts2.uniqid } } }, function (err, user) {
                 t.error(err);
-                Tip.find({ 'tippee._id': user[0]._id }, {}, { sort: { 'created_at' : 1 } }, callback);
+                Tip.find({ 'tippee.uniqid': user.accounts[0].uniqid }, {}, { sort: { 'created_at' : 1 } }, callback);
               });
             }
           },
@@ -290,8 +290,9 @@ test('---------------------------------------- logic.js', function (t) {
       // Convert the goddamn mongo objectids
       var recipient_id = results.tip.recipient_id.toString();
       var resolved_id = results.tip.resolved_id.toString();
-      var tippee_id = results.tip.tippee._id.toString();
-      var tipper_id = results.tip.tipper._id.toString();
+      var tippee_uniqid = results.tip.tippee.uniqid;
+      var tipper_uniqid = results.tip.tipper.uniqid;
+      var user_uniqid = user.accounts[0].uniqid;
 
 
       // Check state
@@ -299,9 +300,9 @@ test('---------------------------------------- logic.js', function (t) {
       // Check recipient_id
       t.equals(user.id, recipient_id, 'mongo recipient_id correct');
 
-      if (user.id === tippee_id) {
+      if (user_uniqid === tippee_uniqid) {
         t.equals(results.tip.state, 'claimed', 'mongo tip state is correct');
-      } else if (user.id === tipper_id) {
+      } else if (user_uniqid === tipper_uniqid) {
         t.equals(results.tip.state, 'canceled', 'mongo tip state is correct');
       } else {
         t.fail('wrong account resolved');

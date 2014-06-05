@@ -15,12 +15,12 @@ var TipSchema = new Schema({
   amount: Number,
   state: String,
   tipper: {
-    _id: { type: Schema.Types.ObjectId, ref: 'User' },
+    uniqid: String,
     provider: String,
     name: String
   },
   tippee: {
-    _id: { type: Schema.Types.ObjectId, ref: 'User' },
+    uniqid: String,
     provider: String,
     name: String
   },
@@ -44,12 +44,12 @@ TipSchema.statics = {
         _id: tip_opts._id,
         amount: tip_opts.amount,
         tipper: {
-          _id: tip_opts.tipper._id,
+          uniqid: tip_opts.tipper.uniqid,
           provider: tip_opts.tipper.provider,
           name: tip_opts.tipper.name
         },
         tippee: {
-          _id: tip_opts.tippee._id,
+          uniqid: tip_opts.tippee.uniqid,
           provider: tip_opts.tippee.provider,
           name: tip_opts.tippee.name
         }
@@ -78,7 +78,7 @@ TipSchema.statics = {
     function move (tip, user) {
       var body = {
         method: 'move',
-        params: [ tip.tipper._id, '', tip.amount, 6, tip._id ],
+        params: [ user._id, '', tip.amount, 6, tip._id ],
       };
 
       rpc(body, function (err) {
@@ -88,7 +88,7 @@ TipSchema.statics = {
         tip.save(function (err, tip) {
           if (err) return callback(err);
 
-          user.balance = user.balance - tip.amount;
+          user.balance = user.balance - tip.amount; // perhaps use updatebalance?
           user.pending = user.pending + tip.amount;
           user.save(callback);
         }); // Done
@@ -101,24 +101,28 @@ TipSchema.statics = {
   // Must be called by queue
   resolve: function (user, tip, callback) {
 
+    var is_tipper = _.find(user.accounts, function (account) {
+      return account.provider === tip.tipper.provider && account.uniqid === tip.tipper.uniqid; // Get account corresponding to provider of current tip
+    });
+
+    var is_tippee = _.find(user.accounts, function (account) {
+      return account.provider === tip.tippee.provider && account.uniqid === tip.tippee.uniqid; // Get account corresponding to provider of current tip
+    });
+
     if (!tip) return callback(new Error('Not tip provided.'));
 
-    var user_id = user._id.toString();
-    var tipper_id = tip.tipper._id.toString();
-    var tippee_id = tip.tippee._id.toString();
+    if (!is_tippee && !is_tipper) return callback(new Error('Incorrect tip user.'));
 
-    if ((user_id !== tipper_id) && (user_id !== tippee_id)) return callback(new Error('Incorrect tip user.'));
-
-    if (tip.state === 'claimed' || tip.state === 'canceled' || tip.state !== 'created') {
+    if (tip.state !== 'created') {
       return callback(new Error('Incorrect tip state.'));
     }
 
     // Check what kind of resolution this is
     var action;
-    if (user_id === tipper_id) {
+    if (is_tipper) {
       action = 'cancel';
     }
-    else if (user_id === tippee_id) {
+    else if (is_tippee) {
       action = 'claim';
     }
 
@@ -132,13 +136,13 @@ TipSchema.statics = {
     function move (tip) {
       var body = {
         method: 'move',
-        params: [ '', user_id, tip.amount, 6, tip.resolved_id ],
+        params: [ '', user._id, tip.amount, 6, tip.resolved_id ],
       };
 
       rpc(body, function (err) {
         if (err) return callback(err);
 
-        tip.recipient_id = user_id;
+        tip.recipient_id = user._id;
         tip.state = action + 'ed'; // We did it
 
         tip.save(function (err) {
