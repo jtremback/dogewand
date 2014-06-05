@@ -65,14 +65,6 @@ gulp.task('loader-styles', function () {
 });
 
 gulp.task('loader-incremental', function () {
-  // return gulp.src([
-  //   'incremental/loader/style.css',
-  //   'incremental/loader/vendor/*.js',
-  //   'incremental/loader/util/*.js',
-  //   'incremental/loader/app/*.js',
-  //   'incremental/loader/index.js'])
-  //   .pipe(gulpConcat('content_script.js'))
-
   return gulp.src(['incremental/loader/index.js'])
     .pipe(gulpInclude('// = '))
     .pipe(gulpRename('content_script.js'))
@@ -103,7 +95,6 @@ gulp.task('iframe-html', function () {
 gulp.task('iframe-js', function () {
   return gulp.src(['assets/js/iframe/vendor/vue.0.10.4.js', 'assets/js/iframe/app.js'])
     .pipe(gulpTemplate({url: config.url})) // Add magic numbers like url etc.
-    // .pipe(gulpInclude('@@'))
     .pipe(gulpConcat('iframe.js'))
     .pipe(gulp.dest('public/js'))
     .pipe(gulpNotify({ message: 'iframe-js task complete' }));

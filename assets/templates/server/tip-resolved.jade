@@ -1,8 +1,8 @@
 extend layout
 
-block message
-  p You just claimed a D#{amount} tip from #{tipper}!
-  p Your current balance is #{balance}
+block content
+  p You just claimed a D#{tip.amount} tip from #{tip.tipper.name}!
+  p Your current balance is #{user.balance}
   br
   form(action="", method="POST")
     input(type="hidden", name="_csrf", value=csrftoken)

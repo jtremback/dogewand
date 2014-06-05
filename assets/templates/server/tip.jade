@@ -6,8 +6,8 @@ block content
   p #{user}
 
   h2 #{tip.amount} dogecoins
-  p from: #{tip.tipper_id.username} on #{tip.tipper_id.provider}
-  p to: #{tip.tippee_id.username} on #{tip.tippee_id.provider}
+  p from: #{tip.tipper.name} on #{tip.tipper.provider}
+  p to: #{tip.tippee.name} on #{tip.tippee.provider}
 
   if tip.state === 'claimed' || tip.state === 'canceled'
     p this tip has been #{tip.state}

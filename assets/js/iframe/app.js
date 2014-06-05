@@ -157,7 +157,7 @@ Vue.component('create-tip-modal', {
       }, function (err, response) {
         if (err) {
           if (err === 401) {
-            self.currentModal = 'login-modal';
+            app.currentModal = 'login-modal';
           }
           else {
             app.currentModal = 'error-modal';

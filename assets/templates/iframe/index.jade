@@ -17,6 +17,7 @@ html(lang="en")
                 a(href="#") Deposit
               li
                 a(href="#") Log Out
+          div.balance-screen {{user.balance}}
           button.btn.btn-primary(v-on="click: tipping()") Much Tip!
       div(v-view="currentModal" v-ref="modal" v-with="show: currentModal")
       div.modal-backdrop.in(v-if="currentModal" v-on='click: currentModal = false')
