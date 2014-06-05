@@ -43,9 +43,9 @@ html(lang="en")
       bs-modal
         h4.modal-title Wow, such generos!
         .modal-body
-          p You gave {{name}} on {{provider}}
-          p {{amount}} dogecoins
-          p They can redeem their dogecoins here: www.fjfjf.dk/{{tip_id}}
+          p You gave {{tip.tippee.name}} on {{tip.tippee.provider}}
+          p {{tip.amount}} dogecoins
+          p They can redeem their dogecoins here: www.fjfjf.dk/{{tip._id}}
 
     script#create-tip-modal(type="x-template")
       bs-modal

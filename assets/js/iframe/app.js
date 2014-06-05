@@ -157,17 +157,15 @@ Vue.component('create-tip-modal', {
           else {
             app.currentModal = 'error-modal';
             Vue.nextTick(function () {
-              return app.$['modal'].message = response['data'];
+              return app.$['modal'].message = response.data;
             });
           }
         }
         else {
           app.currentModal = 'confirm-tip-modal';
           Vue.nextTick(function () {
-            return app.$['modal'].tip_id = response.tip_id;
+            return app.$['modal'].$data = response.data;
           });
-          console.log(response);
-          // TODO lol
         }
       });
     }
