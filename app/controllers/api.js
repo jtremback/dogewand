@@ -34,10 +34,10 @@ exports.createTip = function (req, res, next) {
   logic.createTip(req.user, opts, function (err, user, tip) {
     if (err) return next(err);
 
-    return res.json({
+    return res.json(new SuccessResponse({
       tip: tip,
       user: user
-    });
+    }));
   });
 };
 
