@@ -4,14 +4,13 @@
 
 
 var PROVIDER_ORIGIN = 'https://www.facebook.com'; // Will need to use postMessage here instead.
-var VERSION = 3;
+var VERSION = 4;
 var app;
 
 function http (method, url, data, callback) {
   var request = new XMLHttpRequest();
   request.onreadystatechange = function () {
     if (this.readyState == 4) {
-      console.log(this.response)
       var response = JSON.parse(this.response);
       if (this.status == 200) {
         callback(null, response);
@@ -46,10 +45,10 @@ function messageListener () {
         case 'create_tip':
           app.currentModal = 'create-tip-modal';
           Vue.nextTick(function () {
-            app.$['modal'].name = message.data.name;
-            app.$['modal'].uniqid = message.data.uniqid;
-            app.$['modal'].provider = message.data.provider;
-            app.$['modal'].amount = '';
+            app.$.modal.name = message.data.name;
+            app.$.modal.uniqid = message.data.uniqid;
+            app.$.modal.provider = message.data.provider;
+            app.$.modal.amount = '';
           });
           break;
       }
@@ -162,7 +161,7 @@ Vue.component('create-tip-modal', {
           else {
             app.currentModal = 'error-modal';
             Vue.nextTick(function () {
-              app.$['modal'].message = response.data;
+              app.$.modal.message = response.data;
             });
           }
         }
@@ -187,8 +186,11 @@ var app = new Vue({
   },
   ready: function () {
     messageListener();
-    this.resize();
     this.userInfo();
+
+    Vue.nextTick(function () {
+      this.resize();
+    });
 
     this.$on('show', function (bool) {
       this.resize(bool);
@@ -205,7 +207,7 @@ var app = new Vue({
           else {
             self.currentModal = 'error-modal';
             Vue.nextTick(function () {
-              return self.$['modal'].message = response['data'];
+              self.$.modal.message = response.data;
             });
           }
         }

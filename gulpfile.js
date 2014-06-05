@@ -33,12 +33,6 @@ function varWrap (file) {
   ]);
 }
 
-// var lazyStylus = lazypipe() // dry
-//   .pipe(gulpStylus)
-//   .pipe(gulpAutoprefixer, 'last 5 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 4')
-//   .pipe(gulpDataUri)
-//   .pipe(gulpMinifyCss);
-
 var lazyLess = lazypipe() // dry
   .pipe(gulpLess, { paths: ['/assets/less'] })
   .pipe(gulpAutoprefixer, 'last 5 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 4')
@@ -81,7 +75,7 @@ gulp.task('iframe-styles', function () {
   return gulp.src('assets/less/iframe.less')
     .pipe(lazyLess())
     .pipe(gulpRename('iframe.css'))
-    .pipe(gulp.dest('public/css')) // Put into public folder for good caching
+    .pipe(gulp.dest('public/iframe')) // Put into public folder for good caching
     .pipe(gulpNotify({ message: 'iframe-styles task complete' }));
 });
 
@@ -92,11 +86,17 @@ gulp.task('iframe-html', function () {
     .pipe(gulpNotify({ message: 'iframe-html task complete' }));
 });
 
+gulp.task('iframe-images', function () {
+  return gulp.src('assets/images/shared/**')
+    .pipe(gulp.dest('public/iframe/images'))
+    .pipe(gulpNotify({ message: 'iframe-image task complete' }));
+});
+
 gulp.task('iframe-js', function () {
   return gulp.src(['assets/js/iframe/vendor/vue.0.10.4.js', 'assets/js/iframe/app.js'])
     .pipe(gulpTemplate({url: config.url})) // Add magic numbers like url etc.
     .pipe(gulpConcat('iframe.js'))
-    .pipe(gulp.dest('public/js'))
+    .pipe(gulp.dest('public/iframe'))
     .pipe(gulpNotify({ message: 'iframe-js task complete' }));
 });
 
@@ -105,9 +105,10 @@ gulp.task('watch', function () {
   gulp.watch('assets/templates/iframe/**', ['iframe-html']);
   gulp.watch('assets/less/**', ['iframe-styles', 'loader-styles']);
   gulp.watch('assets/js/**', ['iframe-js', 'loader-js']);
+  gulp.watch('assets/images/**', ['iframe-images']);
 
   gulp.watch('incremental/loader/**', ['loader-incremental']);
 });
 
 // BUILD
-gulp.task('build', ['iframe-js', 'iframe-html', 'iframe-styles', 'loader-styles', 'loader-js']);
+gulp.task('build', ['iframe-js', 'iframe-html', 'iframe-styles', 'iframe-images', 'loader-styles', 'loader-js']);

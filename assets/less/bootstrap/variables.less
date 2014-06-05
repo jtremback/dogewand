@@ -26,26 +26,31 @@
 
 //** Background color for `<body>`.
 @body-bg:               transparent;
+@standard-bg:           #4a4a4a;
+@light-bg:              #797979;
+@dark-bg:               #242323;
+@golden-text:           #DEBF6E;
+@dark-golden-text:      #A07B3A;
+
 //** Global text color on `<body>`.
-@text-color:            @gray-dark;
+@text-color:            #e4e4e4;
 
 //** Global textual link color.
 @link-color:            @brand-primary;
 //** Link hover color set via `darken()` function.
 @link-hover-color:      darken(@link-color, 15%);
 
-
 //== Typography
 //
 //## Font, line-height, and color for body text, headings, and more.
 
-@font-family-sans-serif:  "Helvetica Neue", Helvetica, Arial, sans-serif;
+@font-family-sans-serif:  "comic_sans", Helvetica, Arial, sans-serif;
 @font-family-serif:       Georgia, "Times New Roman", Times, serif;
 //** Default monospace fonts for `<code>`, `<kbd>`, and `<pre>`.
 @font-family-monospace:   Menlo, Monaco, Consolas, "Courier New", monospace;
 @font-family-base:        @font-family-sans-serif;
 
-@font-size-base:          14px;
+@font-size-base:          16px;
 @font-size-large:         ceil((@font-size-base * 1.25)); // ~18px
 @font-size-small:         ceil((@font-size-base * 0.85)); // ~12px
 
@@ -86,8 +91,8 @@
 @padding-large-vertical:    10px;
 @padding-large-horizontal:  16px;
 
-@padding-small-vertical:    5px;
-@padding-small-horizontal:  10px;
+@padding-small-vertical:    4px;
+@padding-small-horizontal:  8px;
 
 @padding-xs-vertical:       1px;
 @padding-xs-horizontal:     5px;
@@ -137,9 +142,9 @@
 
 @btn-font-weight:                normal;
 
-@btn-default-color:              #333;
-@btn-default-bg:                 #fff;
-@btn-default-border:             #ccc;
+@btn-default-color:              #e4e4e4;
+@btn-default-bg:                 #797979;
+@btn-default-border:             transparent;
 
 @btn-primary-color:              #fff;
 @btn-primary-bg:                 @brand-primary;
@@ -169,18 +174,18 @@
 //##
 
 //** `<input>` background color
-@input-bg:                       #fff;
+@input-bg:                       @dark-bg;
 //** `<input disabled>` background color
-@input-bg-disabled:              @gray-lighter;
+@input-bg-disabled:              @standard-bg;
 
 //** Text color for `<input>`s
-@input-color:                    @gray;
+@input-color:                    @golden-text;
 //** `<input>` border color
-@input-border:                   #ccc;
+@input-border:                   transparent;
 //** `<input>` border radius
 @input-border-radius:            @border-radius-base;
 //** Border color for inputs on focus
-@input-border-focus:             #66afe9;
+@input-border-focus:             @golden-text;
 
 //** Placeholder text color
 @input-color-placeholder:        @gray-light;
@@ -206,20 +211,20 @@
 //## Dropdown menu container and contents.
 
 //** Background for the dropdown menu.
-@dropdown-bg:                    #fff;
+@dropdown-bg:                    @standard-bg;
 //** Dropdown menu `border-color`.
-@dropdown-border:                rgba(0,0,0,.15);
+@dropdown-border:                transparent;
 //** Dropdown menu `border-color` **for IE8**.
-@dropdown-fallback-border:       #ccc;
+@dropdown-fallback-border:       transparent;
 //** Divider color for between dropdown items.
 @dropdown-divider-bg:            #e5e5e5;
 
 //** Dropdown link text color.
-@dropdown-link-color:            @gray-dark;
+@dropdown-link-color:            #DBDBDB;
 //** Hover color for dropdown links.
-@dropdown-link-hover-color:      darken(@gray-dark, 5%);
+@dropdown-link-hover-color:      #DBDBDB;
 //** Hover background for dropdown links.
-@dropdown-link-hover-bg:         #f5f5f5;
+@dropdown-link-hover-bg:         darken(@standard-bg, 10%);
 
 //** Active dropdown menu item text color.
 @dropdown-link-active-color:     @component-active-color;
@@ -566,18 +571,18 @@
 @modal-title-line-height:     @line-height-base;
 
 //** Background color of modal content area
-@modal-content-bg:                             #fff;
+@modal-content-bg:                             @standard-bg;
 //** Modal content border color
-@modal-content-border-color:                   rgba(0,0,0,.2);
+@modal-content-border-color:                   @standard-bg;
 //** Modal content border color **for IE8**
-@modal-content-fallback-border-color:          #999;
+@modal-content-fallback-border-color:          @standard-bg;
 
 //** Modal backdrop background color
 @modal-backdrop-bg:           #000;
 //** Modal backdrop opacity
 @modal-backdrop-opacity:      .5;
 //** Modal header border color
-@modal-header-border-color:   #e5e5e5;
+@modal-header-border-color:   darken(@standard-bg, 10%);
 //** Modal footer border color
 @modal-footer-border-color:   @modal-header-border-color;
 
@@ -778,7 +783,7 @@
 //##
 
 @close-font-weight:           bold;
-@close-color:                 #000;
+@close-color:                 @text-color;
 @close-text-shadow:           0 1px 0 #fff;
 
 
@@ -823,7 +828,7 @@
 //##
 
 //** Horizontal line color.
-@hr-border:                   @gray-lighter;
+@hr-border:                   darken(@standard-bg, 10%);
 
 //** Horizontal offset for forms and lists.
 @component-offset-horizontal: 180px;
