@@ -35,9 +35,9 @@ exports.createTip = function (user, opts, callback) {
     return account.provider === opts.provider; // Get account corresponding to provider of current tip
   });
 
-  tip.tipper._id = undefined; // Remove for consistency
-
   if (!tip.tipper) return callback(new utils.NamedError('Not signed in with ' + opts.provider, 401));
+
+  tip.tipper._id = undefined; // Remove for consistency
 
   if ((user.balance - opts.amount) >= 0) { // Insecure balance check to improve UX
     queue.pushCommand('Tip', 'create', [user, tip]);

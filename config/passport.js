@@ -22,16 +22,8 @@ module.exports = function (passport, config) {
   passport.use(new FacebookStrategy({
       clientID: config.facebook.clientID,
       clientSecret: config.facebook.clientSecret,
-      callbackURL: config.url +  '/auth/facebook/callback',
-      passReqToCallback: true
-    }, function (req, accessToken, refreshToken, profile, done) {
-      if (req.user) { // If they are signed in
-        return req.user.linkAccount({
-          provider: 'Facebook',
-          name: profile.displayName,
-          uniqid: profile.id
-        }, done);
-      }
+      callbackURL: config.url +  '/auth/facebook/callback'
+    }, function (accessToken, refreshToken, profile, done) {
       User.upsert({ // If this is a new account
         provider: 'Facebook',
         name: profile.displayName,
