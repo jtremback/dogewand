@@ -17,7 +17,7 @@ function App () {
       method: 'create_tip',
       data: {
         uniqid: user_info.uniqid,
-        display_name: user_info.display_name,
+        name: user_info.name,
         provider: PROVIDER
       }
     }), URL);

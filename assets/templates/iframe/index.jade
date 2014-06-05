@@ -39,11 +39,19 @@ html(lang="en")
         .modal-body
           p {{message}}
 
+    script#confirm-tip-modal(type="x-template")
+      bs-modal
+        h4.modal-title Wow, such generos!
+        .modal-body
+          p You gave {{name}} on {{provider}}
+          p {{amount}} dogecoins
+          p They can redeem their dogecoins here: www.fjfjf.dk/{{tip_id}}
+
     script#create-tip-modal(type="x-template")
       bs-modal
         h4.modal-title Wow, such generos!
         .modal-body
-          p Give {{display_name}} on {{provider}}
+          p Give {{name}} on {{provider}}
           p
             input(type="number" v-model="amount")
             | &nbsp;dogecoins

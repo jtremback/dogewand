@@ -33,55 +33,49 @@ var TipSchema = new Schema({
 TipSchema.statics = {
 
   // Must be called by queue
-  create: function (tipper, opts, tip_id, callback) {
+  create: function (user, tip_opts, callback) {
     var Self = this;
 
-    tipper.updateBalance(function (err, tipper) {
+    user.updateBalance(function (err, user) {
       if (err) return callback(err);
-      var balance = tipper.balance;
+      var balance = user.balance;
 
-      var tipper_account = _.find(tipper.accounts, function (account) {
-        return account.provider === opts.provider;
-      });
-
-      var tip = new Self({
-        _id: tip_id,
+      var tip = new Self({ // Gotta write this all out, don't know why
+        _id: tip_opts._id,
+        amount: tip_opts.amount,
         tipper: {
-          _id: tipper._id,
-          name: tipper_account.name,
-          provider: opts.provider
+          _id: tip_opts.tipper._id,
+          provider: tip_opts.tipper.provider,
+          name: tip_opts.tipper.name
         },
         tippee: {
-          _id: opts._id,
-          name: opts.name,
-          provider: opts.provider
-        },
-        amount: opts.amount,
+          _id: tip_opts.tippee._id,
+          provider: tip_opts.tippee.provider,
+          name: tip_opts.tippee.name
+        }
       });
 
-
-      if ((balance - opts.amount) >= 0) { // Check funds
+      if ((balance - tip.amount) >= 0) { // Check funds
         tip.state = 'creating';
       }
 
       else { // If insufficient funds
         tip.state = 'insufficient';
-        tipper.pending = tipper.pending + tip.amount; // And close out pending
+        user.pending = user.pending + tip.amount; // And close out pending
       }
 
-      console.log(tip)
 
       tip.save(function (err, tip) { // Create tip in db
         if (err) return callback(err);
         if (tip.state === 'creating') { // Only move if there are enough funds
-          return move(tip, tipper); // Next step
+          return move(tip, user); // Next step
         } else {
           return tip.save(callback);
         }
       });
     });
 
-    function move (tip, tipper) {
+    function move (tip, user) {
       var body = {
         method: 'move',
         params: [ tip.tipper._id, '', tip.amount, 6, tip._id ],
@@ -93,13 +87,10 @@ TipSchema.statics = {
         tip.state = 'created'; // We did it
         tip.save(function (err, tip) {
           if (err) return callback(err);
-          console.log(Date.now(), 'TIP SAVE', tip)
 
-          tipper.balance = tipper.balance - tip.amount;
-          tipper.pending = tipper.pending + tip.amount;
-          tipper.save(function (err) {
-            return callback(null, tip);
-          });
+          user.balance = user.balance - tip.amount;
+          user.pending = user.pending + tip.amount;
+          user.save(callback);
         }); // Done
       });
     }
@@ -108,7 +99,7 @@ TipSchema.statics = {
   ,
 
   // Must be called by queue
-  resolve: function (tip, user, callback) {
+  resolve: function (user, tip, callback) {
 
     if (!tip) return callback(new Error('Not tip provided.'));
 

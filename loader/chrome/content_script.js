@@ -228,10 +228,10 @@ var scrape_utils = {
   uniqid_finders: {
     Facebook: function (that) {
       var uniqid = that.getAttribute('data-hovercard').match(/id=(\d*).*$/)[1];
-      var display_name = that.textContent;
+      var name = that.textContent;
       return {
         uniqid: uniqid,
-        display_name: display_name
+        name: name
       };
     }
   }
@@ -258,7 +258,7 @@ function App () {
       method: 'create_tip',
       data: {
         uniqid: user_info.uniqid,
-        display_name: user_info.display_name,
+        name: user_info.name,
         provider: PROVIDER
       }
     }), URL);

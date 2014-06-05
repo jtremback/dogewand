@@ -27,16 +27,15 @@ exports.createTip = function (req, res, next) {
   var opts = {
     uniqid: req.param('uniqid'),
     provider: req.param('provider'),
-    display_name: req.param('display_name'),
+    name: req.param('name'),
     amount: parseInt(req.param('amount'), 10) // Coerce to int
   };
 
-  logic.createTip(req.user, opts, function (err, user, tip_id) {
+  logic.createTip(req.user, opts, function (err, user, tip) {
     if (err) return next(err);
 
     return res.json({
-      tip_id: tip_id,
-      amount: opts.amount,
+      tip: tip,
       user: user
     });
   });

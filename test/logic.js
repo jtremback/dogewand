@@ -200,7 +200,6 @@ test('---------------------------------------- logic.js', function (t) {
           },
 
           function (err, results) {
-            console.log('RESULTS FAILED TIP', results)
             t.error(err);
             t.equals(results.failed_tip[0].state, 'insufficient', 'tip marked insufficient');
             t.equals(2, results.tipper_balance, 'tipper balance is right');
@@ -230,9 +229,9 @@ test('---------------------------------------- logic.js', function (t) {
 
     utility.resetBalances(function () {
       utility.seedFunds(wallet_a, opts.amount, function (err, user) {
-        logic.createTip(user, opts, function (err, balance, tip_id) {
+        logic.createTip(user, opts, function (err, user, tip) {
           asyncTimeout(function () {
-            checkTipResolvedStarted(t, user, opts, tip_id);
+            checkTipResolvedStarted(t, opts, user, tip);
           }, TIMEOUT);
         });
       });
@@ -249,27 +248,27 @@ test('---------------------------------------- logic.js', function (t) {
     };
 
     utility.seedFunds(wallet_a, opts.amount, function (err, user) {
-      logic.createTip(user, opts, function (err, user, tip_id) {
+      logic.createTip(user, opts, function (err, user, tip) {
         asyncTimeout(function () {
-          checkTipResolvedStarted(t, user, opts, tip_id);
+          checkTipResolvedStarted(t, opts, user, tip);
         }, TIMEOUT);
       });
     });
   });
 
-  function checkTipResolvedStarted (t, user, opts, tip_id) {
-    logic.resolveTip(tip_id, user, function (err, balance) {
+  function checkTipResolvedStarted (t, opts, user, tip) {
+    logic.resolveTip(user, tip._id.toString(), function (err, user, tip) {
       t.error(err, 'resolveTip');
       // Check balance
       // TODO test immediate response
 
       asyncTimeout(function () {
-        checkTipResolvedFinished(t, user, opts, tip_id);
+        checkTipResolvedFinished(t, user, tip);
       }, TIMEOUT);
     });
   }
 
-  function checkTipResolvedFinished (t, user, opts, tip_id) {
+  function checkTipResolvedFinished (t, user, tip) {
     async.parallel({
       transaction: async.apply(rpc, {
         method: 'listtransactions',
@@ -279,7 +278,7 @@ test('---------------------------------------- logic.js', function (t) {
       ,
 
       tip: function (cb) {
-        Tip.findOne({ _id: tip_id }, cb);
+        Tip.findOne({ _id: tip._id }, cb);
       }
 
       ,
@@ -294,7 +293,6 @@ test('---------------------------------------- logic.js', function (t) {
       var tippee_id = results.tip.tippee._id.toString();
       var tipper_id = results.tip.tipper._id.toString();
 
-      console.log('RESULTS TRANSACTION', results.transaction);
 
       // Check state
       // Check resolved_id
@@ -315,7 +313,7 @@ test('---------------------------------------- logic.js', function (t) {
       var transaction = results.transaction[0];
 
       t.equals(transaction.account, user.id, 'users match');
-      t.equals(transaction.amount, opts.amount, 'amounts match');
+      t.equals(transaction.amount, tip.amount, 'amounts match');
       t.equals(transaction.otheraccount, '', 'otheraccount correct');
       t.equals(transaction.comment, resolved_id, 'resolved id and tx comment');
       t.end();

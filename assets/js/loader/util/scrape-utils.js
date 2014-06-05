@@ -24,10 +24,10 @@ var scrape_utils = {
   uniqid_finders: {
     Facebook: function (that) {
       var uniqid = that.getAttribute('data-hovercard').match(/id=(\d*).*$/)[1];
-      var display_name = that.textContent;
+      var name = that.textContent;
       return {
         uniqid: uniqid,
-        display_name: display_name
+        name: name
       };
     }
   }

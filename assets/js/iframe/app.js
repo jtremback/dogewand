@@ -46,7 +46,7 @@ function messageListener () {
         case 'create_tip':
           app.currentModal = 'create-tip-modal';
           Vue.nextTick(function () {
-            app.$['modal'].display_name = message.data.display_name;
+            app.$['modal'].name = message.data.name;
             app.$['modal'].uniqid = message.data.uniqid;
             app.$['modal'].provider = message.data.provider;
             app.$['modal'].amount = '';
@@ -122,6 +122,10 @@ Vue.component('login-modal', {
   template: '#login-modal'
 });
 
+Vue.component('confirm-tip-modal', {
+  template: '#confirm-tip-modal'
+});
+
 Vue.component('error-modal', {
   template: '#error-modal',
   data: {
@@ -132,7 +136,7 @@ Vue.component('error-modal', {
 Vue.component('create-tip-modal', {
   template: '#create-tip-modal',
   data: {
-    display_name: '',
+    name: '',
     uniqid: '',
     amount: '',
     provider: ''
@@ -142,7 +146,7 @@ Vue.component('create-tip-modal', {
       var self = this;
       http('POST', '/api/v1/tips/create', {
         uniqid: self.uniqid,
-        display_name: self.display_name,
+        name: self.name,
         provider: self.provider,
         amount: self.amount
       }, function (err, response) {
@@ -158,6 +162,10 @@ Vue.component('create-tip-modal', {
           }
         }
         else {
+          app.currentModal = 'confirm-tip-modal';
+          Vue.nextTick(function () {
+            return app.$['modal'].tip_id = response.tip_id;
+          });
           console.log(response);
           // TODO lol
         }
