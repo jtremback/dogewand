@@ -10,8 +10,6 @@ var utils = require('../../utils.js');
 var _ = require('lodash');
 
 exports.createTip = function (user, opts, callback) {
-  // var tip_id = mongoose.Types.ObjectId().toString(); // Make ObjectId out here to return it
-
   var valid = check.every(
     check.map(opts, {
       uniqid: check.unemptyString,
@@ -23,38 +21,30 @@ exports.createTip = function (user, opts, callback) {
 
   if (!valid) return callback(new utils.NamedError('Such not compute.', 400)); // Check if input is ok
 
+  var tip = {
+    _id: mongoose.Types.ObjectId().toString(), // Make ObjectId out here to return it
+    amount: opts.amount,
+    tippee: {
+      name: opts.name,
+      provider: opts.provider,
+      uniqid: opts.uniqid
+    }
+  };
+
+  tip.tipper = _.find(user.accounts, function (account) {
+    return account.provider === opts.provider; // Get account corresponding to provider of current tip
+  });
+
+  tip.tipper._id = undefined; // Remove for consistency
+
+  if (!tip.tipper) return callback(new utils.NamedError('Not signed in with ' + opts.provider, 401));
+
   if ((user.balance - opts.amount) >= 0) { // Insecure balance check to improve UX
-    User.upsert({
-      uniqid: opts.uniqid,
-      provider: opts.provider
-    }, function (err, tippee) {
-      if (err) return callback(err);
+    queue.pushCommand('Tip', 'create', [user, tip]);
 
-      var tip = {
-        _id: mongoose.Types.ObjectId().toString(), // Make ObjectId out here to return it
-        amount: opts.amount,
-        tippee: {
-          name: opts.name,
-          provider: opts.provider,
-          uniqid: opts.uniqid
-        }
-      };
-
-      tip.tipper = _.find(user.accounts, function (account) {
-        return account.provider === opts.provider; // Get account corresponding to provider of current tip
-      });
-
-      tip.tipper._id = undefined; // Remove for consistency
-
-      if (!tip.tipper) return callback(new utils.NamedError('Not signed in with ' + opts.provider, 401));
-
-
-      queue.pushCommand('Tip', 'create', [user, tip]);
-
-      user.pending = user.pending - opts.amount;
-      return user.save(function () {
-        callback(null, user, tip);
-      });
+    user.pending = user.pending - opts.amount;
+    return user.save(function () {
+      callback(null, user, tip);
     });
   } else {
     return callback(new utils.NamedError('Not enough doge.', 402));

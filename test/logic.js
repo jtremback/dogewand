@@ -99,60 +99,58 @@ test('---------------------------------------- logic.js', function (t) {
 
 
   function checkTipCreatedFinished (t, tipper, opts) {
-    User.findOne({ accounts: { $elemMatch: { 'provider': opts.provider, 'uniqid': opts.uniqid } } }, function (err, tippee) {
+    async.parallel({
 
-      async.parallel({
+      tipper_balance: async.apply(rpc, {
+        method: 'getbalance',
+        params: [tipper._id]
+      })
 
-        tipper_balance: async.apply(rpc, {
-          method: 'getbalance',
-          params: [tipper._id]
-        })
+      ,
 
-        ,
+      transaction: async.apply(rpc, {
+        method: 'listtransactions',
+        params: [ tipper._id, 1 ]
+      })
 
-        transaction: async.apply(rpc, {
-          method: 'listtransactions',
-          params: [ tipper._id, 1 ]
-        })
+      ,
 
-        ,
+      tip: function (cb) {
+        Tip.findOne({ 'tippee.uniqid': opts.uniqid }, {}, { sort: { 'created_at' : -1 } }, cb);
+      }
 
-        tip: function (cb) {
-          Tip.findOne({ 'tippee.uniqid': tippee.accounts[0].uniqid }, {}, { sort: { 'created_at' : -1 } }, cb);
-        }
+      ,
 
-        ,
+      tipper: function (cb) {
+        User.findOne({ _id: tipper._id }, cb);
+      }
 
-        tipper: function (cb) {
-          User.findOne({ _id: tipper._id }, cb);
-        }
-
-      }, function (err, results) {
-        t.error(err);
+    }, function (err, results) {
+      t.error(err);
 
 
-        t.equal(results.tipper.balance, results.tipper_balance, 'dogecoind tipper balance');
+      t.equal(results.tipper.balance, results.tipper_balance, 'dogecoind tipper balance');
 
-        t.equal(opts.amount, -results.transaction[0].amount, 'dogecoind amount');
+      t.equal(opts.amount, -results.transaction[0].amount, 'dogecoind amount');
 
-        t.equals(results.tipper.pending, 0, 'pending resolved');
+      t.equals(results.tipper.pending, 0, 'pending resolved');
 
-        t.equal(opts.uniqid, tippee.accounts[0].uniqid, 'mongo tippee uniqid');
-        t.equal(opts.provider, tippee.accounts[0].provider, 'mongo tippee provider');
-        // t.equal(opts.name, tippee.accounts[0].name, 'mongo tippee provider');
+      // t.equal(opts.uniqid, tippee.accounts[0].uniqid, 'mongo tippee uniqid');
+      // t.equal(opts.provider, tippee.accounts[0].provider, 'mongo tippee provider');
+      // t.equal(opts.name, tippee.accounts[0].name, 'mongo tippee provider');
 
-        // t.equal(tipper.id, results.tip.tipper._id.toString(), 'mongo tip tipper _id');
-        t.equal(tipper.accounts[0].name, results.tip.tipper.name, 'mongo tip tipper name');
-        t.equal(tipper.accounts[0].provider, results.tip.tipper.provider, 'mongo tip tipper provider');
-        // t.equal(tippee.id, results.tip.tippee._id.toString(), 'mongo tip tippee _id');
+      // t.equal(tipper.id, results.tip.tipper._id.toString(), 'mongo tip tipper _id');
+      t.equal(tipper.accounts[0].name, results.tip.tipper.name, 'mongo tip tipper name');
+      t.equal(tipper.accounts[0].provider, results.tip.tipper.provider, 'mongo tip tipper provider');
+      // t.equal(tippee.id, results.tip.tippee._id.toString(), 'mongo tip tippee _id');
 
-        t.equal(opts.amount, results.tip.amount, 'mongo tip amount');
-        t.equal(tippee.accounts[0].provider, results.tip.tippee.provider, 'mongo tip tippee provider');
-        t.equal(results.tip.state, 'created', 'mongo tip state');
+      t.equal(opts.amount, results.tip.amount, 'mongo tip amount');
+      // t.equal(tippee.accounts[0].provider, results.tip.tippee.provider, 'mongo tip tippee provider');
+      t.equal(results.tip.state, 'created', 'mongo tip state');
 
-        t.end();
-      });
+      t.end();
     });
+
   }
 
 
@@ -179,7 +177,7 @@ test('---------------------------------------- logic.js', function (t) {
       logic.createTip(wallet_a, opts1, function (err) {
         t.error(err, 'createTip 1');
       });
-      logic.createTip(wallet_a, opts2, function (err) {
+      logic.createTip(wallet_a, opts2, function (err, user, tip) {
         t.error(err, 'createTip 2');
 
         asyncTimeout(function () {
@@ -192,16 +190,13 @@ test('---------------------------------------- logic.js', function (t) {
             ,
 
             failed_tip: function (callback) {
-              User.findOne({ accounts: { $elemMatch: { 'uniqid': opts2.uniqid } } }, function (err, user) {
-                t.error(err);
-                Tip.find({ 'tippee.uniqid': user.accounts[0].uniqid }, {}, { sort: { 'created_at' : 1 } }, callback);
-              });
+              Tip.findOne({ _id: tip._id }, {}, { sort: { 'created_at' : -1 } }, callback);
             }
           },
 
           function (err, results) {
             t.error(err);
-            t.equals(results.failed_tip[0].state, 'insufficient', 'tip marked insufficient');
+            t.equals(results.failed_tip.state, 'insufficient', 'tip marked insufficient');
             t.equals(2, results.tipper_balance, 'tipper balance is right');
             utility.emptyAccount(wallet_a, function () {
               t.end();
