@@ -44,6 +44,9 @@ function Iframe () {
         case 'tipping':
           app.trigger('tipping', message.data);
           break;
+        case 'destroy':
+          app.trigger('destroy');
+          break;
       }
     }
   }, false);

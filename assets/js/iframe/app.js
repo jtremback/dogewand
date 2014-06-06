@@ -233,6 +233,11 @@ var app = new Vue({
           }
         }), PROVIDER_ORIGIN);
       });
+    },
+    destroy: function () {
+      parent.postMessage(JSON.stringify({
+        method: 'destroy'
+      }), PROVIDER_ORIGIN);
     }
   }
 });

@@ -8,7 +8,7 @@ html(lang="en")
   body
     #app
       .toolbar(v-class="maximized: maximized")
-        div.btn.btn-default
+        div.btn.btn-default(v-on="click: destroy")
           i.fa.fa-times
         div.btn-group.dropup(v-component="bs-dropdown" class="{{show ? 'open' : ''}}")
           button.btn.btn-default.dropdown-toggle(v-on="click: show = !show")
@@ -50,7 +50,7 @@ html(lang="en")
     script#create-tip-modal(type="x-template")
       bs-modal
         .modal-body
-          p Give {{name}} on {{provider}}
+          p Give <span class="accent-text">{{name}}</span> on <span class="accent-text">{{provider}}</span>
           p
             input.form-control.inline-control(type="number" v-model="amount")
             | &nbsp;dogecoins

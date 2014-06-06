@@ -39,6 +39,14 @@ function _app (container) {
     });
   }
 
+  app.on('destroy', function () {
+    var dgw_frame = $('#dgw-frame');
+    if (dgw_frame) dgw_frame.remove();
+
+    var dgw_styles = $('#dgw-styles');
+    if (dgw_styles) dgw_styles.remove();
+  });
+
 }
 
 
