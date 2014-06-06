@@ -15,9 +15,9 @@ html(lang="en")
             i.fa.fa-bars
           ul.dropdown-menu
             li
-              a(href="#") Withdraw
+              a(href="#" v-on="click: currentModal = 'withdraw-modal'") Withdraw
             li
-              a(href="#") Deposit
+              a(href="#" v-on="click: currentModal = 'deposit-modal'") Deposit
             li
               a(href="#") Log Out
         div.btn.balance-screen <span class="currency-mark">Ð</span>&nbsp;{{user.balance}}
@@ -35,10 +35,29 @@ html(lang="en")
         .modal-body
           p Please log in.
 
+    script#deposit-modal(type="x-template")
+      bs-modal
+        .modal-body
+          p Here is your deposit address.
+          p <span class="accent-text">{{address}}</span>
+
     script#error-modal(type="x-template")
       bs-modal
         .modal-body
           p {{message}}
+
+    script#withdraw-modal(type="x-template")
+      bs-modal
+        .modal-body
+          p Withdraw
+          p
+            input.form-control.inline-control(type="number" v-model="amount" placeholder="so many")
+            | &nbsp;dogecoins
+          p To:
+          p
+            input.form-control(type="text" v-model="address" placeholder="your dogecoin address")
+          hr.invis
+          button.btn.btn-lg.btn-primary(type='button' v-on="click: submit") Withdraw!
 
     script#confirm-tip-modal(type="x-template")
       bs-modal
@@ -52,7 +71,7 @@ html(lang="en")
         .modal-body
           p Give <span class="accent-text">{{name}}</span> on <span class="accent-text">{{provider}}</span>
           p
-            input.form-control.inline-control(type="number" v-model="amount")
+            input.form-control.inline-control(type="number" v-model="amount" placeholder="so many")
             | &nbsp;dogecoins
           hr.invis
           button.btn.btn-lg.btn-primary(type='button' v-on="click: submit") Give!

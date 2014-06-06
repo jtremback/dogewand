@@ -121,6 +121,33 @@ Vue.component('login-modal', {
   template: '#login-modal'
 });
 
+Vue.component('deposit-modal', {
+  template: '#deposit-modal',
+  data: {
+    address: ''
+  },
+  ready: function () {
+    var self = this;
+    http('GET', '/api/v1/user/address', null, function (err, response) {
+      console.log(response)
+      if (err) {
+        if (err === 401) {
+          app.currentModal = 'login-modal';
+        }
+        else {
+          app.currentModal = 'error-modal';
+          Vue.nextTick(function () {
+            app.$.modal.$data.message = response.data;
+          });
+        }
+      }
+      else {
+        self.address = response.data;
+      }
+    });
+  }
+});
+
 Vue.component('confirm-tip-modal', {
   template: '#confirm-tip-modal',
   data: {
@@ -130,10 +157,51 @@ Vue.component('confirm-tip-modal', {
   }
 });
 
+Vue.component('confirm-withdraw-modal', {
+  template: '#confirm-withdraw-modal',
+  data: {
+    amount: '',
+    address: ''
+  }
+});
+
 Vue.component('error-modal', {
   template: '#error-modal',
   data: {
     message: ''
+  }
+});
+
+Vue.component('withdraw-modal', {
+  template: '#withdraw-modal',
+  data: {
+    amount: '',
+    address: ''
+  },
+  methods: {
+    submit: function () {
+      console.log(JSON.stringify(this.$data));
+      http('POST', '/api/v1/tips/create', this.$data, function (err, response) {
+        if (err) {
+          if (err === 401) {
+            app.currentModal = 'login-modal';
+          }
+          else {
+            app.currentModal = 'error-modal';
+            Vue.nextTick(function () {
+              app.$.modal.$data.message = response.data;
+            });
+          }
+        }
+        else {
+          app.currentModal = 'confirm-tip-modal';
+          Vue.nextTick(function () {
+            app.$.modal.$data.address = response.data.tip.address;
+            app.$.modal.$data.amount = response.data.tip.amount;
+          });
+        }
+      });
+    }
   }
 });
 
@@ -147,13 +215,7 @@ Vue.component('create-tip-modal', {
   },
   methods: {
     submit: function () {
-      var self = this;
-      http('POST', '/api/v1/tips/create', {
-        uniqid: self.uniqid,
-        name: self.name,
-        provider: self.provider,
-        amount: self.amount
-      }, function (err, response) {
+      http('POST', '/api/v1/tips/create', this.$data, function (err, response) {
         if (err) {
           if (err === 401) {
             app.currentModal = 'login-modal';
@@ -161,7 +223,7 @@ Vue.component('create-tip-modal', {
           else {
             app.currentModal = 'error-modal';
             Vue.nextTick(function () {
-              app.$.modal.message = response.data;
+              app.$.modal.$data.message = response.data;
             });
           }
         }
@@ -207,7 +269,7 @@ var app = new Vue({
           else {
             self.currentModal = 'error-modal';
             Vue.nextTick(function () {
-              self.$.modal.message = response.data;
+              self.$.modal.$data.message = response.data;
             });
           }
         }
