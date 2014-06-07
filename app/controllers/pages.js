@@ -25,20 +25,24 @@ exports.tip = function (req, res, next) {
 
     if (path_amount != tip.amount) return res.send('Tip not found.'); // Check to make sure the amount in the path is correct
 
-    var role;
+    var role = false;
 
-    var is_tipper = _.find(req.user.accounts, function (account) {
-      return account.provider === tip.tipper.provider && account.uniqid === tip.tipper.uniqid; // Get account corresponding to provider of current tip
-    });
+    if (req.user) {
+      var is_tipper = _.find(req.user.accounts, function (account) {
+        return account.provider === tip.tipper.provider && account.uniqid === tip.tipper.uniqid; // Get account corresponding to provider of current tip
+      });
 
-    var is_tippee = _.find(req.user.accounts, function (account) {
-      return account.provider === tip.tippee.provider && account.uniqid === tip.tippee.uniqid; // Get account corresponding to provider of current tip
-    });
+      var is_tippee = _.find(req.user.accounts, function (account) {
+        return account.provider === tip.tippee.provider && account.uniqid === tip.tippee.uniqid; // Get account corresponding to provider of current tip
+      });
 
-    if (!req.user) role = false;
-    else if (is_tippee) role = 'tippee';
-    else if (is_tipper) role = 'tipper';
-    else role = false;
+      if (is_tippee) {
+        role = 'tippee';
+      }
+      else if (is_tipper) {
+        role = 'tipper';
+      }
+    }
 
     return res.render('tip.jade', {
       url: config.url,
@@ -54,12 +58,31 @@ exports.resolveTip = function (req, res, next) {
   var tip = req.params.tip;
   var tip_id = tip.substr(tip.length - 24);
 
-  logic.resolveTip(req.user, tip_id, function (err, user, tip) {
+  logic.resolveTip(req.user, tip_id, function (err) {
     if (err) return next(err);
+    return res.redirect('/profile');
+  });
+};
 
-    return res.render('tip-resolved.jade', {
-      user: user,
-      tip: tip
-    });
+exports.profile = function (req, res) {
+  return res.render('profile.jade', {
+    user: req.user,
+    bookmarklet: require('../../loader/bookmarklet/bookmarklet.js'),
+    version: config.bookmarklet_version
+  });
+};
+
+exports.withdraw = function (req, res, next) {
+  var amount = parseInt(req.param('amount'), 10);
+  logic.withdraw(req.user, req.param('address'), amount, function (err) {
+    if (err) return next(err);
+    return res.redirect('/profile');
+  });
+};
+
+exports.iframe = function (req, res) {
+  return res.render('iframe.jade', {
+    bookmarklet: require('../../loader/bookmarklet/bookmarklet.js'),
+    version: config.bookmarklet_version
   });
 };

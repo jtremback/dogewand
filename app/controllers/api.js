@@ -59,11 +59,14 @@ exports.updateBalance = function (req, res, next) {
 };
 
 exports.withdraw = function (req, res, next) {
-  logic.withdraw(req.user.id, req.param('address'), req.param('amount'), function (err, new_balance) {
+  var amount = parseInt(req.param('amount'), 10);
+  logic.withdraw(req.user, req.param('address'), amount, function (err, user) {
     if (err) return next(err);
 
-    return res.json({
-      new_balance: new_balance
-    });
+    return res.json(new SuccessResponse({
+      amount: amount,
+      user: user,
+      address: req.param('address')
+    }));
   });
 };

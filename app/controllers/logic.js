@@ -39,10 +39,12 @@ exports.createTip = function (user, opts, callback) {
 
   tip.tipper._id = undefined; // Remove for consistency
 
-  if ((user.balance - opts.amount) >= 0) { // Insecure balance check to improve UX
+
+  var new_balance = user.balance - opts.amount;
+  if (new_balance >= 0) { // Insecure balance check to improve UX
     queue.pushCommand('Tip', 'create', [user, tip]);
 
-    user.pending = user.pending - opts.amount;
+    user.balance = new_balance; // This is temporary and will be reset in the queue
     return user.save(function () {
       callback(null, user, tip);
     });
@@ -76,23 +78,31 @@ exports.resolveTip = function (user, tip_id, callback) {
 
     queue.pushCommand('Tip', 'resolve', [user, tip]);
 
-    user.pending = user.pending + tip.amount;
+    user.balance = user.balance + tip.amount; // This is temporary and will be reset in the queue
     user.save(function (err, user) {
       return callback(err, user, tip);
     });
   });
 };
 
-exports.withdraw = function (user, to_address, amount, callback) {
+
+exports.withdraw = function (user, address, amount, callback) {
   if (!check.positiveNumber(amount)) return callback(new utils.NamedError('Invalid amount.', 400));
-  if (!coinstring.validate(0x1E, to_address)) return callback(new utils.NamedError('Not a valid dogecoin address.', 400));
+  if (!coinstring.validate(0x1E, address)) return callback(new utils.NamedError('Not a valid dogecoin address.', 400));
 
   if (user.balance - amount < 0) {
     return callback(new utils.NamedError('Not enough dogecoin.', 402)); // insecure
   }
 
-  queue.pushCommand('User', 'withdraw', [user, to_address, amount]);
+  var new_balance = user.balance - amount;
+  if (new_balance >= 0) { // Insecure balance check to improve UX
+    queue.pushCommand('User', 'withdraw', [user, address, amount]);
 
-  user.pending = user.pending - amount;
-  user.save(callback);
+    user.balance = new_balance; // This is temporary and will be reset in the queue
+    return user.save(function () {
+      callback(null, user);
+    });
+  } else {
+    return callback(new utils.NamedError('Not enough doge.', 402));
+  }
 };

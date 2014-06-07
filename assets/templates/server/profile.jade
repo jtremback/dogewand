@@ -1,0 +1,39 @@
+extend layout
+
+block content
+  .container
+    .panel.panel-default
+      .panel-body
+        p Your balance is #{user.balance}
+
+      hr.hr-small
+      .row.panel-body
+        .col-md-6
+          p To give your friends some doge, drag this bookmarklet to your bookmarks bar:
+
+
+        .col-md-6
+          form(action="/withdraw", method="POST")
+            input(type="hidden", name="_csrf", value=csrftoken)
+
+            p
+              |Withdraw&nbsp;
+              input.form-control.inline-control(type="number")
+              |&nbsp;dogecoins.
+
+            p
+              |Send to&nbsp;
+              input.form-control.inline-control(type="text", placeholder="Your address")
+
+            p
+              button.btn-primary.btn.btn-lg(type="submit") Withdraw!
+
+      hr.hr-small
+      .panel-body
+        p Dogewand is currently linked to:
+        ul.linked-accounts
+          for account in user.accounts
+            li.account-tab
+              div #{account.name}
+              div on #{account.provider}
+

@@ -2,9 +2,8 @@
 
 /*global Vue*/
 
-
 var PROVIDER_ORIGIN = 'https://www.facebook.com'; // Will need to use postMessage here instead.
-var VERSION = 4;
+var VERSION = '<%= version %>';
 var app;
 
 function http (method, url, data, callback) {
@@ -129,7 +128,6 @@ Vue.component('deposit-modal', {
   ready: function () {
     var self = this;
     http('GET', '/api/v1/user/address', null, function (err, response) {
-      console.log(response)
       if (err) {
         if (err === 401) {
           app.currentModal = 'login-modal';
@@ -153,7 +151,8 @@ Vue.component('confirm-tip-modal', {
   data: {
     tippee: '',
     amount: '',
-    id: ''
+    id: '',
+    url: '<%= url %>'
   }
 });
 
@@ -181,7 +180,7 @@ Vue.component('withdraw-modal', {
   methods: {
     submit: function () {
       console.log(JSON.stringify(this.$data));
-      http('POST', '/api/v1/tips/create', this.$data, function (err, response) {
+      http('POST', '/api/v1/user/withdraw', this.$data, function (err, response) {
         if (err) {
           if (err === 401) {
             app.currentModal = 'login-modal';
@@ -194,10 +193,10 @@ Vue.component('withdraw-modal', {
           }
         }
         else {
-          app.currentModal = 'confirm-tip-modal';
+          app.currentModal = 'confirm-withdraw-modal';
           Vue.nextTick(function () {
-            app.$.modal.$data.address = response.data.tip.address;
-            app.$.modal.$data.amount = response.data.tip.amount;
+            app.$.modal.$data.address = response.data.address;
+            app.$.modal.$data.amount = response.data.amount;
           });
         }
       });
@@ -244,9 +243,11 @@ var app = new Vue({
   el: '#app',
   data: {
     currentModal: false,
+    dropdown: false,
     user: {}
   },
   ready: function () {
+    var self = this;
     messageListener();
     this.userInfo();
 
@@ -256,6 +257,7 @@ var app = new Vue({
 
     this.$on('show', function (bool) {
       this.resize(bool);
+      if (!bool) self.dropdown = false;
     });
   },
   methods: {

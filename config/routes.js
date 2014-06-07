@@ -19,14 +19,18 @@ module.exports = function (app, passport) {
   app.post('/api/v1/user/withdraw', ensureAuthenticated, api.withdraw);
 
   app.get('/tips/:tip', pages.tip);
-  app.post('/tips/:tip', pages.resolveTip);
+  app.post('/tips/:tip', ensureAuthenticated, pages.resolveTip);
 
+  app.get('/profile', ensureAuthenticated, pages.profile);
+  app.post('/withdraw', ensureAuthenticated, pages.withdraw);
+
+  app.get('/iframe', pages.iframe);
 
   app.get('/auth/facebook', setRedirect(), passport.authenticate('facebook'));
 
   function setRedirect() {
     return function(req, res, next) {
-      req.session.foo = req.param('redirect_to');
+      req.session.redirect = req.param('redirect_to');
       console.log(req.session);
       return next();
     };
@@ -35,9 +39,8 @@ module.exports = function (app, passport) {
   app.get('/auth/facebook/callback',
     passport.authenticate('facebook', { failureRedirect: '/iframe#login_failed' }),
     function(req, res) {
-      var redirect_to = req.session.foo ? req.session.foo : '/iframe';
+      var redirect_to = req.session.redirect ? req.session.redirect : '/iframe';
       delete req.session.redirect;
-      //is authenticated ?
       res.redirect(redirect_to);
     });
 

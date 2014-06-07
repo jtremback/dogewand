@@ -58,6 +58,7 @@
     "gulp-data-uri": "^0.1.2",
     "gulp-jade": "^0.4.2",
     "lazypipe": "^0.2.1",
-    "gulp-template": "^0.1.1"
+    "gulp-template": "^0.1.1",
+    "js-string-escape": "^1.0.0"
   }
 }

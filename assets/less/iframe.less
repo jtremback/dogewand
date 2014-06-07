@@ -1,10 +1,5 @@
 @import 'bootstrap/bootstrap';
 
-.wow {
-  color: #00f;
-  width: 100px;
-}
-
 .toolbar {
   position: absolute;
   bottom: 0;
@@ -21,7 +16,7 @@
 }
 
 .btn-wand, .btn-wand:active {
-  background-image: url('/iframe/images/wand.png');
+  background-image: url('/images/wand.png');
   background-repeat: no-repeat;
   background-size: contain;
   background-position: 6px 80%;
@@ -73,12 +68,21 @@
   }
 }
 
+.dropdown-backdrop {
+  opacity: 0;
+  z-index: 940;
+}
+
 input:focus, button:focus {
   outline: none !important;
 }
 
 hr.invis {
   opacity: 0;
+}
+
+hr.hr-small {
+  margin: 0;
 }
 
 .accent-text {
@@ -96,4 +100,17 @@ hr.invis {
 .panel-title a,
 button {
   cursor: pointer;
+}
+
+.linked-accounts {
+  margin: 0;
+  padding: 0;
+  .account-tab {
+    .button-size(@padding-base-vertical; @padding-base-horizontal; @font-size-base; @line-height-base; @border-radius-base);
+    background: white;
+    color: @standard-bg;
+    display: inline-block;
+    margin-right: @padding-base-horizontal;
+    margin-bottom: @padding-base-vertical;
+  }
 }

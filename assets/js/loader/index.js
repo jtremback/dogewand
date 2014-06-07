@@ -48,7 +48,7 @@
   }
 
   var URL = '<%= url %>';
-  var VERSION = 1; // If this is not consistent with the server's version, the user will get an update modal!
+  var VERSION = '<%= version %>'; // If this is not consistent with the server's version, the user will get an update modal!
   var PROVIDER = providerFinder(window.location.host);
 
   var dgw_frame = $('#dgw-frame');

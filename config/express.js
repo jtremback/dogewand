@@ -79,7 +79,11 @@ module.exports = function (app, config, passport) {
     console.log(err);
     if (typeof err.name === 'string') {
       console.log(err.stack);
-      return res.send(500, 'wow such error.');
+      return res.json(500, {
+        data: 'wow such error.',
+        error: true,
+        status: 500
+      });
     }
     else if (typeof err.name === 'number') {
       res.json(err.name, {
