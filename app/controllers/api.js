@@ -54,7 +54,9 @@ exports.resolveTip = function (req, res, next) {
 exports.updateBalance = function (req, res, next) {
   req.user.updateBalance(function (err, user) {
     if (err) return next(err);
-    res.json(user.balance);
+    res.json(new SuccessResponse({
+      user: user
+    }));
   });
 };
 

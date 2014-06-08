@@ -1,29 +1,30 @@
 extend layout
 
 block content
-  .container
+  .container.container-main
     .panel.panel-default
       .panel-body
-        p Your balance is #{user.balance}
+        span Your balance is&nbsp;
+        .btn.balance-screen <span class="currency-mark">Ð</span>&nbsp;#{user.balance}
 
       hr.hr-small
       .row.panel-body
         .col-md-6
           p To give your friends some doge, drag this bookmarklet to your bookmarks bar:
-
-
+          .text-center
+            a(alt="Dogewand V#{version}" href="javascript:#{bookmarklet}" class="bookmarklet" onclick="alert('Drag me to the bookmarks bar')" title="Drag me to the bookmarks bar") Dogewand V#{version}
         .col-md-6
           form(action="/withdraw", method="POST")
             input(type="hidden", name="_csrf", value=csrftoken)
 
             p
               |Withdraw&nbsp;
-              input.form-control.inline-control(type="number")
+              input.form-control.inline-control(type="number" placeholder="so many")
               |&nbsp;dogecoins.
 
             p
-              |Send to&nbsp;
-              input.form-control.inline-control(type="text", placeholder="Your address")
+              |Send to:&nbsp;
+              input.form-control(type="text" placeholder="your address")
 
             p
               button.btn-primary.btn.btn-lg(type="submit") Withdraw!

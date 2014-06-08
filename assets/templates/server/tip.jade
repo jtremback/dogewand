@@ -1,26 +1,28 @@
 extend layout
 
 block content
-  h1 Wow!
-  p #{tip}
-  p #{user}
-  p #{role}
+  .container.container-main
+    .panel.panel-default
+      .panel-body
+        img.tip-logo(src="/images/dogecoin-300.png")
+        h2 #{tip.amount} dogecoins
+        p from: #{tip.tipper.name} on #{tip.tipper.provider}
+        p to: #{tip.tippee.name} on #{tip.tippee.provider}
 
-  h2 #{tip.amount} dogecoins
-  p from: #{tip.tipper.name} on #{tip.tipper.provider}
-  p to: #{tip.tippee.name} on #{tip.tippee.provider}
+        if tip.state === 'claimed' || tip.state === 'canceled'
+          p this tip has been #{tip.state}
 
-  if tip.state === 'claimed' || tip.state === 'canceled'
-    p this tip has been #{tip.state}
+        else if role
+          p
+            form(action="#{tip_path}", method="POST")
+              input(type="hidden", name="_csrf", value="#{csrf_token}")
+              if role === 'tippee'
+                button.btn.btn-lg.btn-success(type="submit") Claim them!
 
-  else if role
-    p
-      form(action="#{tip_path}", method="POST")
-        input(type="hidden", name="_csrf", value="#{csrf_token}")
-        if role === 'tippee'
-          button(type="submit") Claim them!
+              if role === 'tipper'
+                button.btn.btn-lg.btn-danger(type="submit") Cancel this tip.
+        else
+          p If this is you, <a href="/auth/facebook?redirect_to=tips/#{tip_path}">sign in with facebook</a> to claim your tip.
 
-        if role === 'tipper'
-          button(type="submit") Cancel this tip.
-  else
-    p If this is you, <a href="/auth/facebook?redirect_to=tips/#{tip_path}">sign in with facebook</a> to claim your tip.
+
+

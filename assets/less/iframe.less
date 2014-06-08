@@ -57,7 +57,7 @@
 
 .inline-control {
   display: inline-block;
-  max-width: 100px;
+  width: 8em;
 }
 
 .modal {
@@ -77,7 +77,7 @@ input:focus, button:focus {
   outline: none !important;
 }
 
-hr.invis {
+hr.hr-invis {
   opacity: 0;
 }
 
@@ -102,6 +102,13 @@ button {
   cursor: pointer;
 }
 
+.bookmarklet {
+  .button-size(@padding-base-vertical; @padding-base-horizontal; @font-size-base; @line-height-base; @border-radius-base);
+  border: 2px dashed @link-color;
+  display: inline-block;
+  background: white;
+}
+
 .linked-accounts {
   margin: 0;
   padding: 0;
@@ -113,4 +120,18 @@ button {
     margin-right: @padding-base-horizontal;
     margin-bottom: @padding-base-vertical;
   }
+}
+
+.site-bg {
+  background-image: url('/images/full-of-doge.gif');
+  background-size: cover;
+}
+
+.container-main {
+  margin-top: 100px;
+}
+
+.tip-logo {
+  float: left;
+  margin-right: 50px;
 }

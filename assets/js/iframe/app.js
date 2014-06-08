@@ -11,6 +11,7 @@ function http (method, url, data, callback) {
   request.onreadystatechange = function () {
     if (this.readyState == 4) {
       var response = JSON.parse(this.response);
+      console.log(response)
       if (this.status == 200) {
         callback(null, response);
       }
@@ -23,6 +24,18 @@ function http (method, url, data, callback) {
   request.open(method, url, true);
   request.setRequestHeader('Content-Type', 'application/json');
   request.send(JSON.stringify(data));
+}
+
+function modalErrorHandler (err, response) {
+  if (err === 401) {
+    app.currentModal = 'login-modal';
+  }
+  else {
+    app.currentModal = 'error-modal';
+    Vue.nextTick(function () {
+      app.$.modal.$data.message = response.data;
+    });
+  }
 }
 
 function messageListener () {
@@ -128,17 +141,7 @@ Vue.component('deposit-modal', {
   ready: function () {
     var self = this;
     http('GET', '/api/v1/user/address', null, function (err, response) {
-      if (err) {
-        if (err === 401) {
-          app.currentModal = 'login-modal';
-        }
-        else {
-          app.currentModal = 'error-modal';
-          Vue.nextTick(function () {
-            app.$.modal.$data.message = response.data;
-          });
-        }
-      }
+      if (err) return modalErrorHandler(err, response);
       else {
         self.address = response.data;
       }
@@ -181,17 +184,7 @@ Vue.component('withdraw-modal', {
     submit: function () {
       console.log(JSON.stringify(this.$data));
       http('POST', '/api/v1/user/withdraw', this.$data, function (err, response) {
-        if (err) {
-          if (err === 401) {
-            app.currentModal = 'login-modal';
-          }
-          else {
-            app.currentModal = 'error-modal';
-            Vue.nextTick(function () {
-              app.$.modal.$data.message = response.data;
-            });
-          }
-        }
+        if (err) return modalErrorHandler(err, response);
         else {
           app.currentModal = 'confirm-withdraw-modal';
           Vue.nextTick(function () {
@@ -215,18 +208,10 @@ Vue.component('create-tip-modal', {
   methods: {
     submit: function () {
       http('POST', '/api/v1/tips/create', this.$data, function (err, response) {
-        if (err) {
-          if (err === 401) {
-            app.currentModal = 'login-modal';
-          }
-          else {
-            app.currentModal = 'error-modal';
-            Vue.nextTick(function () {
-              app.$.modal.$data.message = response.data;
-            });
-          }
-        }
+        if (err) return modalErrorHandler(err, response);
         else {
+          app.user.balance = response.data.user.balance;
+
           app.currentModal = 'confirm-tip-modal';
           Vue.nextTick(function () {
             app.$.modal.$data.tippee = response.data.tip.tippee;
@@ -252,11 +237,11 @@ var app = new Vue({
     this.userInfo();
 
     Vue.nextTick(function () {
-      this.resize();
+      self.resize();
     });
 
-    this.$on('show', function (bool) {
-      this.resize(bool);
+    self.$on('show', function (bool) {
+      self.resize(bool);
       if (!bool) self.dropdown = false;
     });
   },
@@ -264,17 +249,7 @@ var app = new Vue({
     userInfo: function () {
       var self = this;
       http('GET', '/api/v1/user', null, function (err, response) {
-        if (err) {
-          if (err === 401) {
-            self.currentModal = 'login-modal';
-          }
-          else {
-            self.currentModal = 'error-modal';
-            Vue.nextTick(function () {
-              self.$.modal.$data.message = response.data;
-            });
-          }
-        }
+        if (err) return modalErrorHandler(err, response);
         else {
           self.user = response.data;
         }
@@ -296,6 +271,15 @@ var app = new Vue({
             height: full ? '100%' : toolbar.offsetHeight + 'px'
           }
         }), PROVIDER_ORIGIN);
+      });
+    },
+    getBalance: function () {
+      var self = this;
+      http('GET', '/api/v1/user', null, function (err, response) {
+        if (err) return modalErrorHandler(err, response);
+        else {
+          self.user.balance = response.data.balance;
+        }
       });
     },
     destroy: function () {

@@ -20,7 +20,7 @@ html(lang="en")
               a(href="#" v-on="click: currentModal = 'deposit-modal'") Deposit
             li
               a(href="#") Log Out
-        div.btn.balance-screen <span class="currency-mark">Ð</span>&nbsp;{{user.balance}}
+        div.btn.balance-screen(v-on="click: getBalance") <span class="currency-mark">Ð</span>&nbsp;{{user.balance}}
         div.btn.btn-default.btn-wand(v-on="click: tipping()") Give!
       div(v-view="currentModal" v-ref="modal" v-with="show: currentModal")
       div.modal-backdrop.in(v-if="currentModal" v-on='click: currentModal = false')
@@ -84,7 +84,7 @@ html(lang="en")
           p
             input.form-control.inline-control(type="number" v-model="amount" placeholder="so many")
             | &nbsp;dogecoins
-          hr.invis
+          hr.hr-invis
           button.btn.btn-lg.btn-primary(type='button' v-on="click: submit") Give!
 
 

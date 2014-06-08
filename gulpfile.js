@@ -8,9 +8,7 @@ var gulpTap = require('gulp-tap');
 var gulpAutoprefixer = require('gulp-autoprefixer');
 var gulpMinifyCss = require('gulp-minify-css');
 var gulpUglify = require('gulp-uglify');
-// var gulpMinifyHtml = require('gulp-htmlmin');
 var gulpLess = require('gulp-less');
-// var gulpJade = require('gulp-jade');
 var gulpDataUri = require('gulp-data-uri');
 var gulpTemplate = require('gulp-template');
 var gulpConcat = require('gulp-concat');
@@ -89,19 +87,6 @@ gulp.task('iframe-styles', function () {
     .pipe(gulpRename('iframe.css'))
     .pipe(gulp.dest('public')) // Put into public folder for good caching
     .pipe(gulpNotify({ message: 'iframe-styles task complete' }));
-});
-
-// gulp.task('iframe-html', function () {
-//   return gulp.src('assets/templates/iframe/**/*.jade')
-//     .pipe(gulpJade())
-//     .pipe(gulp.dest('public/iframe'))2
-//     .pipe(gulpNotify({ message: 'iframe-html task complete' }));
-// });
-
-gulp.task('iframe-images', function () {
-  return gulp.src('assets/images/shared/**')
-    .pipe(gulp.dest('public/images'))
-    .pipe(gulpNotify({ message: 'iframe-image task complete' }));
 });
 
 gulp.task('iframe-js', function () {
