@@ -61,7 +61,6 @@ TipSchema.statics = {
 
       else { // If insufficient funds
         tip.state = 'insufficient';
-        user.pending = user.pending + tip.amount; // And close out pending
       }
 
 
@@ -89,7 +88,6 @@ TipSchema.statics = {
           if (err) return callback(err);
 
           user.balance = user.balance - tip.amount; // perhaps use updatebalance?
-          user.pending = user.pending + tip.amount;
           user.save(callback);
         }); // Done
       });
@@ -148,7 +146,6 @@ TipSchema.statics = {
         tip.save(function (err) {
           if (err) return callback(err);
           user.balance = user.balance + tip.amount;
-          user.pending = user.pending - tip.amount;
           user.save(function (err) {
             callback(err, tip, user);
           });

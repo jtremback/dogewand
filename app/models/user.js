@@ -17,7 +17,6 @@ var AccountSchema = new Schema({
 
 var UserSchema = new Schema({
   balance: { type: Number, default: 0 }, // updateBalance should be used whenever the balance is changed or read from dogecoind
-  pending: { type: Number, default: 0 },
   accounts: [ AccountSchema ]
 });
 
