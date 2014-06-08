@@ -52,7 +52,7 @@ function _app (container) {
 
 
 function _iframe (container) {
-  var contents = append('<iframe id="dgw-frame"></iframe>', container);
+  var contents = append('<iframe id="dgw-frame" width="100%"></iframe>', container);
   // var $contents = $('<iframe id="dgw-frame"></iframe>').appendTo($container);
 
   iframe.on('size', function (dimensions) {

@@ -236,9 +236,9 @@ var app = new Vue({
     messageListener();
     this.userInfo();
 
-    Vue.nextTick(function () {
+    setTimeout(function () {
       self.resize();
-    });
+    }, 500);
 
     self.$on('show', function (bool) {
       self.resize(bool);
@@ -267,8 +267,8 @@ var app = new Vue({
         parent.postMessage(JSON.stringify({
           method: 'size',
           data: {
-            width: full ? '100%' : toolbar.offsetWidth + 'px',
-            height: full ? '100%' : toolbar.offsetHeight + 'px'
+            width: full ? '100%' : toolbar.scrollWidth + 'px',
+            height: full ? '100%' : toolbar.scrollHeight + 'px'
           }
         }), PROVIDER_ORIGIN);
       });
