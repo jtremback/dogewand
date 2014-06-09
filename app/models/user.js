@@ -17,7 +17,8 @@ var AccountSchema = new Schema({
 
 var UserSchema = new Schema({
   balance: { type: Number, default: 0 }, // updateBalance should be used whenever the balance is changed or read from dogecoind
-  accounts: [ AccountSchema ]
+  accounts: [ AccountSchema ],
+  state: String
 });
 
 // Bcrypt middleware
@@ -86,7 +87,40 @@ UserSchema.statics = {
       else return console.log('Not enough dogecoin to withdraw.', tipper, amount);
     });
   }
-};
+
+  ,
+
+  // Should be called from queue
+  mergeUsers: function (from_user, to_user, callback) {
+    from_user.updateBalance(function (err, from_user) {
+      if (err) return  callback(err);
+      var balance = from_user.balance;
+
+      var body = {
+        method: 'move',
+        params: [ from_user._id, to_user._id, balance, 6 ]
+      };
+
+      rpc(body, function (err) {
+        if (err) return  callback(err);
+        return mergeAuth(from_user);
+      });
+    });
+
+    function mergeAuth (from_user) {
+      to_user.accounts.concat(from_user.accounts);
+      to_user.state = 'merging';
+      to_user.save(function (err, to_user) {
+        if (err) return  callback(err);
+        from_user.remove(function (err) {
+          if (err) return  callback(err);
+          to_user.state = 'clean';
+          return to_user.save(callback);
+        });
+      });
+    }
+  }
+ };
 
 
 UserSchema.methods = {
@@ -148,7 +182,7 @@ UserSchema.methods = {
 
   ,
 
-  linkAccount: function(account, callback) {
+  linkAccount: function (account, callback) {
     this.accounts.push(account);
     this.save(callback);
   }

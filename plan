@@ -1,5 +1,40 @@
 plan
 
+Merging users:
+
+User already has account with other provider(s). They receive a tip on a new provider, and are not
+signed in to that provider. They claim the tip using the new user resolve flow. A new account is created.
+
+Option 1:
+
+Do you already have a dogewand account? Click here to merge accounts.
+Need both users. NOTE: profile info is effectively same as user object.
+Use passport authorize, then use profile info to look up additional account.
+When you have the additional account, choose which direction to merge in.
+
+Get balance of merge account. Move all funds from merge account to the other account.
+Add auth info from merge account into other account. Delete merge account.
+
+
+Want to move *to* otheraccount:
+When one has accepted a tip on a new provider, creating superflous account, which one is logged into
+at the time.
+
+Want to move *from* otheraccount:
+When one would like to start tipping on a new provider and is logged into the account one would like
+to tip with.
+
+
+Is there anything bad that happens if one merges a whole array of providers and not just one?
+
+- Not that I can think of right now
+
+
+Option 2:
+
+
+
+
 Iframe comms flow:
 
 option 1
