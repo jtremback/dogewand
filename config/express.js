@@ -33,13 +33,16 @@ module.exports = function (app, config, passport) {
 
   app.use(express.session({
     secret: config.sessionSecret,
+    cookie: {
+      httpOnly: true,
+      secure: true
+    },
     store: new connectMongo({
       url: config.db,
       collection : 'sessions'
     }, function () {
       console.log('db connection open'); // Is neccesary to avoid weird bug. (don't ask me why)
     })
-
   }));
 
 
@@ -47,28 +50,14 @@ module.exports = function (app, config, passport) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // app.use(flash());
-
   // adds CSRF support
-  // app.use(express.csrf());
-  // app.use(function(req, res, next){
-  //   res.locals.csrf_token = req.csrfToken();
-  //   next();
-  // });
+  app.use(express.csrf());
 
-
-  // // adds CORS support
-  // app.all('*', function(req, res, next){
-  //   if (!req.get('Origin')) return next();
-
-  //   res.set('Access-Control-Allow-Origin', 'https://localhost:3700', 'https://facebook.com', 'https://soundcloud.com');
-  //   res.set('Access-Control-Allow-Methods', 'GET, POST');
-  //   res.set('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type');
-  //   res.header('Access-Control-Allow-Credentials', 'true');
-  //   // res.set('Access-Control-Allow-Max-Age', 3600);
-  //   if ('OPTIONS' == req.method) return res.send(200);
-  //   next();
-  // });
+  app.use(function(req, res, next) {
+    console.log(req.csrfToken())
+    res.cookie('CSRF-TOKEN', req.csrfToken());
+    next();
+  });
 
 
   // routes should be at the last

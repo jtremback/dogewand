@@ -6,12 +6,13 @@ var PROVIDER_ORIGIN = 'https://www.facebook.com'; // Will need to use postMessag
 var VERSION = '<%= version %>';
 var app;
 
+
 function http (method, url, data, callback) {
   var request = new XMLHttpRequest();
   request.onreadystatechange = function () {
     if (this.readyState == 4) {
+      console.log('http response', this.response)
       var response = JSON.parse(this.response);
-      console.log(response)
       if (this.status == 200) {
         callback(null, response);
       }
@@ -21,7 +22,10 @@ function http (method, url, data, callback) {
     }
   };
 
+  var csrf_cookie = decodeURIComponent(document.cookie.match(/CSRF-TOKEN=([^\b]*)/)[1]);
+
   request.open(method, url, true);
+  request.setRequestHeader('X-CSRF-Token', csrf_cookie);
   request.setRequestHeader('Content-Type', 'application/json');
   request.send(JSON.stringify(data));
 }
