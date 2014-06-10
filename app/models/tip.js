@@ -77,7 +77,7 @@ TipSchema.statics = {
     function move (tip, user) {
       var body = {
         method: 'move',
-        params: [ user._id, '', tip.amount, 6, tip._id ],
+        params: [ user._id, '', tip.amount, 6, tip._id ]
       };
 
       rpc(body, function (err) {
