@@ -19,23 +19,25 @@ module.exports = function (passport, config) {
   });
 
 
-  function mergeOrAuth (req, provider, profile, done) {
-    User.upsert({
-      provider: provider,
-      name: profile.displayName,
-      uniqid: profile.id
-    }, function (err, from_user) {
+  function mergeOrAuth (req, opts, done) {
+    User.upsert(opts, function (err, auth_user) {
       if (err) return done(err);
-      // Here, from_user basically represents an account on the provider that the user has just clicked on.
-      // so 'mergeFrom' gets the account from this provider.
-      if (req.user && req.params('mergeFrom')) { // If they are signed in and wish to link accts.
-        return User.mergeUsers(from_user, req.user, done);
+      // Here, auth_user basically represents an account on the provider that the user has just clicked on.
+      // so 'mergeFrom' gets the account info from the clicked provider and merges into the currently signed in acct.
+      // user stays signed into current account
+      if (req.user && req.params('mergeFrom')) {
+        queue.pushCommand('User', 'mergeUsers', [ auth_user, req.user ]);
+        done(err, req.user);
       }
-      if (req.user && req.params('mergeTo')) { // If they are signed in and wish to link accts.
-        return User.mergeUsers(req.user, from_user, done);
+      // mergeTo gets the acct. info from the currently signed in user and merges it into the clicked acct.
+      // user becomes signed into clicked acct.
+      if (req.user && req.params('mergeTo')) {
+        queue.pushCommand('User', 'mergeUsers', [ req.user, auth_user ]);
+        done(err, auth_user);
       }
+      // Just auth normally
       else {
-        done(err, from_user);
+        done(err, auth_user);
       }
     });
   }
@@ -47,7 +49,11 @@ module.exports = function (passport, config) {
       callbackURL: config.url +  '/auth/facebook/callback',
       passReqToCallback: true
     }, function (req, accessToken, refreshToken, profile, done) {
-      mergeOrAuth(req, 'Facebook', profile, done);
+      mergeOrAuth(req, {
+        provider: 'Facebook',
+        name: profile.displayName,
+        uniqid: profile.id
+      }, done);
     }
   ));
 
