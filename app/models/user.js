@@ -96,24 +96,27 @@ UserSchema.statics = {
       if (err) return  callback(err);
       var balance = from_user.balance;
 
-      var body = {
-        method: 'move',
-        params: [ from_user._id, to_user._id, balance, 6 ]
-      };
-
-      rpc(body, function (err) {
-        if (err) return  callback(err);
+      if (balance > 0) {
+        rpc({
+          method: 'move',
+          params: [ from_user._id, to_user._id, balance, 6 ]
+        }, function (err) {
+          if (err) return  callback(err);
+          return mergeAuth(from_user);
+        });
+      }
+      else {
         return mergeAuth(from_user);
-      });
+      }
     });
 
     function mergeAuth (from_user) {
-      to_user.accounts.concat(from_user.accounts);
+      to_user.accounts = to_user.accounts.concat(from_user.accounts);
       to_user.state = 'merging';
       to_user.save(function (err, to_user) {
-        if (err) return  callback(err);
+        if (err) return callback(err);
         from_user.remove(function (err) {
-          if (err) return  callback(err);
+          if (err) return callback(err);
           to_user.state = 'clean';
           return to_user.save(callback);
         });

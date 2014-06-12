@@ -136,6 +136,10 @@ test('---------------------------------------- user.js', function (t) {
     });
   });
 
+  t.test('mergeUsers', function (t) {
+
+  });
+
   t.test('end', function (t) {
     mongoose.disconnect(function () {
       t.end();

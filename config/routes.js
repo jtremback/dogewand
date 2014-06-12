@@ -26,20 +26,29 @@ module.exports = function (app, passport) {
 
   app.get('/iframe', pages.iframe);
 
-  app.get('/auth/facebook', setRedirect(), passport.authenticate('facebook'));
+  app.get('/auth/facebook', preserveParam('redirect_to'), preserveParam('merge'), passport.authenticate('facebook'));
+  app.get('/auth/youtube', preserveParam('redirect_to'), preserveParam('merge'), passport.authenticate('youtube'));
 
-  function setRedirect() {
-    return function(req, res, next) {
-      req.session.redirect = req.param('redirect_to');
-      console.log(req.session);
+
+  function preserveParam (name) {
+    return function (req, res, next) {
+      req.session[name] = req.param(name);
       return next();
     };
   }
 
   app.get('/auth/facebook/callback',
-    passport.authenticate('facebook', { failureRedirect: '/iframe#login_failed' }),
-    function(req, res) {
-      var redirect_to = req.session.redirect ? req.session.redirect : '/iframe';
+    passport.authenticate('facebook', { failureRedirect: '/profile#login_failed' }),
+    function (req, res) {
+      var redirect_to = req.session.redirect ? req.session.redirect : '/profile';
+      delete req.session.redirect;
+      res.redirect(redirect_to);
+    });
+
+  app.get('/auth/youtube/callback',
+    passport.authenticate('youtube', { failureRedirect: '/profile#login_failed' }),
+    function (req, res) {
+      var redirect_to = req.session.redirect ? req.session.redirect : '/profile';
       delete req.session.redirect;
       res.redirect(redirect_to);
     });
