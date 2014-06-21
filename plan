@@ -1,5 +1,79 @@
 plan
 
+
+User
+  balance
+
+Account
+  uniqid
+  provider
+  name
+  user_id
+
+Tip
+  amount
+  tipper_id
+  tippee_id
+  state
+  hash (maybe?)
+
+User making scenarios:
+  Fresh sign up
+
+Account making scenarios:
+  New tip
+  Linking account
+
+
+Create user:
+  Create user with 0 balance
+  Find or create account with provider and uniqid and name from auth. Replace name if account
+  already exists.
+
+Auth:
+  insert or update and select account
+  insert user and update account with user_id
+  use account.user_id to select user and join all accounts
+
+  Case 1- user is not logged in, account exists
+
+  Case 2- user is not logged in, account does not exist
+
+  Case 3- user is not logged in, account exists, is not associated with user
+
+
+
+
+Merge Users:
+  Get provider and uniqid from auth
+  find account, user
+  move all funds from user to signed in user
+  change all accounts with user_id to signed in user id
+
+Create tip:
+  Look for account with scraped provider and uniqid. If none found make one.
+  Use above for tippee_id.
+  tipper_id of first account from current user that matches provider (can offer choice later)
+  state created
+  insert tip
+  return uuid to use in url
+
+Resolve tip:
+  we have:
+    current user_id
+    tip info:
+      tipper_id
+      tippee_id
+
+  get tipper_id and tippee_id accounts, check if they have user_id of current user
+
+  check if user id matches either tippee or tipper account- error if not
+  set state based on this- resolve or claim
+  move amount from escrow to user
+
+
+
+
 Merging users:
 
 User already has account with other provider(s). They receive a tip on a new provider, and are not

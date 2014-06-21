@@ -29,7 +29,8 @@
     "passport-local": "^1.0.0",
     "gulp-concat": "^2.2.0",
     "ect": "^0.5.9",
-    "passport-youtube-v3": "0.0.2"
+    "passport-youtube-v3": "0.0.2",
+    "pg": "^3.3.0"
   },
   "devDependencies": {
     "gulp-stylus": "^0.1.0",
