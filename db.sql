@@ -23,6 +23,17 @@ CREATE TABLE tips (
   state tip_state NOT NULL DEFAULT 'created'
 );
 
+CREATE TABLE deposits (
+  txid varchar(64) PRIMARY KEY,
+  address varchar(34) NOT NULL REFERENCES addresses,
+  amount bigint NOT NULL
+);
+
+CREATE TABLE addresses (
+  address varchar(34) PRIMARY KEY,
+  user_id int REFERENCES users
+);
+
 -- populate with stuff
 -- 1
 INSERT INTO users (balance)
@@ -75,6 +86,19 @@ VALUES (5, 2, 35);
 -- 4
 INSERT INTO tips (tipper_id, tippee_id, amount)
 VALUES (1, 6, 30);
+
+
+
+INSERT INTO deposits (txid, address, amount, blockhash)
+VALUES ($1, $2, $3, $4)
+
+
+UPDATE users
+SET balance = balance + $1
+WHERE user_id = (
+  SELECT user_id FROM addresses
+  WHERE address = $2
+)
 
 
 

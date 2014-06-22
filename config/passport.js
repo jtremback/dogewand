@@ -6,6 +6,7 @@ var LocalStrategy = require('passport-local').Strategy;
 var YoutubeV3Strategy = require('passport-youtube-v3').Strategy;
 var User = mongoose.model('User');
 var queue = require('../app/models/queue.js');
+var db = require('../app/db.js');
 
 module.exports = function (passport, config) {
 
@@ -22,21 +23,18 @@ module.exports = function (passport, config) {
 
 
   function mergeOrAuth (req, opts, done) {
-    User.upsert(opts, function (err, auth_user) {
-      console.log('LOLOLOLOLOLOLOLLO', req.session)
+    db.auth(opts, function (err, auth_user) {
       if (err) return done(err);
       // Here, auth_user basically represents an account on the provider that the user has just clicked on.
       // so 'mergeFrom' gets the account info from the clicked provider and merges into the currently signed in acct.
       // user stays signed into current account
       if (req.user && req.session.merge === 'from') {
-        queue.pushCommand('User', 'mergeUsers', [ auth_user, req.user ]);
-        done(err, req.user);
+        // TBD
       }
       // mergeTo gets the acct. info from the currently signed in user and merges it into the clicked acct.
       // user becomes signed into clicked acct.
       if (req.user && req.session.merge === 'to') {
-        queue.pushCommand('User', 'mergeUsers', [ req.user, auth_user ]);
-        done(err, auth_user);
+        // TBD
       }
       // Just auth normally
       else {
@@ -53,9 +51,9 @@ module.exports = function (passport, config) {
     passReqToCallback: true
     }, function (req, accessToken, refreshToken, profile, done) {
       mergeOrAuth(req, {
+        uniqid: profile.id,
         provider: 'Facebook',
-        name: profile.displayName,
-        uniqid: profile.id
+        display_name: profile.displayName
       }, done);
     }
   ));
@@ -81,21 +79,21 @@ module.exports = function (passport, config) {
 
 
 
-  // use local strategy
-  passport.use(new LocalStrategy(function(uniqid, password, done) {
-    User.upsert({
-      provider: 'dogewand',
-      uniqid: uniqid
-    }, function (err, user) {
-      if (err) { return done(err); }
-      user.authenticate(password, function(err, isMatch) {
-        if (err) return done(err);
-        if (isMatch) {
-          return done(null, user);
-        } else {
-          return done(null, false, { message: 'Invalid password' });
-        }
-      });
-    });
-  }));
+  // // use local strategy
+  // passport.use(new LocalStrategy(function(uniqid, password, done) {
+  //   User.upsert({
+  //     provider: 'dogewand',
+  //     uniqid: uniqid
+  //   }, function (err, user) {
+  //     if (err) { return done(err); }
+  //     user.authenticate(password, function(err, isMatch) {
+  //       if (err) return done(err);
+  //       if (isMatch) {
+  //         return done(null, user);
+  //       } else {
+  //         return done(null, false, { message: 'Invalid password' });
+  //       }
+  //     });
+  //   });
+  // }));
 };

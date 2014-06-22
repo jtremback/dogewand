@@ -1,5 +1,6 @@
 'use strict';
 
+var db = require('../db.js');
 var logic = require('./logic');
 
 function SuccessResponse (data) {
@@ -27,38 +28,32 @@ exports.createTip = function (req, res, next) {
   var opts = {
     uniqid: req.param('uniqid'),
     provider: req.param('provider'),
-    name: req.param('name'),
+    display_name: req.param('display_name'),
     amount: parseInt(req.param('amount'), 10) // Coerce to int
   };
 
-  logic.createTip(req.user, opts, function (err, user, tip) {
+  db.createTip(req.user.user_id, req.param('account_id'), opts, function (err, result) {
     if (err) return next(err);
-
-    return res.json(new SuccessResponse({
-      tip: tip,
-      user: user
-    }));
+    res.json(new SuccessResponse(result));
   });
 };
 
 exports.resolveTip = function (req, res, next) {
-  logic.resolveTip(req.param('tip_id'), req.user, function (err, new_balance) {
+  db.resolveTip(req.param('tip_id'), req.user.user_id, function (err, result) {
     if (err) return next(err);
 
-    return res.json({
-      new_balance: new_balance
-    });
+    return res.json(new SuccessResponse(result));
   });
 };
-
-exports.updateBalance = function (req, res, next) {
-  req.user.updateBalance(function (err, user) {
-    if (err) return next(err);
-    res.json(new SuccessResponse({
-      user: user
-    }));
-  });
-};
+// DLKmSAjmrB7f4udVu8GV1dgA4vbspFjMvo
+// exports.updateBalance = function (req, res, next) {
+//   req.user.updateBalance(function (err, user) {
+//     if (err) return next(err);
+//     res.json(new SuccessResponse({
+//       user: user
+//     }));
+//   });
+// };
 
 exports.withdraw = function (req, res, next) {
   var amount = parseInt(req.param('amount'), 10);

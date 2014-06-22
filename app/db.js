@@ -80,7 +80,7 @@ exports.createTip = function (user_id, account_id, opts, callback) {
 };
 
 
-exports.resolveTip = function (user_id, tip_id, callback) {
+exports.resolveTip = function (tip_id, user_id, callback) {
   pg.connect(function (err, client, done) {
     if (err) return callback(err);
 
@@ -141,8 +141,39 @@ exports.resolveTip = function (user_id, tip_id, callback) {
   });
 };
 
+exports.addDeposit = function (opts, callback) {
+  pg.connect(function (err, client, done) {
+    client.query(
+    ['INSERT INTO deposits (txid, address, amount)',
+    'VALUES ($1, $2, $3)'].join('\n'),
+    [ opts.txid, opts.address, opts.amount ],
+    function (err, result) {
+      console.log('eeeeerrrrRRROOOOOOROROROROOROROOROROR', err)
+      if (!err) {
+        updateBalance(opts.amount, opts.address);
+      }
+      else {
+        done();
+      }
+    });
 
-exports.auth = function (uniqid, provider, display_name, callback) {
+    function updateBalance (amount, address) {
+      client.query(
+      ['UPDATE users',
+      'SET balance = balance + $1',
+      'WHERE user_id = (',
+        'SELECT user_id FROM addresses',
+        'WHERE address = $2)'].join('\n'),
+      [amount, address],
+      function (err, result) {
+        done();
+      });
+    }
+
+  });
+};
+
+exports.auth = function (opts, callback) {
   pg.connect(function (err, client, done) {
     if (err) return callback(err);
 
@@ -154,7 +185,7 @@ exports.auth = function (uniqid, provider, display_name, callback) {
     client.query(
     ['SELECT * FROM accountinsertorupdate($1, $2, $3)',
     'AS (account_id int, user_id int, uniqid text, provider text, display_name text)'].join('\n'),
-    [ uniqid, provider, display_name ],
+    [ opts.uniqid, opts.provider, opts.display_name ],
     function (err, result) {
       if (err) return error(err);
       var row = result.rows[0];
@@ -189,7 +220,17 @@ exports.auth = function (uniqid, provider, display_name, callback) {
       function (err, result) {
         if (err) return error(err);
         done();
-        return callback(null, result);
+        var user = {
+          user_id: result.rows[0].user_id,
+          balance: result.rows[0].balance
+        };
+        var accounts = result.rows.map(function (item) {
+          item.user_id = undefined;
+          item.balance = undefined;
+          return item;
+        });
+        user.accounts = accounts;
+        return callback(null, user);
       });
     }
   });
