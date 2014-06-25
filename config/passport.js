@@ -29,12 +29,18 @@ module.exports = function (passport, config) {
       // so 'mergeFrom' gets the account info from the clicked provider and merges into the currently signed in acct.
       // user stays signed into current account
       if (req.user && req.session.merge === 'from') {
-        // TBD
+        db.mergeUsers(function () {
+          if (err) return done(err);
+          done(err, req.user);
+        });
       }
       // mergeTo gets the acct. info from the currently signed in user and merges it into the clicked acct.
-      // user becomes signed into clicked acct.
+      // user becomes signed into clicked acct. (Do we really want this?????)
       if (req.user && req.session.merge === 'to') {
-        // TBD
+        db.mergeUsers(function () {
+          if (err) return done(err);
+          done(err, auth_user);
+        });
       }
       // Just auth normally
       else {

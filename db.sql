@@ -93,6 +93,14 @@ INSERT INTO deposits (txid, address, amount, blockhash)
 VALUES ($1, $2, $3, $4)
 
 
+SELECT user_id FROM accounts
+WHERE uniqid = $1 AND provider = $2
+
+UPDATE accounts
+SET user_id = $1
+WHERE user_id = $2 -- Must be authed in here, either from req.user or account supplied from passport
+
+
 UPDATE users
 SET balance = balance + $1
 WHERE user_id = (

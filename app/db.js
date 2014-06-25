@@ -202,6 +202,7 @@ exports.auth = function (opts, callback) {
     }
 
     client.query(
+    // We get the account, if it does not exist, we make it, we overwrite the display_name
     ['SELECT * FROM accountinsertorupdate($1, $2, $3)',
     'AS (account_id int, user_id int, uniqid text, provider text, display_name text)'].join('\n'),
     [ opts.uniqid, opts.provider, opts.display_name ],
@@ -255,3 +256,88 @@ exports.auth = function (opts, callback) {
   });
 };
 
+
+
+exports.mergeUsers = function (new_user, current_user, callback) {
+  pg.connect(function (err, client, done) {
+    if (err) return callback(err);
+
+    function error (err) {
+      done(err);
+      return callback(err);
+    }
+
+    client.query(
+    ['UPDATE accounts',
+    'SET user_id = $1',
+    'WHERE user_id = $2'].join('\n'),
+    [ new_user, current_user ],
+    function (err, result) {
+      if (err) return error(err);
+      done();
+      callback(result);
+    });
+
+  });
+};
+
+
+
+exports.mergeUsers = function (new_user, current_user, callback) {
+  pg.connect(function (err, client, done) {
+    if (err) return callback(err);
+
+    function error (err) {
+      client.query('ROLLBACK', function(error) {
+        console.log('ROLLBACK');
+        done(error || err);
+        return callback(error || err);
+      });
+    }
+
+    client.query(
+      'BEGIN;',
+    function (err) {
+      if (err) return error(err);
+      updateAccounts();
+    });
+
+    function updateAccounts () {
+      client.query(
+      ['UPDATE accounts',
+      'SET user_id = $1',
+      'WHERE user_id = $2',
+      'RETURNING *'].join('\n'),
+      [ new_user, current_user ],
+      function (err) {
+        if (err) return error(err);
+        done();
+        updateAddresses();
+      });
+    }
+
+    function updateAddresses () {
+      client.query(
+      ['UPDATE addresses',
+      'SET user_id = $1',
+      'WHERE user_id = $2',
+      'RETURNING *'].join('\n'),
+      [ new_user, current_user ],
+      function (err) {
+        if (err) return error(err);
+        done();
+        commit();
+      });
+    }
+
+    function commit () {
+      client.query(
+        'COMMIT;',
+      function (err) {
+        if (err) return error(err);
+        done();
+        return callback(null);
+      });
+    }
+  });
+};
