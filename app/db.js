@@ -80,6 +80,7 @@ exports.createTip = function (user_id, account_id, opts, callback) {
 };
 
 
+
 exports.resolveTip = function (tip_id, user_id, callback) {
   pg.connect(function (err, client, done) {
     if (err) return callback(err);
@@ -141,19 +142,33 @@ exports.resolveTip = function (tip_id, user_id, callback) {
   });
 };
 
+
+
 exports.addDeposit = function (opts, callback) {
   pg.connect(function (err, client, done) {
+    if (err) return callback(err);
+
+    function error (err) {
+      done(err);
+      return callback(err);
+    }
+
+    var amount = Math.floor(opts.amount);
+
     client.query(
     ['INSERT INTO deposits (txid, address, amount)',
     'VALUES ($1, $2, $3)'].join('\n'),
-    [ opts.txid, opts.address, opts.amount ],
-    function (err, result) {
-      console.log('eeeeerrrrRRROOOOOOROROROROOROROOROROR', err)
+    [ opts.txid, opts.address, amount ],
+    function (err) {
       if (!err) {
-        updateBalance(opts.amount, opts.address);
+        return updateBalance(amount, opts.address);
+      }
+      else if (err.code === '23505') { // If it is a unique key violation (very normal)
+        done();
+        return callback(null);
       }
       else {
-        done();
+        return error(err);
       }
     });
 
@@ -164,14 +179,18 @@ exports.addDeposit = function (opts, callback) {
       'WHERE user_id = (',
         'SELECT user_id FROM addresses',
         'WHERE address = $2)'].join('\n'),
-      [amount, address],
-      function (err, result) {
+      [ amount, address ],
+      function (err) {
+        if (err) return error(err);
         done();
+        return callback(null);
       });
     }
 
   });
 };
+
+
 
 exports.auth = function (opts, callback) {
   pg.connect(function (err, client, done) {
