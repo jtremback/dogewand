@@ -258,29 +258,90 @@ exports.auth = function (opts, callback) {
 
 
 
-exports.mergeUsers = function (new_user, current_user, callback) {
-  pg.connect(function (err, client, done) {
-    if (err) return callback(err);
+// function dbTransaction (callback, hollaback) {
+//   pg.connect(function (err, client, done) {
+//     if (err) return callback(err);
 
-    function error (err) {
-      done(err);
-      return callback(err);
-    }
+//     var methods = {
+//       client: client,
+//       done: done
+//     };
 
-    client.query(
-    ['UPDATE accounts',
-    'SET user_id = $1',
-    'WHERE user_id = $2'].join('\n'),
-    [ new_user, current_user ],
-    function (err, result) {
-      if (err) return error(err);
-      done();
-      callback(result);
-    });
+//     methods.error = function (err) {
+//       client.query('ROLLBACK', function(error) {
+//         console.log('ROLLBACK');
+//         done(error || err);
+//         return callback(error || err);
+//       });
+//     };
 
-  });
-};
+//     methods.commit = function () {
+//       client.query(
+//         'COMMIT;',
+//       function (err) {
+//         if (err) return methods.error(err);
+//         done();
+//         return callback.apply(arguments);
+//       });
+//     };
 
+//     client.query(
+//       'BEGIN;',
+//     function (err) {
+//       if (err) return methods.error(err);
+//       hollaback(client, methods);
+//     });
+//   });
+// }
+
+
+// function dbQuery (callback, hollaback) {
+//   pg.connect(function (err, client, done) {
+//     if (err) return callback(err);
+
+//     var methods = {
+//       client: client,
+//       done: done
+//     };
+
+//     methods.error = function (err) {
+//       done(err);
+//       return callback(err);
+//     };
+
+//     hollaback(client, methods);
+//   });
+// }
+
+
+// exports.mergeUsers = function (new_user, current_user, callback) {
+//   dbTransaction(callback, function (client, methods) {
+
+//     client.query(
+//     ['UPDATE accounts',
+//     'SET user_id = $1',
+//     'WHERE user_id = $2',
+//     'RETURNING *'].join('\n'),
+//     [ new_user, current_user ],
+//     function (err) {
+//       if (err) return methods.error(err);
+//       updateAddresses();
+//     });
+
+//     function updateAddresses () {
+//       client.query(
+//       ['UPDATE addresses',
+//       'SET user_id = $1',
+//       'WHERE user_id = $2',
+//       'RETURNING *'].join('\n'),
+//       [ new_user, current_user ],
+//       function (err) {
+//         if (err) return methods.error(err);
+//         methods.commit();
+//       });
+//     }
+//   });
+// };
 
 
 exports.mergeUsers = function (new_user, current_user, callback) {
