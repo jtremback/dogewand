@@ -23,29 +23,32 @@ module.exports = function (passport, config) {
 
 
   function mergeOrAuth (req, opts, done) {
-    db.auth(opts, function (err, auth_user) {
+    db.auth(opts, function (err, user_id) {
       if (err) return done(err);
-      // Here, auth_user basically represents an account on the provider that the user has just clicked on.
-      // so 'mergeFrom' gets the account info from the clicked provider and merges into the currently signed in acct.
-      // user stays signed into current account
-      if (req.user && req.session.merge === 'from') {
-        db.mergeUsers(req.user, auth_user, function () {
-          if (err) return done(err);
-          done(err, req.user);
-        });
-      }
-      // mergeTo gets the acct. info from the currently signed in user and merges it into the clicked acct.
-      // user becomes signed into clicked acct. (Do we really want this?????)
-      if (req.user && req.session.merge === 'to') {
-        db.mergeUsers(auth_user, req.user, function () {
-          if (err) return done(err);
+      db.getUser(user_id, function (err, auth_user) {
+        if (err) return done(err);
+        // Here, auth_user basically represents an account on the provider that the user has just clicked on.
+        // so 'mergeFrom' gets the account info from the clicked provider and merges into the currently signed in acct.
+        // user stays signed into current account
+        if (req.user && req.session.merge === 'from') {
+          db.mergeUsers(req.user, auth_user, function () {
+            if (err) return done(err);
+            done(err, req.user);
+          });
+        }
+        // mergeTo gets the acct. info from the currently signed in user and merges it into the clicked acct.
+        // user becomes signed into clicked acct. (Do we really want this?????)
+        if (req.user && req.session.merge === 'to') {
+          db.mergeUsers(auth_user, req.user, function () {
+            if (err) return done(err);
+            done(err, auth_user);
+          });
+        }
+        // Just auth normally
+        else {
           done(err, auth_user);
-        });
-      }
-      // Just auth normally
-      else {
-        done(err, auth_user);
-      }
+        }
+      });
     });
   }
 

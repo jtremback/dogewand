@@ -1,10 +1,10 @@
 'use strict';
 
-var test = require('tape');
 var mongoose = require('mongoose');
-var async = require('async');
+var test = require('tape');
 var config = require('../config/config')('test');
 var rpc = require('../app/rpc')(config.rpc);
+var async = require('async');
 var utility = require('../test-utility');
 require('../app/models/user.js');
 require('../app/models/tip.js');

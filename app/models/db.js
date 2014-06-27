@@ -1,73 +1,49 @@
 'use strict';
 
-var pg = require('pg');
-var fs = require('fs');
 var config = require('../config/config')();
-
-pg.defaults.database = 'dogewand';
-
-pg.connect(function (err, client, done) {
-  client.query(fs.readFileSync(config.root + '/app/functions.sql'), function (err) {
-    done(err);
-  });
-});
+var pg = require('pg');
+var pgutils = require('pg-utils')(config.db);
+var fs = require('fs');
+var rpc = require('../app/rpc')(config.rpc);
 
 
-
-function dbTransaction (callback, hollaback) {
-  pg.connect(function (err, client, done) {
-    if (err) return callback(err);
-
-    var methods = {
-      client: client,
-      done: done
-    };
-
-    methods.error = function (err) {
-      client.query('ROLLBACK', function(error) {
-        console.log('ROLLBACK');
-        done(error || err);
-        return callback(error || err);
-      });
-    };
-
-    methods.commit = function () {
-      client.query(
-        'COMMIT;',
-      function (err) {
-        if (err) return methods.error(err);
-        done();
-        return callback.apply(arguments);
-      });
-    };
-
-    client.query(
-      'BEGIN;',
-    function (err) {
-      if (err) return methods.error(err);
-      hollaback(client, methods);
+exports.loadFunctions = function (db) {
+  pg.connect(config.db, function (err, client, done) {
+    client.query(fs.readFileSync(config.root + './functions.sql'), function (err) {
+      done(err);
     });
   });
-}
+};
 
 
-function dbQuery (callback, hollaback) {
-  pg.connect(function (err, client, done) {
-    if (err) return callback(err);
 
-    var methods = {
-      client: client,
-      done: done
-    };
+exports.getUser = function (user_id, callback) {
+  dbQuery(callback, function (client, methods) {
+    client.query(
+      ['SELECT * FROM users',
+      'INNER JOIN accounts ON accounts.user_id = users.user_id',
+      'WHERE users.user_id = $1'].join('\n'),
+      [ user_id ],
+    function (err, result) {
+      if (err) return methods.error(err);
+      var user = {
+        user_id: result.rows[0].user_id,
+        balance: result.rows[0].balance
+      };
 
-    methods.error = function (err) {
-      done(err);
-      return callback(err);
-    };
+      var accounts = result.rows.map(function (item) {
+        item.user_id = undefined;
+        item.balance = undefined;
+        return item;
+      });
 
-    hollaback(client, methods);
+      user.accounts = accounts;
+
+      methods.done();
+      callback(null, user);
+    });
   });
-}
+};
 
 
 // Need to have same provider as
@@ -150,9 +126,9 @@ exports.addDeposit = function (opts, callback) {
     var amount = Math.floor(opts.amount);
 
     client.query(
-    ['INSERT INTO deposits (txid, address, amount)',
-    'VALUES ($1, $2, $3)'].join('\n'),
-    [ opts.txid, opts.address, amount ],
+      ['INSERT INTO deposits (txid, address, amount)',
+      'VALUES ($1, $2, $3)'].join('\n'),
+      [ opts.txid, opts.address, amount ],
     function (err) {
       if (!err) {
         return updateBalance(amount, opts.address);
@@ -167,12 +143,12 @@ exports.addDeposit = function (opts, callback) {
 
     function updateBalance (amount, address) {
       client.query(
-      ['UPDATE users',
-      'SET balance = balance + $1',
-      'WHERE user_id = (',
-        'SELECT user_id FROM addresses',
-        'WHERE address = $2)'].join('\n'),
-      [ amount, address ],
+        ['UPDATE users',
+        'SET balance = balance + $1',
+        'WHERE user_id = (',
+          'SELECT user_id FROM user_addresses',
+          'WHERE address = $2)'].join('\n'),
+        [ amount, address ],
       function (err) {
         if (err) return methods.error(err);
         return methods.commit(null);
@@ -183,15 +159,57 @@ exports.addDeposit = function (opts, callback) {
 };
 
 
+exports.withdraw = function (user_id, opts, callback) {
+  dbTransaction(callback, function (client, methods) {
+
+    var ret;
+
+    client.query(
+      ['UPDATE users',
+      'SET balance = balance - $2',
+      'WHERE user_id = $1',
+      'RETURNING balance'].join('\n'),
+      [ user_id, opts.amount ],
+    function (err, result) {
+      if (err) return methods.error(err);
+      ret.balance = result.rows[0].balance;
+      return sendFunds();
+    });
+
+    function sendFunds () {
+      rpc({
+        method: 'send',
+        params: [ opts.address, opts.amount ]
+      }, function (err, result) {
+        if (err) return methods.error(err);
+        return insertWithdrawal(result);
+      });
+    }
+
+    function insertWithdrawal (txid) {
+      client.query(
+        ['INSERT INTO withdrawals (txid, amount, user_id)',
+        'VALUES ($1, $2, $3)'].join('\n'),
+        [ txid, user_id, opts.amount ],
+      function (err, result) {
+        if (err) return methods.error(err);
+        ret.withdrawal = result.rows;
+        return methods.commit(ret);
+      });
+    }
+
+
+  });
+};
+
 
 exports.auth = function (opts, callback) {
   dbTransaction(callback, function (client, methods) {
 
     client.query(
-    // We get the account, if it does not exist, we make it, we overwrite the display_name
-    ['SELECT * FROM accountinsertorupdate($1, $2, $3)',
-    'AS (account_id int, user_id int, uniqid text, provider text, display_name text)'].join('\n'),
-    [ opts.uniqid, opts.provider, opts.display_name ],
+      ['SELECT * FROM accountinsertorupdate($1, $2, $3)',
+      'AS (account_id int, user_id int, uniqid text, provider text, display_name text)'].join('\n'),
+      [ opts.uniqid, opts.provider, opts.display_name ],
     function (err, result) {
       if (err) return methods.error(err);
       var row = result.rows[0];
@@ -201,74 +219,73 @@ exports.auth = function (opts, callback) {
 
     function insertUser (account_id) {
       client.query(
-      ['WITH u AS (',
-        'INSERT INTO users (balance)',
-        'VALUES (0)',
-        'RETURNING user_id)',
-      'UPDATE accounts',
-      'SET user_id = (SELECT user_id FROM u)',
-      'WHERE account_id = $1',
-      'RETURNING user_id'].join('\n'),
-      [ account_id ],
+        ['WITH u AS (',
+          'INSERT INTO users (balance)',
+          'VALUES (0)',
+          'RETURNING user_id)',
+        'UPDATE accounts',
+        'SET user_id = (SELECT user_id FROM u)',
+        'WHERE account_id = $1',
+        'RETURNING user_id'].join('\n'),
+        [ account_id ],
       function (err, result) {
         if (err) return methods.error(err);
         var row = result.rows[0];
-        return joinAccounts(row.user_id);
-      });
-    }
-
-    function joinAccounts (user_id) {
-      client.query(
-      ['SELECT * FROM users',
-      'INNER JOIN accounts ON accounts.user_id = users.user_id',
-      'WHERE users.user_id=$1;'].join('\n'),
-      [ user_id ],
-      function (err, result) {
-        if (err) return methods.error(err);
-
-        var user = {
-          user_id: result.rows[0].user_id,
-          balance: result.rows[0].balance
-        };
-
-        var accounts = result.rows.map(function (item) {
-          item.user_id = undefined;
-          item.balance = undefined;
-          return item;
-        });
-
-        user.accounts = accounts;
-        return methods.commit(null, user);
+        return methods.commit(null, row.user_id);
       });
     }
   });
 };
 
 
-exports.mergeUsers = function (update_to, where_user, callback) {
+exports.mergeUsers = function (new_user, old_user, callback) {
   dbTransaction(callback, function (client, methods) {
 
     client.query(
-    ['UPDATE accounts',
-    'SET user_id = $1',
-    'WHERE user_id = $2',
-    'RETURNING *'].join('\n'),
-    [ update_to, where_user ],
+      ['UPDATE users',
+      'SET balance = balance + (',
+        'SELECT balance FROM users',
+        'WHERE user_id = $2)',
+      'WHERE user_id = $1',
+      'RETURNING *'].join('\n'),
+      [ new_user, old_user ],
     function (err) {
       if (err) return methods.error(err);
-      updateAddresses();
+      return updateAccounts();
     });
+
+    function updateAccounts () {
+      client.query(
+        ['UPDATE accounts',
+        'SET user_id = $1',
+        'WHERE user_id = $2'].join('\n'),
+        [ new_user, old_user ],
+      function (err) {
+        if (err) return methods.error(err);
+        return updateAddresses();
+      });
+    }
 
     function updateAddresses () {
       client.query(
-      ['UPDATE addresses',
-      'SET user_id = $1',
-      'WHERE user_id = $2',
-      'RETURNING *'].join('\n'),
-      [ update_to, where_user ],
+        ['UPDATE user_addresses',
+        'SET user_id = $1',
+        'WHERE user_id = $2'].join('\n'),
+        [ new_user, old_user ],
       function (err) {
         if (err) return methods.error(err);
-        methods.commit();
+        return deleteUser();
+      });
+    }
+
+    function deleteUser () {
+      client.query(
+        ['DELETE FROM users',
+        'WHERE user_id = $1'].join('\n'),
+        [ old_user ],
+      function (err) {
+        if (err) return methods.error(err);
+        return methods.commit(null);
       });
     }
   });

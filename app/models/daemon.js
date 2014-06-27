@@ -1,8 +1,8 @@
 'use strict';
 
-var db = require('./app/db.js');
-var config = require('./config/config')();
-var rpc = require('./app/rpc.js')(config.rpc);
+var db = require('./db.js');
+var config = require('../../config/config')();
+var rpc = require('./rpc.js')(config.rpc);
 
 function asyncTimeout (fn, timeout) {
   setTimeout(fn, timeout);
