@@ -4,6 +4,7 @@ CREATE TABLE users (
   user_id serial PRIMARY KEY,
   balance bigint NOT NULL DEFAULT 0 CHECK (balance >= 0)
 );
+
 CREATE TABLE accounts (
   account_id serial PRIMARY KEY,
   user_id int REFERENCES users,

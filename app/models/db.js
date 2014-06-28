@@ -1,61 +1,61 @@
 'use strict';
 
-var config = require('../config/config')();
+var config = require('../../config/config')();
+var pgutils = require('./pg-utils')(config.db);
+var rpc = require('./rpc')(config.rpc);
 var pg = require('pg');
-var pgutils = require('pg-utils')(config.db);
 var fs = require('fs');
-var rpc = require('../app/rpc')(config.rpc);
 
 
-exports.loadFunctions = function (db) {
+exports.loadFunctions = function () {
   pg.connect(config.db, function (err, client, done) {
-    client.query(fs.readFileSync(config.root + './functions.sql'), function (err) {
+    client.query(fs.readFileSync(config.root + 'app/models/functions.sql'), function (err) {
       done(err);
     });
   });
 };
 
 
-
 exports.getUser = function (user_id, callback) {
-  dbQuery(callback, function (client, methods) {
+  pgutils.query(function (client, done) {
+    console.log('getuser');
     client.query(
       ['SELECT * FROM users',
       'INNER JOIN accounts ON accounts.user_id = users.user_id',
       'WHERE users.user_id = $1'].join('\n'),
       [ user_id ],
     function (err, result) {
-      if (err) return methods.error(err);
+      if (err) return done(err);
+
       var user = {
         user_id: result.rows[0].user_id,
-        balance: result.rows[0].balance
+        balance: parseInt(result.rows[0].balance, 10)
       };
 
       var accounts = result.rows.map(function (item) {
-        item.user_id = undefined;
-        item.balance = undefined;
+        delete item.user_id;
+        delete item.balance;
         return item;
       });
 
       user.accounts = accounts;
 
-      methods.done();
-      callback(null, user);
+      done(null, user);
     });
-  });
+  }, callback);
 };
 
 
 // Need to have same provider as
 exports.createTip = function (user_id, account_id, opts, callback) {
-  dbTransaction(callback, function (client, methods) {
+  pgutils.transaction(function (client, done) {
 
     client.query(
       ['SELECT * FROM accountInsertOrSelect($1, $2, $3)',
       'AS (account_id int, user_id int, uniqid text, provider text, display_name text)'].join('\n'),
       [ opts.uniqid, opts.provider, opts.display_name ],
     function (err, result) {
-      if (err) return methods.error(err);
+      if (err) return done(err);
       insertTip(result.rows[0].account_id);
     });
 
@@ -66,7 +66,7 @@ exports.createTip = function (user_id, account_id, opts, callback) {
         'RETURNING *;'].join('\n'),
         [ account_id, tippee_id, opts.amount ],
       function (err, result) {
-        if (err) return methods.error(err);
+        if (err) return done(err);
         updateBalance(result.rows[0].tip_id);
       });
     }
@@ -76,17 +76,17 @@ exports.createTip = function (user_id, account_id, opts, callback) {
         'UPDATE users SET balance = balance - $1 WHERE user_id = $2 RETURNING *',
         [ opts.amount, user_id ],
       function (err, result) {
-        if (err) return methods.error(err);
-        methods.commit(null, result.rows[0].balance, tip_id);
+        if (err) return done(err);
+        done(null, result.rows[0].balance, tip_id);
       });
     }
-  });
+  }, callback);
 };
 
 
 
 exports.resolveTip = function (tip_id, user_id, callback) {
-  dbTransaction(callback, function (client, methods) {
+  pgutils.transaction(function (client, done) {
 
     client.query(
       ['UPDATE tips t',
@@ -98,8 +98,8 @@ exports.resolveTip = function (tip_id, user_id, callback) {
       'RETURNING *;'].join('\n'),
       [ user_id, tip_id ],
     function (err, result) {
-      if (err) return methods.error(err);
-      if (!result.rowCount) return methods.error(new Error('Resolve Error'));
+      if (err) return done(err);
+      if (!result.rowCount) return done(new Error('Resolve Error'));
       updateBalance(result.rows[0].amount);
     });
 
@@ -111,17 +111,17 @@ exports.resolveTip = function (tip_id, user_id, callback) {
         'RETURNING balance;'].join('\n'),
         [ amount, user_id ],
       function (err, result) {
-        if (err) return methods.error(err);
-        return methods.commit(null, result.rows[0]);
+        if (err) return done(err);
+        return done(null, result.rows[0]);
       });
     }
-  });
+  }, callback);
 };
 
 
 
 exports.addDeposit = function (opts, callback) {
-  dbTransaction(callback, function (client, methods) {
+  pgutils.transaction(function (client, done) {
 
     var amount = Math.floor(opts.amount);
 
@@ -134,10 +134,10 @@ exports.addDeposit = function (opts, callback) {
         return updateBalance(amount, opts.address);
       }
       else if (err.code === '23505') { // If it is a unique key violation (very normal)
-        methods.commit(null);
+        done(null);
       }
       else {
-        return methods.error(err);
+        return done(err);
       }
     });
 
@@ -150,17 +150,16 @@ exports.addDeposit = function (opts, callback) {
           'WHERE address = $2)'].join('\n'),
         [ amount, address ],
       function (err) {
-        if (err) return methods.error(err);
-        return methods.commit(null);
+        if (err) return done(err);
+        return done(null);
       });
     }
-
-  });
+  }, callback);
 };
 
 
 exports.withdraw = function (user_id, opts, callback) {
-  dbTransaction(callback, function (client, methods) {
+  pgutils.transaction(function (client, done) {
 
     var ret;
 
@@ -171,7 +170,7 @@ exports.withdraw = function (user_id, opts, callback) {
       'RETURNING balance'].join('\n'),
       [ user_id, opts.amount ],
     function (err, result) {
-      if (err) return methods.error(err);
+      if (err) return done(err);
       ret.balance = result.rows[0].balance;
       return sendFunds();
     });
@@ -181,7 +180,7 @@ exports.withdraw = function (user_id, opts, callback) {
         method: 'send',
         params: [ opts.address, opts.amount ]
       }, function (err, result) {
-        if (err) return methods.error(err);
+        if (err) return done(err);
         return insertWithdrawal(result);
       });
     }
@@ -192,29 +191,27 @@ exports.withdraw = function (user_id, opts, callback) {
         'VALUES ($1, $2, $3)'].join('\n'),
         [ txid, user_id, opts.amount ],
       function (err, result) {
-        if (err) return methods.error(err);
+        if (err) return done(err);
         ret.withdrawal = result.rows;
-        return methods.commit(ret);
+        return done(ret);
       });
     }
-
-
-  });
+  }, callback);
 };
 
 
 exports.auth = function (opts, callback) {
-  dbTransaction(callback, function (client, methods) {
+  pgutils.transaction(function (client, done) {
 
     client.query(
       ['SELECT * FROM accountinsertorupdate($1, $2, $3)',
       'AS (account_id int, user_id int, uniqid text, provider text, display_name text)'].join('\n'),
       [ opts.uniqid, opts.provider, opts.display_name ],
     function (err, result) {
-      if (err) return methods.error(err);
+      if (err) return done(err);
       var row = result.rows[0];
       if (!row.user_id) return insertUser(row.account_id); // If the account does not have a user make one
-      return joinAccounts(row.user_id);
+      return done(null, row.user_id);
     });
 
     function insertUser (account_id) {
@@ -229,17 +226,17 @@ exports.auth = function (opts, callback) {
         'RETURNING user_id'].join('\n'),
         [ account_id ],
       function (err, result) {
-        if (err) return methods.error(err);
+        if (err) return done(err);
         var row = result.rows[0];
-        return methods.commit(null, row.user_id);
+        return done(null, row.user_id);
       });
     }
-  });
+  }, callback);
 };
 
 
 exports.mergeUsers = function (new_user, old_user, callback) {
-  dbTransaction(callback, function (client, methods) {
+  pgutils.transaction(function (client, done) {
 
     client.query(
       ['UPDATE users',
@@ -250,7 +247,7 @@ exports.mergeUsers = function (new_user, old_user, callback) {
       'RETURNING *'].join('\n'),
       [ new_user, old_user ],
     function (err) {
-      if (err) return methods.error(err);
+      if (err) return done(err);
       return updateAccounts();
     });
 
@@ -261,7 +258,7 @@ exports.mergeUsers = function (new_user, old_user, callback) {
         'WHERE user_id = $2'].join('\n'),
         [ new_user, old_user ],
       function (err) {
-        if (err) return methods.error(err);
+        if (err) return done(err);
         return updateAddresses();
       });
     }
@@ -273,7 +270,7 @@ exports.mergeUsers = function (new_user, old_user, callback) {
         'WHERE user_id = $2'].join('\n'),
         [ new_user, old_user ],
       function (err) {
-        if (err) return methods.error(err);
+        if (err) return done(err);
         return deleteUser();
       });
     }
@@ -284,9 +281,9 @@ exports.mergeUsers = function (new_user, old_user, callback) {
         'WHERE user_id = $1'].join('\n'),
         [ old_user ],
       function (err) {
-        if (err) return methods.error(err);
-        return methods.commit(null);
+        if (err) return done(err);
+        return done(null);
       });
     }
-  });
+  }, callback);
 };

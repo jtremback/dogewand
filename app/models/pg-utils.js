@@ -3,59 +3,51 @@
 var pg = require('pg');
 
 module.exports = function (connection_string) {
-  var ret;
+  var ret = {};
 
-  ret.dbTransaction = function (callback, hollaback) {
+  ret.transaction = function (callback, hollaback) {
     pg.connect(connection_string, function (err, client, done) {
-      if (err) return callback(err);
+      if (err) return hollaback(err);
 
-      var methods = {
-        done: done
-      };
-
-      methods.error = function (err) {
+      function rollback (err) {
         client.query('ROLLBACK', function(error) {
-          console.log('ROLLBACK');
           done(error || err);
-          return callback(error || err);
+          return hollaback(error || err);
         });
-      };
+      }
 
-      methods.commit = function () {
+      var augmentedDone = function (err) {
+        if (err) return rollback(err);
         client.query(
           'COMMIT;',
         function (err) {
-          if (err) return methods.error(err);
+          if (err) return rollback(err);
           done();
-          return callback.apply(arguments);
+          return hollaback.apply(this, arguments);
         });
       };
 
       client.query(
         'BEGIN;',
       function (err) {
-        if (err) return methods.error(err);
-        hollaback(client, methods);
+        if (err) return augmentedDone(err);
+        callback(client, augmentedDone);
       });
     });
   };
 
-  ret.dbQuery = function (callback, hollaback) {
+  ret.query = function (callback, hollaback) {
     pg.connect(connection_string, function (err, client, done) {
-      if (err) return callback(err);
+      if (err) return hollaback(err);
 
-      var methods = {
-        done: done
-      };
-
-      methods.error = function (err) {
+      var augmentedDone = function (err) {
         done(err);
-        return callback(err);
+        return hollaback.apply(this, arguments);
       };
 
-      hollaback(client, methods);
+      callback(client, augmentedDone);
     });
   };
 
   return ret;
-}
+};
