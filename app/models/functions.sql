@@ -1,5 +1,4 @@
-drop function if exists accountInsertOrSelect (text, text, text);
--- uniqid, provider, name
+DROP FUNCTION IF EXISTS accountInsertOrSelect (text, text, text);
 CREATE FUNCTION accountInsertOrSelect (text, text, text)
 RETURNS RECORD
 AS $$
@@ -24,8 +23,7 @@ END
 $$ LANGUAGE plpgsql;
 
 
-drop function if exists accountInsertOrUpdate (text, text, text);
--- uniqid, provider, name
+DROP FUNCTION IF EXISTS accountInsertOrUpdate (text, text, text);
 CREATE FUNCTION accountInsertOrUpdate (text, text, text)
 RETURNS RECORD
 AS $$

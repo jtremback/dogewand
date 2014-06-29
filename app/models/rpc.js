@@ -10,8 +10,12 @@ var request = require('request');
 // }s
 
 module.exports = function(config) { // Saves config in scope
-  return function (opts, callback) {
-    var opts_str = JSON.stringify(opts);
+  return function (method, params, callback) {
+    var opts_str = JSON.stringify({
+      method: method,
+      params: params
+    });
+
     var url = 'http://' +
         config.rpcuser + ':' +
         config.rpcpassword + '@' +
