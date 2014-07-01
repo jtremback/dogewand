@@ -9,14 +9,13 @@ module.exports = function (passport, config) {
 
   // serialize sessions
   passport.serializeUser(function(user, done) {
-    console.log('serializeuser', user)
-    done(null, user.user_id);
+    return done(null, user.user_id);
   });
 
   passport.deserializeUser(function(id, done) {
-    console.log('deserializeuser', id)
     db.getUser(id, function (err, user) {
-      done(err, user);
+    console.log('err, user ' , err, user);
+      return done(err, user);
     });
   });
 
@@ -25,27 +24,28 @@ module.exports = function (passport, config) {
     db.auth(opts, function (err, user_id) {
       if (err) return done(err);
       db.getUser(user_id, function (err, auth_user) {
+      console.log('err, auth_user ' , err, auth_user);
         if (err) return done(err);
         // Here, auth_user basically represents an account on the provider that the user has just clicked on.
         // so 'mergeFrom' gets the account info from the clicked provider and merges into the currently signed in acct.
         // user stays signed into current account
         if (req.user && req.session.merge === 'from') {
-          db.mergeUsers(req.user, auth_user, function () {
+          db.mergeUsers(req.user.user_id, auth_user.user_id, function () {
             if (err) return done(err);
-            done(err, req.user);
+            return done(err, req.user);
           });
         }
         // mergeTo gets the acct. info from the currently signed in user and merges it into the clicked acct.
         // user becomes signed into clicked acct. (Do we really want this?????)
         if (req.user && req.session.merge === 'to') {
-          db.mergeUsers(auth_user, req.user, function () {
+          db.mergeUsers(auth_user.user_id, req.user.user_id, function () {
             if (err) return done(err);
-            done(err, auth_user);
+            return done(err, auth_user);
           });
         }
         // Just auth normally
         else {
-          done(err, auth_user);
+          return done(err, auth_user);
         }
       });
     });
@@ -79,7 +79,7 @@ module.exports = function (passport, config) {
       console.log('PROFILE', JSON.stringify(profile));
       mergeOrAuth(req, {
         provider: 'Youtube',
-        name: profile._json.items[0].snippet.title,
+        display_name: profile._json.items[0].snippet.title,
         uniqid: profile._json.items[0].id
       }, done);
     }
