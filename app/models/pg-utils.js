@@ -10,6 +10,7 @@ module.exports = function (connection_string) {
       if (err) return callback(err);
 
       function rollback (err) {
+        console.log(err, callback);
         client.query('ROLLBACK', function(error) {
           done(error || err);
           return callback(error || err);

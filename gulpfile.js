@@ -90,9 +90,9 @@ gulp.task('iframe-styles', function () {
 });
 
 gulp.task('iframe-js', function () {
-  return gulp.src(['assets/js/iframe/vendor/vue.0.10.4.js', 'assets/js/iframe/app.js'])
-    .pipe(gulpTemplate({url: config.url, version: config.bookmarklet_version})) // Add magic numbers like url etc.
+  return gulp.src(['assets/js/iframe/vendor/lodash.custom.js', 'assets/js/iframe/vendor/vue.0.10.4.js', 'assets/js/iframe/app.js'])
     .pipe(gulpConcat('iframe.js'))
+    // .pipe(gulpTemplate({url: config.url, version: config.bookmarklet_version})) // Add magic numbers like url etc.
     .pipe(gulp.dest('public'))
     .pipe(gulpNotify({ message: 'iframe-js task complete' }));
 });
@@ -101,7 +101,7 @@ gulp.task('iframe-js', function () {
 gulp.task('watch', function () {
   // gulp.watch('assets/templates/iframe/**', ['iframe-html']);
   gulp.watch('assets/less/**', ['iframe-styles', 'loader-styles']);
-  gulp.watch('assets/js/**', ['iframe-js', 'loader-js']);
+  gulp.watch('assets/js/**', ['iframe-js'/*, 'loader-js'*/]);
   gulp.watch('assets/images/**', ['iframe-images']);
 
   gulp.watch('incremental/loader/**', ['loader-incremental']);
@@ -112,7 +112,7 @@ gulp.task('build', [
   'iframe-js',
   // 'iframe-html',
   'iframe-styles',
-  'iframe-images',
+  // 'iframe-images',
   'loader-styles',
   'loader-js'
 ]);

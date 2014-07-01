@@ -1,14 +1,16 @@
 'use strict';
 
 var postgrator = require('postgrator');
+var config = require('../config/config')();
 
 postgrator.config.set({
-  migrationDirectory: '.',
+  migrationDirectory: './',
   driver: 'pg',
-  connectionString: 'pg://jehan@localhost:5432/dogewand-test'
+  connectionString: config.db
 });
 
-postgrator.migrate('001', function (err, migrations) {
+postgrator.migrate(process.argv[2], function (err, migrations) {
   if (err) console.log(err);
-  else console.log(migrations);
+  if (migrations) console.log(migrations);
+  process.exit();
 });

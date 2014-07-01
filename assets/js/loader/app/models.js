@@ -1,6 +1,6 @@
 'use strict';
 
-/*global $*/
+/*global $, iframe, app, riot, VERSION, PROVIDER*/
 
 function App () {
   var self = riot.observable(this);
@@ -17,7 +17,7 @@ function App () {
       method: 'create_tip',
       data: {
         uniqid: user_info.uniqid,
-        name: user_info.name,
+        display_name: user_info.display_name,
         provider: PROVIDER
       }
     }), URL);

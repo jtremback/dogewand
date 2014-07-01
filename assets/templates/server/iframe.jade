@@ -65,7 +65,7 @@ html(lang="en")
     script#confirm-tip-modal(type="x-template")
       bs-modal
         .modal-body
-          p You gave {{tippee.name}} on {{tippee.provider}}
+          p You gave {{tippee.display_name}} on {{tippee.provider}}
           p {{amount}} dogecoins
           p They can redeem their dogecoins here:
           p
@@ -80,7 +80,7 @@ html(lang="en")
     script#create-tip-modal(type="x-template")
       bs-modal
         .modal-body
-          p Give <span class="accent-text">{{name}}</span> on <span class="accent-text">{{provider}}</span>
+          p Give <span class="accent-text">{{display_name}}</span> on <span class="accent-text">{{provider}}</span>
           p
             input.form-control.inline-control(type="number" v-model="amount" placeholder="so many")
             | &nbsp;dogecoins

@@ -1,9 +1,6 @@
 'use strict';
 
-var mongoose = require('mongoose');
 var config = require('../../config/config')();
-var logic = require('./logic.js');
-var Tip = mongoose.model('Tip');
 var _ = require('lodash');
 
 exports.tip = function (req, res, next) {

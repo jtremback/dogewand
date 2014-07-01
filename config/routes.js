@@ -14,8 +14,6 @@ module.exports = function (app, passport) {
 
   app.get('/api/v1/user/address', ensureAuthenticated, api.address);
 
-  app.get('/api/v1/user/balance', ensureAuthenticated, api.updateBalance);
-
   app.post('/api/v1/user/withdraw', ensureAuthenticated, api.withdraw);
 
   app.get('/tips/:tip', pages.tip);
@@ -62,8 +60,6 @@ module.exports = function (app, passport) {
     req.logout();
     res.redirect('/');
   });
-
-
 };
 
 function ensureAuthenticated(req, res, next) {

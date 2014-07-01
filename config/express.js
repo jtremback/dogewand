@@ -5,18 +5,24 @@
  */
 
 var express = require('express');
-var connectMongo = require('connect-mongo')(express);
-// var flash = require('connect-flash');
+var pg = require('pg');
+var session = require('express-session');
+var pgSession = require('connect-pg-simple')(session);
+var morgan = require('morgan');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+var methodOverride = require('express-method-override');
+var csrf = require('csurf');
+
 
 
 module.exports = function (app, config, passport) {
 
   app.set('showStackError', true);
 
-  app.use(express.favicon());
   app.use(express.static('./public'));
 
-  app.use(express.logger()); // LOGGING
+  app.use(morgan('dev')); // LOGGING
 
   // set views path, template engine and default layout
   app.set('views', config.root + '/assets/templates/server');
@@ -24,25 +30,20 @@ module.exports = function (app, config, passport) {
   app.disable('view cache');
 
   // cookieParser should be above session
-  app.use(express.cookieParser());
+  app.use(cookieParser());
 
   // bodyParser should be above methodOverride
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({extended: false}));
 
 
-  app.use(express.session({
+  app.use(session({
+    store: new pgSession({
+      pg: pg,
+      conString: config.db
+    }),
     secret: config.sessionSecret,
-    cookie: {
-      httpOnly: true,
-      secure: true
-    },
-    store: new connectMongo({
-      url: config.db,
-      collection : 'sessions'
-    }, function () {
-      console.log('db connection open'); // Is neccesary to avoid weird bug. (don't ask me why)
-    })
+    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
   }));
 
 
@@ -51,17 +52,16 @@ module.exports = function (app, config, passport) {
   app.use(passport.session());
 
   // adds CSRF support
-  app.use(express.csrf());
+  // app.use(csrf());
 
-  app.use(function(req, res, next) {
-    console.log(req.csrfToken())
-    res.cookie('CSRF-TOKEN', req.csrfToken());
-    next();
-  });
+  // app.use(function(req, res, next) {
+  //   console.log(req.csrfToken())
+  //   res.cookie('CSRF-TOKEN', req.csrfToken());
+  //   next();
+  // });
 
-
-  // routes should be at the last
-  app.use(app.router);
+  // Bootstrap routes
+  require('./routes')(app, passport);
 
   // error
   app.use(function(err, req, res, next) {

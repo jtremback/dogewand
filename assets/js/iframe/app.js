@@ -1,9 +1,9 @@
 'use strict';
 
-/*global Vue*/
+/*global Vue, _*/
 
 var PROVIDER_ORIGIN = 'https://www.facebook.com'; // Will need to use postMessage here instead.
-var VERSION = '<%= version %>';
+var VERSION = '1';
 var app;
 
 
@@ -28,6 +28,7 @@ function http (method, url, data, callback) {
   request.setRequestHeader('X-CSRF-Token', csrf_cookie);
   request.setRequestHeader('Content-Type', 'application/json');
   request.send(JSON.stringify(data));
+  console.log('http request', JSON.stringify(data))
 }
 
 function modalErrorHandler (err, response) {
@@ -35,10 +36,7 @@ function modalErrorHandler (err, response) {
     app.currentModal = 'login-modal';
   }
   else {
-    app.currentModal = 'error-modal';
-    Vue.nextTick(function () {
-      app.$.modal.$data.message = response.data;
-    });
+    app.setCurrentModal('error-modal', response.data);
   }
 }
 
@@ -59,13 +57,7 @@ function messageListener () {
           }
           break;
         case 'create_tip':
-          app.currentModal = 'create-tip-modal';
-          Vue.nextTick(function () {
-            app.$.modal.name = message.data.name;
-            app.$.modal.uniqid = message.data.uniqid;
-            app.$.modal.provider = message.data.provider;
-            app.$.modal.amount = '';
-          });
+          app.setCurrentModal('create-tip-modal', message.data);
           break;
       }
     }
@@ -112,8 +104,8 @@ Vue.component('bs-dropdown', {
   },
   ready: function () {
     var self = this;
-    self.$watch('show', function (bool) {
-      self.$dispatch('show', bool);
+    self.$watch('fullsize', function (bool) {
+      self.$dispatch('fullsize', bool);
     });
   }
 });
@@ -122,10 +114,10 @@ Vue.component('bs-modal', {
   template: '#bs-modal',
   replace: true,
   created: function () {
-    this.$dispatch('show', true);
+    this.$dispatch('fullsize', true);
   },
   afterDestroy: function () {
-    this.$dispatch('show', false);
+    this.$dispatch('fullsize', false);
   }
 });
 
@@ -158,8 +150,15 @@ Vue.component('confirm-tip-modal', {
   data: {
     tippee: '',
     amount: '',
-    id: '',
-    url: '<%= url %>'
+    tip_id: '',
+    url: 'https://localhost:3700'
+  },
+  methods: {
+    init: function (data) {
+      this.tippee = data.tip.tippee;
+      this.amount = data.tip.amount;
+      this.tip_id = data.tip_id;
+    }
   }
 });
 
@@ -168,6 +167,12 @@ Vue.component('confirm-withdraw-modal', {
   data: {
     amount: '',
     address: ''
+  },
+  methods: {
+    init: function (data) {
+      this.amount = data.amount;
+      this.address = data.address;
+    }
   }
 });
 
@@ -175,6 +180,11 @@ Vue.component('error-modal', {
   template: '#error-modal',
   data: {
     message: ''
+  },
+  methods: {
+    init: function (data) {
+      this.message = data;
+    }
   }
 });
 
@@ -186,15 +196,10 @@ Vue.component('withdraw-modal', {
   },
   methods: {
     submit: function () {
-      console.log(JSON.stringify(this.$data));
       http('POST', '/api/v1/user/withdraw', this.$data, function (err, response) {
         if (err) return modalErrorHandler(err, response);
         else {
-          app.currentModal = 'confirm-withdraw-modal';
-          Vue.nextTick(function () {
-            app.$.modal.$data.address = response.data.address;
-            app.$.modal.$data.amount = response.data.amount;
-          });
+          app.setCurrentModal('confirm-withdraw-modal', response.data);
         }
       });
     }
@@ -204,26 +209,28 @@ Vue.component('withdraw-modal', {
 Vue.component('create-tip-modal', {
   template: '#create-tip-modal',
   data: {
-    name: '',
+    display_name: '',
     uniqid: '',
     amount: '',
-    provider: ''
+    provider: '',
   },
   methods: {
     submit: function () {
-      http('POST', '/api/v1/tips/create', this.$data, function (err, response) {
+      var _data = this.$data;
+      _data.account_id = app.current_account.account_id;
+      http('POST', '/api/v1/tips/create', _data, function (err, response) {
         if (err) return modalErrorHandler(err, response);
         else {
-          app.user.balance = response.data.user.balance;
-
-          app.currentModal = 'confirm-tip-modal';
-          Vue.nextTick(function () {
-            app.$.modal.$data.tippee = response.data.tip.tippee;
-            app.$.modal.$data.amount = response.data.tip.amount;
-            app.$.modal.$data.id = response.data.tip._id;
-          });
+          app.user.balance = response.data.new_balance;
+          app.setCurrentModal('confirm-tip-modal', response.data);
         }
       });
+    },
+    init: function (data) {
+      this.display_name = data.display_name;
+      this.uniqid = data.uniqid;
+      this.provider = data.provider;
+      this.amount = '';
     }
   }
 });
@@ -235,6 +242,14 @@ var app = new Vue({
     dropdown: false,
     user: {}
   },
+  computed: {
+    current_account: {
+      // the getter should return the desired value
+      $get: function () {
+        return _.find(this.user.accounts, { provider: 'Facebook' });
+      }
+    }
+  },
   ready: function () {
     var self = this;
     messageListener();
@@ -244,12 +259,19 @@ var app = new Vue({
       self.resize();
     }, 500);
 
-    self.$on('show', function (bool) {
+    self.$on('fullsize', function (bool) {
       self.resize(bool);
       if (!bool) self.dropdown = false;
     });
   },
   methods: {
+    setCurrentModal: function (name, data) {
+      var self = this;
+      self.currentModal = name;
+      Vue.nextTick(function () {
+        self.$.modal.init(data);
+      });
+    },
     userInfo: function () {
       var self = this;
       http('GET', '/api/v1/user', null, function (err, response) {

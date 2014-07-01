@@ -1,7 +1,6 @@
 'use strict';
 
-var db = require('../db.js');
-var logic = require('./logic');
+var db = require('../models/db.js');
 
 function SuccessResponse (data) {
   return {
@@ -13,9 +12,8 @@ function SuccessResponse (data) {
 
 
 exports.address = function (req, res, next) {
-  req.user.getAddress(function (err, address) {
+  db.getAddress(req.user.user_id, function (err, address) {
     if (err) return next(err);
-
     res.json(new SuccessResponse(address));
   });
 };
@@ -29,41 +27,34 @@ exports.createTip = function (req, res, next) {
     uniqid: req.param('uniqid'),
     provider: req.param('provider'),
     display_name: req.param('display_name'),
-    amount: parseInt(req.param('amount'), 10) // Coerce to int
+    amount: Math.floor(req.param('amount')) // Coerce to int
   };
 
-  db.createTip(req.user.user_id, req.param('account_id'), opts, function (err, result) {
+  db.createTip(req.user.user_id, req.param('account_id'), opts, function (err, new_balance, tip_id) {
     if (err) return next(err);
-    res.json(new SuccessResponse(result));
+    res.json(new SuccessResponse({
+      new_balance: new_balance,
+      tip_id: tip_id
+    }));
   });
 };
 
 exports.resolveTip = function (req, res, next) {
-  db.resolveTip(req.param('tip_id'), req.user.user_id, function (err, result) {
+  db.resolveTip(req.param('tip_id'), req.user.user_id, function (err, new_balance) {
     if (err) return next(err);
 
-    return res.json(new SuccessResponse(result));
+    return res.json(new SuccessResponse(new_balance));
   });
 };
-// DLKmSAjmrB7f4udVu8GV1dgA4vbspFjMvo
-// exports.updateBalance = function (req, res, next) {
-//   req.user.updateBalance(function (err, user) {
-//     if (err) return next(err);
-//     res.json(new SuccessResponse({
-//       user: user
-//     }));
-//   });
-// };
 
 exports.withdraw = function (req, res, next) {
-  var amount = parseInt(req.param('amount'), 10);
-  logic.withdraw(req.user, req.param('address'), amount, function (err, user) {
+  db.withdraw(req.user, {
+    address: req.param('address'),
+    amount: Math.floor(req.param('amount'))
+  }, function (err, new_balance) {
     if (err) return next(err);
-
     return res.json(new SuccessResponse({
-      amount: amount,
-      user: user,
-      address: req.param('address')
+      new_balance: new_balance
     }));
   });
 };

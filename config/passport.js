@@ -1,22 +1,21 @@
 'use strict';
 
-var mongoose = require('mongoose');
 var FacebookStrategy = require('passport-facebook').Strategy;
 var LocalStrategy = require('passport-local').Strategy;
 var YoutubeV3Strategy = require('passport-youtube-v3').Strategy;
-var User = mongoose.model('User');
-var queue = require('../app/models/queue.js');
-var db = require('../app/db.js');
+var db = require('../app/models/db.js');
 
 module.exports = function (passport, config) {
 
   // serialize sessions
   passport.serializeUser(function(user, done) {
-    done(null, user.id);
+    console.log('serializeuser', user)
+    done(null, user.user_id);
   });
 
   passport.deserializeUser(function(id, done) {
-    User.findOne({ _id: id }, function (err, user) {
+    console.log('deserializeuser', id)
+    db.getUser(id, function (err, user) {
       done(err, user);
     });
   });

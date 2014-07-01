@@ -1,5 +1,7 @@
 'use strict';
 
+/*global $_ */
+
 var scrape_utils = {
 
   link_finders: {
@@ -24,10 +26,10 @@ var scrape_utils = {
   uniqid_finders: {
     Facebook: function (that) {
       var uniqid = that.getAttribute('data-hovercard').match(/id=(\d*).*$/)[1];
-      var name = that.textContent;
+      var display_name = that.textContent;
       return {
         uniqid: uniqid,
-        name: name
+        display_name: display_name
       };
     }
   }

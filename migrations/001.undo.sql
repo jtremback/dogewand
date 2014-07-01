@@ -1,3 +1,5 @@
+DROP TABLE "session"
+
 DROP TABLE withdrawals;
 
 DROP TABLE deposits;
