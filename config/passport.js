@@ -1,7 +1,7 @@
 'use strict';
 
 var FacebookStrategy = require('passport-facebook').Strategy;
-var LocalStrategy = require('passport-local').Strategy;
+var RedditStrategy = require('passport-reddit').Strategy;
 var YoutubeV3Strategy = require('passport-youtube-v3').Strategy;
 var db = require('../app/models/db.js');
 
@@ -24,7 +24,6 @@ module.exports = function (passport, config) {
     db.auth(opts, function (err, user_id) {
       if (err) return done(err);
       db.getUser(user_id, function (err, auth_user) {
-      console.log('err, auth_user ' , err, auth_user);
         if (err) return done(err);
         // Here, auth_user basically represents an account on the provider that the user has just clicked on.
         // so 'mergeFrom' gets the account info from the clicked provider and merges into the currently signed in acct.
@@ -76,7 +75,6 @@ module.exports = function (passport, config) {
     passReqToCallback: true
     },
     function (req, accessToken, refreshToken, profile, done) {
-      console.log('PROFILE', JSON.stringify(profile));
       mergeOrAuth(req, {
         provider: 'Youtube',
         display_name: profile._json.items[0].snippet.title,
@@ -87,21 +85,19 @@ module.exports = function (passport, config) {
 
 
 
-  // // use local strategy
-  // passport.use(new LocalStrategy(function(uniqid, password, done) {
-  //   User.upsert({
-  //     provider: 'dogewand',
-  //     uniqid: uniqid
-  //   }, function (err, user) {
-  //     if (err) { return done(err); }
-  //     user.authenticate(password, function(err, isMatch) {
-  //       if (err) return done(err);
-  //       if (isMatch) {
-  //         return done(null, user);
-  //       } else {
-  //         return done(null, false, { message: 'Invalid password' });
-  //       }
-  //     });
-  //   });
-  // }));
+  passport.use(new RedditStrategy({
+      clientID: config.reddit.clientID,
+      clientSecret: config.reddit.clientSecret,
+      callbackURL: config.url +  '/auth/reddit/callback',
+      passReqToCallback: true
+    },
+    function (req, accessToken, refreshToken, profile, done) {
+      console.log('PROFILE', JSON.stringify(profile));
+      mergeOrAuth(req, {
+        uniqid: profile.name,
+        provider: 'Reddit',
+        display_name: profile.name
+      }, done);
+    }
+  ));
 };

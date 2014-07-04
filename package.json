@@ -35,7 +35,8 @@
     "express-csrf": "^0.3.4",
     "morgan": "^1.1.1",
     "gulp-file-include": "^0.3.1",
-    "gulp-less": "^1.2.4"
+    "gulp-less": "^1.2.4",
+    "passport-reddit": "^0.2.4"
   },
   "devDependencies": {
     "gulp-concat": "^2.2.0",

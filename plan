@@ -1,7 +1,22 @@
 plan
 
+still to do:
+
+Check that tips work
+Withdraw in pages
+Get reddit scraping working right
+Get bookmarklet versioning working rights
+fix dropdown and modal issues
 
 
+
+
+
+DROP SCHEMA public CASCADE;,
+CREATE SCHEMA public;,
+GRANT ALL ON SCHEMA public TO jehan;,
+GRANT ALL ON SCHEMA public TO public;,
+COMMENT ON SCHEMA public IS 'standard public schema';
 
 
 -- populate with stuff

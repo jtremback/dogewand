@@ -6,7 +6,7 @@ exports.createTip = function (req, res, next) {
   var opts = {
     username: req.param('username'),
     provider: req.param('provider'),
-    amount: parseInt(req.body.amount, 10) // Coerce to int
+    amount: Math.floor(req.body.amount) // Coerce to int
   };
 
   logic.createTip(req.user, opts, function (err, tip, tipper, tippee) {
@@ -22,15 +22,12 @@ exports.createTip = function (req, res, next) {
 
 
 exports.resolveTip = function (req, res, next) {
-  var tip_id = req.tip_id;
-  var user = req.user;
-
-  logic.resolveTip(user, tip_id, function (err, tip, user) {
+  logic.resolveTip(req.user.user_id, req.tip_id, function (err, new_balance, tip_id) {
     if (err) return next(err);
 
     return res.render('pages/tip-resolved', {
-      tip: tip,
-      user: user
+      tip: tip_id,
+      new_balance: new_balance
     });
   });
 };

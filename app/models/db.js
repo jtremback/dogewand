@@ -10,7 +10,7 @@ exports.insertPgFunctions = function (callback) {
   pg.connect(config.db, function (err, client, done) {
     client.query(fs.readFileSync(config.root + '/app/models/functions.sql', 'utf8'), function (err, result) {
       done(err);
-      callback(err, result);
+      return callback(err, result);
     });
   });
 };
@@ -36,7 +36,7 @@ exports.getUser = function (user_id, callback) {
 
     user.accounts = accounts;
 
-    callback(null, user);
+    return callback(null, user);
   });
 };
 
@@ -49,7 +49,7 @@ exports.createTip = function (user_id, account_id, opts, callback) {
       'AS (account_id int, user_id int, uniqid text, provider text, display_name text)'
     ].join('\n'), [ opts.uniqid, opts.provider, opts.display_name ], function (err, result) {
       if (err || !result.rows[0]) return callback(err, null);
-      insertTip(result.rows[0].account_id);
+      return insertTip(result.rows[0].account_id);
     });
 
     function insertTip (tippee_id) {
@@ -59,7 +59,7 @@ exports.createTip = function (user_id, account_id, opts, callback) {
         'RETURNING *;'
       ].join('\n'), [ account_id, tippee_id, opts.amount ], function (err, result) {
         if (err || !result.rows[0]) return callback(err, null);
-        updateBalance(result.rows[0].tip_id);
+        return updateBalance(result.rows[0].tip_id);
       });
     }
 
@@ -69,15 +69,14 @@ exports.createTip = function (user_id, account_id, opts, callback) {
         'WHERE user_id = $2 RETURNING *'
       ].join('\n'), [ opts.amount, user_id ], function (err, result) {
         if (err || !result.rows[0]) return callback(err, null);
-        done(null, parseInt(result.rows[0].balance, 10), tip_id);
+        return done(null, parseInt(result.rows[0].balance, 10), tip_id);
       });
     }
   }, callback);
 };
 
 
-
-exports.resolveTip = function (tip_id, user_id, callback) {
+exports.resolveTip = function (user_id, tip_id, callback) {
   pgutils.transaction(function (client, done) {
     client.query([
       'UPDATE tips t',
@@ -109,24 +108,61 @@ exports.resolveTip = function (tip_id, user_id, callback) {
 };
 
 
+exports.getTip = function (tip_id, callback) {
+  pgutils.query([
+    'SELECT * FROM tips',
+    'INNER JOIN accounts',
+    'ON accounts.account_id = tips.tipper_id',
+    'OR accounts.account_id = tips.tippee_id',
+    'WHERE tip_id = $1',
+  ].join('\n'), [ tip_id ], function (err, result) {
+    if (err || !result.rows[0]) return callback(err, null);
+
+    var tipper = (result.rows[0].account_id === result.rows[0].tipper_id) ? 0 : 1;
+    var tippee = tipper ? 0 : 1;
+
+    var tip = {
+      amount: result.rows[0].amount,
+      state: result.rows[0].state,
+      tip_id: result.rows[0].tip_id,
+      tipper: {
+        uniqid: result.rows[tipper].uniqid,
+        provider: result.rows[tipper].provider,
+        display_name: result.rows[tipper].display_name,
+        account_id: result.rows[tipper].account_id
+      },
+      tippee: {
+        uniqid: result.rows[tippee].uniqid,
+        provider: result.rows[tippee].provider,
+        display_name: result.rows[tippee].display_name,
+        account_id: result.rows[tippee].account_id
+      }
+    };
+
+    return callback(null, tip);
+  });
+};
+
+
 exports.getAddress = function (user_id, callback) {
   pgutils.transaction(function (client, done) {
     client.query([
       'SELECT * FROM user_addresses',
       'WHERE user_id = $1;'
     ].join('\n'), [ user_id ], function (err, result) {
-      if (err || !result.rows[0]) return callback(err, null);
+      if (err) return callback(err, null);
       if (result.rows[0] && result.rows[0].address) return done(null, result.rows[0].address);
       return newAddress();
     });
 
     function newAddress () {
       rpc('getnewaddress', [], function (err, address) {
+        if (err || !address) return done(err, null);
         client.query([
           'INSERT INTO user_addresses (address, user_id)',
           'VALUES ($1, $2);'
         ].join('\n'), [ address, user_id ], function (err) {
-          done(err, address);
+          return done(err, address);
         });
       });
     }

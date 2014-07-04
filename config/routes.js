@@ -26,6 +26,7 @@ module.exports = function (app, passport) {
 
   app.get('/auth/facebook', preserveParam('redirect_to'), preserveParam('merge'), passport.authenticate('facebook'));
   app.get('/auth/youtube', preserveParam('redirect_to'), preserveParam('merge'), passport.authenticate('youtube'));
+  app.get('/auth/reddit', preserveParam('redirect_to'), preserveParam('merge'), passport.authenticate('reddit', { state: 'what' }));
 
 
   function preserveParam (name) {
@@ -35,26 +36,10 @@ module.exports = function (app, passport) {
     };
   }
 
-  app.get('/auth/facebook/callback',
-    passport.authenticate('facebook', { failureRedirect: '/profile#login_failed' }),
-    function (req, res) {
-      var redirect_to = req.session.redirect ? req.session.redirect : '/profile';
-      delete req.session.redirect;
-      res.redirect(redirect_to);
-    });
+  app.get('/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/profile' }), api.authRedirect);
+  app.get('/auth/youtube/callback', passport.authenticate('youtube', { failureRedirect: '/profile' }), api.authRedirect);
+  app.get('/auth/reddit/callback', passport.authenticate('reddit', { failureRedirect: '/profile'}), api.authRedirect);
 
-  app.get('/auth/youtube/callback',
-    passport.authenticate('youtube', { failureRedirect: '/profile#login_failed' }),
-    function (req, res) {
-      var redirect_to = req.session.redirect ? req.session.redirect : '/profile';
-      delete req.session.redirect;
-      res.redirect(redirect_to);
-    });
-
-  app.post('/auth/dogewand', passport.authenticate('local'), function (req, res) {
-    if (req.param('page')) return res.redirect(req.param('page'));
-    return res.redirect('/iframe');
-  });
 
   app.get('/logout', function(req, res){
     req.logout();

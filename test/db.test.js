@@ -81,6 +81,45 @@ test('---------------------------------------- db.js', function (t) {
     });
   });
 
+  t.test('getTip', function (t) {
+    setupDb([
+      'INSERT INTO users (balance)',
+      'VALUES (1000);',
+      'INSERT INTO accounts (user_id, uniqid, provider, display_name)',
+      'VALUES (1, \'arya.stark\', \'farcebook\', \'Arya Stark\');'
+    ].join('\n'), function (err) {
+      t.error(err, 'db setup');
+      db.createTip(1, 1, {
+        uniqid: 'the.hound',
+        provider: 'farcebook',
+        display_name: 'The Hound',
+        amount: 500
+      }, function (err, balance, tip_id) {
+        db.getTip(tip_id, checkResult);
+      });
+    });
+
+    function checkResult (err, tip) {
+      t.error(err, 'getTip');
+
+      t.deepEqual(tip, {
+        amount: '500',
+        state: 'created',
+        tipper: {
+          uniqid: 'arya.stark',
+          provider: 'farcebook',
+          display_name: 'Arya Stark'
+        },
+        tippee: {
+          uniqid: 'the.hound',
+          provider: 'farcebook',
+          display_name: 'The Hound'
+        }
+      }, 'tip is correct');
+
+      t.end();
+    }
+  });
 
   function testCreateTip (t, setup_string) {
     setupDb(setup_string, function (err) {
