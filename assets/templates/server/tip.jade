@@ -5,7 +5,7 @@ block content
     .panel.panel-default
       .panel-body
         img.tip-logo(src="/images/dogecoin-300.png")
-        h2 #{tip.amount} dogecoins
+        h2 <span class="accent-text">#{tip.amount}</span> dogecoins
         p from: #{tip.tipper.display_name} on #{tip.tipper.provider}
         p to: #{tip.tippee.display_name} on #{tip.tippee.provider}
 
@@ -16,6 +16,7 @@ block content
           p
             form(action="#{tip_path}", method="POST")
               input(type="hidden", name="_csrf", value="#{csrf_token}")
+              input(type="hidden", name="tip_id", value="#{tip.tip_id}")
               if role === 'tippee'
                 button.btn.btn-lg.btn-success(type="submit") Claim them!
 

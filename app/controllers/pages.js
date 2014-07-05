@@ -39,6 +39,8 @@ exports.tip = function (req, res, next) {
       }
     }
 
+    tip.tip_id = tip.tip_id.split('-').join('');
+
     return res.render('tip.jade', {
       url: config.url,
       user: req.user,
@@ -50,10 +52,9 @@ exports.tip = function (req, res, next) {
 };
 
 exports.resolveTip = function (req, res, next) {
-  var tip = req.params.tip;
-  var tip_id = tip.substr(tip.length - 24);
+  var tip_id = req.param(tip_id);
 
-  db.resolveTip(req.user, tip_id, function (err) {
+  db.resolveTip(req.user.user_id, tip_id, function (err) {
     if (err) return next(err);
     return res.redirect('/profile');
   });
