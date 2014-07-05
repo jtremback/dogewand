@@ -19,12 +19,12 @@ block content
 
             p
               |Withdraw&nbsp;
-              input.form-control.inline-control(type="number" placeholder="so many")
+              input.form-control.inline-control(type="number" placeholder="so many" name="amount")
               |&nbsp;dogecoins.
 
             p
               |Send to:&nbsp;
-              input.form-control(type="text" placeholder="your address")
+              input.form-control(type="text" placeholder="your address" name="address")
 
             p
               button.btn-primary.btn.btn-lg(type="submit") Withdraw!
@@ -35,7 +35,7 @@ block content
         ul.linked-accounts
           for account in user.accounts
             li.account-tab
-              div #{account.name}
+              div #{account.display_name}
               div on #{account.provider}
 
       hr.hr-small

@@ -6,8 +6,8 @@ block content
       .panel-body
         img.tip-logo(src="/images/dogecoin-300.png")
         h2 #{tip.amount} dogecoins
-        p from: #{tip.tipper.name} on #{tip.tipper.provider}
-        p to: #{tip.tippee.name} on #{tip.tippee.provider}
+        p from: #{tip.tipper.display_name} on #{tip.tipper.provider}
+        p to: #{tip.tippee.display_name} on #{tip.tippee.provider}
 
         if tip.state === 'claimed' || tip.state === 'canceled'
           p this tip has been #{tip.state}
