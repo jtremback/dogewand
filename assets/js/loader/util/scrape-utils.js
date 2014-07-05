@@ -20,12 +20,36 @@ var scrape_utils = {
       var attrs_b = $_('.UFICommentActorName');
 
       return attrs_a.concat(attrs_b);
+    },
+
+    Reddit: function () {
+      return $_('a').filter(function (el) {
+        var href = el.getAttribute('href');
+        if (href && href.match(/reddit\.com\/user\//)) {
+          if (!el.children.length) {
+            return true;
+          }
+          return false;
+        }
+        return false;
+      });
     }
   },
+
+  // ^([^\/]*)
 
   uniqid_finders: {
     Facebook: function (that) {
       var uniqid = that.getAttribute('data-hovercard').match(/id=(\d*).*$/)[1];
+      var display_name = that.textContent;
+      return {
+        uniqid: uniqid,
+        display_name: display_name
+      };
+    },
+
+    Reddit: function (that) {
+      var uniqid = that.getAttribute('href').match(/.*\/(.*)/)[1];
       var display_name = that.textContent;
       return {
         uniqid: uniqid,

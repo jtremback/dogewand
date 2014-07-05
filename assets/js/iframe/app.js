@@ -2,9 +2,33 @@
 
 /*global Vue, _*/
 
-var PROVIDER_ORIGIN = 'https://www.facebook.com'; // Will need to use postMessage here instead.
+var provider_origin = null;
+var provider = null;
+var PROVIDER_LIST = {
+  'https://www.facebook.com': 'Facebook',
+  'http://www.reddit.com': 'Reddit'
+};
 var VERSION = '1';
 var app;
+
+
+function providerFinder (provider_origin) {
+  var cleaned = provider_origin
+  .split('').reverse().join('')
+  .match(/^([^\.]*\.[^\.]*).*$/)[1]
+  .split('').reverse().join(''); // Double reverse string for regexing
+
+  switch (cleaned) {
+    case 'facebook.com':
+      return 'Facebook';
+    case 'youtube.com':
+      return 'Youtube';
+    case 'reddit.com':
+      return 'Reddit';
+    default:
+      return false;
+  }
+}
 
 
 function http (method, url, data, callback) {
@@ -40,29 +64,85 @@ function modalErrorHandler (err, response) {
   }
 }
 
-function messageListener () {
-  parent.postMessage(JSON.stringify({ // initiate comms
-    method: 'hello'
-  }), PROVIDER_ORIGIN);
 
-  window.addEventListener('message', function (event) { // signals from parent
-    console.log('iframe receives', event);
-    if (event.origin === PROVIDER_ORIGIN) { // Check if it's legit
-      var message = JSON.parse(event.data);
-
-      switch (message.method) {
-        case 'version':
-          if (message.data !== VERSION) {
-            app.currentModal = 'update-modal';
-          }
-          break;
-        case 'create_tip':
-          app.setCurrentModal('create-tip-modal', message.data);
-          break;
-      }
-    }
-  });
+function Messenger (app, callback) {
+  this.app = app;
+  window.addEventListener('message', this.listen.bind(this));
+  this.post('call', null, '*');
 }
+
+// Messenger.prototype.connect = function (callback) {
+
+// }
+
+Messenger.prototype.post = function (method, data, provider_origin) {
+  console.log('provider origin', provider_origin, this.app.provider_origin, this)
+  parent.postMessage(JSON.stringify({ // initiate comms
+    method: method,
+    data: data
+  }), provider_origin || this.app.provider_origin);
+};
+
+Messenger.prototype.listen = function (event) {
+  console.log('iframe receives', event);
+
+  if (PROVIDER_LIST[event.origin]) { // Check if it's legit
+    app.provider_origin = event.origin;
+    app.provider = PROVIDER_LIST[event.origin];
+
+    var message = JSON.parse(event.data);
+
+    switch (message.method) {
+      case 'response':
+        if (message.data !== VERSION) {
+          this.app.setCurrentModal('update-modal');
+        }
+        console.log('this', this)
+        this.app.resize();
+        this.post('confirm', app.provider, '*');
+        break;
+      case 'create_tip':
+        this.app.setCurrentModal('create-tip-modal', message.data);
+        break;
+    }
+  }
+};
+
+
+
+
+// function messageListener () {
+//   window.addEventListener('message', function (event) { // signals from parent
+//     console.log('iframe receives', event);
+
+//     if (PROVIDER_LIST[event.origin]) { // Check if it's legit
+//       provider_origin = event.origin;
+//       provider = PROVIDER_LIST[event.origin]; // Then assign global vars
+
+//       var message = JSON.parse(event.data);
+
+//       switch (message.method) {
+//         case 'response':
+//           if (message.data !== VERSION) {
+//             app.setCurrentModal('update-modal');
+//           }
+//           parent.postMessage(JSON.stringify({ // initiate comms
+//             method: 'confirm',
+//             data: provider
+//           }), provider_origin);
+//           break;
+//         case 'create_tip':
+//           app.setCurrentModal('create-tip-modal', message.data);
+//           break;
+//       }
+//     }
+//   });
+
+//   parent.postMessage(JSON.stringify({ // initiate comms
+//     method: 'call'
+//   }), '*');
+// }
+
 
 Vue.directive('only', {
   isFn: true,
@@ -216,9 +296,9 @@ Vue.component('create-tip-modal', {
   },
   methods: {
     submit: function () {
-      var _data = this.$data;
-      _data.account_id = app.current_account.account_id;
-      http('POST', '/api/v1/tips/create', _data, function (err, response) {
+      this.$data.account_id = app.current_account.account_id;
+      this.$data.provider = app.provider;
+      http('POST', '/api/v1/tips/create', this.$data, function (err, response) {
         if (err) return modalErrorHandler(err, response);
         else {
           app.user.balance = response.data.new_balance;
@@ -240,7 +320,9 @@ var app = new Vue({
   data: {
     currentModal: false,
     dropdown: false,
-    user: {}
+    user: {},
+    provider: null,
+    provider_origin: null
   },
   computed: {
     current_account: {
@@ -252,12 +334,8 @@ var app = new Vue({
   },
   ready: function () {
     var self = this;
-    messageListener();
+    this.messenger = new Messenger(self);
     this.userInfo();
-
-    setTimeout(function () {
-      self.resize();
-    }, 500);
 
     self.$on('fullsize', function (bool) {
       self.resize(bool);
@@ -269,7 +347,7 @@ var app = new Vue({
       var self = this;
       self.currentModal = name;
       Vue.nextTick(function () {
-        self.$.modal.init(data);
+        if (self.$.modal.init) return self.$.modal.init(data);
       });
     },
     userInfo: function () {
@@ -282,21 +360,16 @@ var app = new Vue({
       });
     },
     tipping: function () {
-      parent.postMessage(JSON.stringify({
-        method: 'tipping',
-        data: true
-      }), PROVIDER_ORIGIN);
+      this.messenger.post('tipping', true);
     },
     resize: function (full) {
+      var self = this;
       var toolbar = this.$el.querySelector('.toolbar');
       Vue.nextTick(function () {
-        parent.postMessage(JSON.stringify({
-          method: 'size',
-          data: {
-            width: full ? '100%' : toolbar.scrollWidth + 'px',
-            height: full ? '100%' : toolbar.scrollHeight + 'px'
-          }
-        }), PROVIDER_ORIGIN);
+        self.messenger.post('size', {
+          width: full ? '100%' : toolbar.scrollWidth + 'px',
+          height: full ? '100%' : toolbar.scrollHeight + 'px'
+        });
       });
     },
     getBalance: function () {
@@ -309,9 +382,7 @@ var app = new Vue({
       });
     },
     destroy: function () {
-      parent.postMessage(JSON.stringify({
-        method: 'destroy'
-      }), PROVIDER_ORIGIN);
+      this.messenger.post('destroy');
     }
   }
 });

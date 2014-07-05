@@ -31,25 +31,8 @@
   // = include('app/presenters.js')
 
 
-  function providerFinder (host) {
-    var cleaned = host
-    .split("").reverse().join("")
-    .match(/^([^\.]*\.[^\.]*).*$/)[1]
-    .split("").reverse().join(""); // Double reverse string for regexing
-
-    switch (cleaned) {
-      case 'facebook.com':
-        return 'Facebook';
-      case 'youtube.com':
-        return 'Youtube';
-      default:
-        return false;
-    }
-  }
-
   var URL = '<%= url %>';
   var VERSION = '<%= version %>'; // If this is not consistent with the server's version, the user will get an update modal!
-  var PROVIDER = providerFinder(window.location.host);
 
   var dgw_frame = $('#dgw-frame');
   if (dgw_frame) dgw_frame.remove(); // remove app if exists

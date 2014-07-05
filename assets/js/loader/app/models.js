@@ -4,6 +4,7 @@
 
 function App () {
   var self = riot.observable(this);
+  self.provider = null;
 
   self.version = function (version) {
     iframe.source.postMessage(JSON.stringify({
@@ -17,8 +18,7 @@ function App () {
       method: 'create_tip',
       data: {
         uniqid: user_info.uniqid,
-        display_name: user_info.display_name,
-        provider: PROVIDER
+        display_name: user_info.display_name
       }
     }), URL);
   };
@@ -34,9 +34,18 @@ function Iframe () {
       var message = JSON.parse(event.data);
 
       switch (message.method) {
-        case 'hello':
+        case 'call':
           self.source = event.source;
-          app.version(VERSION);
+          iframe.source.postMessage(JSON.stringify({
+            method: 'response',
+            data: {
+              version: VERSION
+            }
+          }), URL);
+          break;
+        case 'confirm':
+          console.log('FOOOOOOOOOOO')
+          app.provider = message.data;
           break;
         case 'size':
           self.trigger('size', message.data);

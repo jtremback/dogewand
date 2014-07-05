@@ -14,7 +14,7 @@ function _app (container) {
   function enterTipping() {
     container.classList.add('dgw-wand');
 
-    links = scrape_utils.link_finders[PROVIDER]();
+    links = scrape_utils.link_finders[app.provider]();
 
     links.forEach(function (el) {
       el.classList.add('dgw-link');
@@ -26,7 +26,7 @@ function _app (container) {
 
   function createTip (e) {
     e.preventDefault();
-    app.createTip(scrape_utils.uniqid_finders[PROVIDER](this));
+    app.createTip(scrape_utils.uniqid_finders[app.provider](this));
   }
 
   function exitTipping() {
