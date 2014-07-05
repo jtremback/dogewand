@@ -76,7 +76,6 @@ function Messenger (app, callback) {
 // }
 
 Messenger.prototype.post = function (method, data, provider_origin) {
-  console.log('provider origin', provider_origin, this.app.provider_origin, this)
   parent.postMessage(JSON.stringify({ // initiate comms
     method: method,
     data: data
@@ -87,8 +86,8 @@ Messenger.prototype.listen = function (event) {
   console.log('iframe receives', event);
 
   if (PROVIDER_LIST[event.origin]) { // Check if it's legit
-    app.provider_origin = event.origin;
-    app.provider = PROVIDER_LIST[event.origin];
+    this.app.provider_origin = event.origin;
+    this.app.provider = PROVIDER_LIST[event.origin];
 
     var message = JSON.parse(event.data);
 
@@ -97,9 +96,8 @@ Messenger.prototype.listen = function (event) {
         if (message.data !== VERSION) {
           this.app.setCurrentModal('update-modal');
         }
-        console.log('this', this)
         this.app.resize();
-        this.post('confirm', app.provider, '*');
+        this.post('confirm', this.app.provider, this.app.provider_origin);
         break;
       case 'create_tip':
         this.app.setCurrentModal('create-tip-modal', message.data);
@@ -237,7 +235,7 @@ Vue.component('confirm-tip-modal', {
     init: function (data) {
       this.tippee = data.tip.tippee;
       this.amount = data.tip.amount;
-      this.tip_id = data.tip_id;
+      this.tip_id = data.tip.tip_id;
     }
   }
 });
@@ -309,7 +307,7 @@ Vue.component('create-tip-modal', {
     init: function (data) {
       this.display_name = data.display_name;
       this.uniqid = data.uniqid;
-      this.provider = data.provider;
+      this.provider = app.provider;
       this.amount = '';
     }
   }

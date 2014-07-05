@@ -65,7 +65,7 @@ html(lang="en")
     script#confirm-tip-modal(type="x-template")
       bs-modal
         .modal-body
-          p You gave {{tippee.display_name}} on {{tippee.provider}}
+          p You gave <span class="accent-text">{{tippee.display_name}}</span> on <span class="accent-text">{{tippee.provider}}</span>
           p {{amount}} dogecoins
           p They can redeem their dogecoins here:
           p
