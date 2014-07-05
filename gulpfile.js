@@ -69,7 +69,7 @@ gulp.task('loader-styles', function () {
 gulp.task('loader-incremental', function () {
   return gulp.src(['incremental/loader/index.js'])
     .pipe(gulpInclude('// = '))
-    .pipe(gulpUglify())
+    // .pipe(gulpUglify())
     .pipe(gulpRename('content_script.js'))
     .pipe(gulp.dest('loader/chrome'))
     .pipe(gulpRename('bookmarklet.js'))
@@ -101,7 +101,7 @@ gulp.task('iframe-js', function () {
 gulp.task('watch', function () {
   // gulp.watch('assets/templates/iframe/**', ['iframe-html']);
   gulp.watch('assets/less/**', ['iframe-styles', 'loader-styles']);
-  gulp.watch('assets/js/**', ['iframe-js'/*, 'loader-js'*/]);
+  gulp.watch('assets/js/**', ['iframe-js', 'loader-js']);
   gulp.watch('assets/images/**', ['iframe-images']);
 
   gulp.watch('incremental/loader/**', ['loader-incremental']);
