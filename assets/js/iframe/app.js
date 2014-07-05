@@ -2,33 +2,12 @@
 
 /*global Vue, _*/
 
-var provider_origin = null;
-var provider = null;
 var PROVIDER_LIST = {
   'https://www.facebook.com': 'Facebook',
   'http://www.reddit.com': 'Reddit'
 };
 var VERSION = '1';
 var app;
-
-
-function providerFinder (provider_origin) {
-  var cleaned = provider_origin
-  .split('').reverse().join('')
-  .match(/^([^\.]*\.[^\.]*).*$/)[1]
-  .split('').reverse().join(''); // Double reverse string for regexing
-
-  switch (cleaned) {
-    case 'facebook.com':
-      return 'Facebook';
-    case 'youtube.com':
-      return 'Youtube';
-    case 'reddit.com':
-      return 'Reddit';
-    default:
-      return false;
-  }
-}
 
 
 function http (method, url, data, callback) {
@@ -65,15 +44,11 @@ function modalErrorHandler (err, response) {
 }
 
 
-function Messenger (app, callback) {
+function Messenger (app) {
   this.app = app;
   window.addEventListener('message', this.listen.bind(this));
   this.post('call', null, '*');
 }
-
-// Messenger.prototype.connect = function (callback) {
-
-// }
 
 Messenger.prototype.post = function (method, data, provider_origin) {
   parent.postMessage(JSON.stringify({ // initiate comms
@@ -93,10 +68,10 @@ Messenger.prototype.listen = function (event) {
 
     switch (message.method) {
       case 'response':
-        if (message.data !== VERSION) {
+        if (message.data.version !== VERSION) {
           this.app.setCurrentModal('update-modal');
         }
-        this.app.resize();
+        // this.app.resize();
         this.post('confirm', this.app.provider, this.app.provider_origin);
         break;
       case 'create_tip':
@@ -105,41 +80,6 @@ Messenger.prototype.listen = function (event) {
     }
   }
 };
-
-
-
-
-// function messageListener () {
-//   window.addEventListener('message', function (event) { // signals from parent
-//     console.log('iframe receives', event);
-
-//     if (PROVIDER_LIST[event.origin]) { // Check if it's legit
-//       provider_origin = event.origin;
-//       provider = PROVIDER_LIST[event.origin]; // Then assign global vars
-
-//       var message = JSON.parse(event.data);
-
-//       switch (message.method) {
-//         case 'response':
-//           if (message.data !== VERSION) {
-//             app.setCurrentModal('update-modal');
-//           }
-//           parent.postMessage(JSON.stringify({ // initiate comms
-//             method: 'confirm',
-//             data: provider
-//           }), provider_origin);
-//           break;
-//         case 'create_tip':
-//           app.setCurrentModal('create-tip-modal', message.data);
-//           break;
-//       }
-//     }
-//   });
-
-//   parent.postMessage(JSON.stringify({ // initiate comms
-//     method: 'call'
-//   }), '*');
-// }
 
 
 Vue.directive('only', {
