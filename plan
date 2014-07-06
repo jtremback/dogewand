@@ -2,11 +2,31 @@ plan
 
 still to do:
 
-Check that tips work
-Withdraw in pages
-Get reddit scraping working right
-Get bookmarklet versioning working rights
+// Check that tips work
+// Withdraw in pages
+// Get reddit scraping working right
+// Get bookmarklet versioning working rights
 fix dropdown and modal issues
+figure out which way to go with account linking
+
+
+## signed into site, signed into extension with correct user
+* straight up auth
+
+## signed into site, not signed into extension
+* straight up auth
+
+
+## signed into site with incorrect user, signed into extension
+* ask if they want to link the current site account to the currently signed in dogewand user (list of accounts)
+* merge users
+
+## not signed into site, signed into extension
+* ask if they want to link the current site account to the currently signed in dogewand user (list of accounts)
+* merge users
+
+
+
 
 
 
