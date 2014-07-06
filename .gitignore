@@ -1,6 +1,6 @@
-node_modules/
-config/config.js
+/node_modules/
+/config/config.js
 .DS_Store
-incremental/
-loader/
-public/dist
+/incremental/
+/loader/
+/public/dist
