@@ -33,10 +33,15 @@ html(lang="en")
           p
             a(alt="Dogewand V#{version}" href="javascript:#{bookmarklet}" class="bookmarklet" onclick="alert('Drag me to the bookmarks bar')" title="Drag me to the bookmarks bar") Dogewand V#{version}
 
-    script#login-modal(type="x-template")
+    script#dogewand-login-modal(type="x-template")
       bs-modal
         .modal-body
-          p Please log in.
+          p Please <a href="/auth/{{provider}}/">log in to dogewand</a>.
+
+    script#provider-login-modal(type="x-template")
+      bs-modal
+        .modal-body
+          p Please log in to {{provider}} to use Dogewand.
 
     script#deposit-modal(type="x-template")
       bs-modal
@@ -48,6 +53,15 @@ html(lang="en")
       bs-modal
         .modal-body
           p {{message}}
+
+    script#account-link-modal(type="x-template")
+      bs-modal
+        .modal-body
+          p Would you like to link your {{provider}} account to dogewand?
+          p Currently linked:
+          ul.linked-accounts(v-repeat="user.accounts")
+            li.account-tab {{display_name}} on {{provider}}
+
 
     script#withdraw-modal(type="x-template")
       bs-modal

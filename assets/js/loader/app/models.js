@@ -44,9 +44,6 @@ function Iframe () {
             }
           }), URL);
           break;
-        // case 'confirm':
-        //   app.provider = message.data;
-        //   break;
         case 'size':
           self.trigger('size', message.data);
           break;

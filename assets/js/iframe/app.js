@@ -3,7 +3,6 @@
 /*global Vue, _, config*/
 
 var app;
-console.log(config)
 
 function http (method, url, data, callback) {
   var request = new XMLHttpRequest();
@@ -31,7 +30,7 @@ function http (method, url, data, callback) {
 
 function modalErrorHandler (err, response) {
   if (err === 401) {
-    app.currentModal = 'login-modal';
+    app.currentModal = 'dogewand-login-modal';
   }
   else {
     app.setCurrentModal('error-modal', response.data);
@@ -41,33 +40,47 @@ function modalErrorHandler (err, response) {
 
 function Messenger (app) {
   this.app = app;
-  window.addEventListener('message', this.listen.bind(this));
-  this.post('call', null, '*');
 }
 
 Messenger.prototype.post = function (method, data, provider_origin) {
-  parent.postMessage(JSON.stringify({ // initiate comms
+  parent.postMessage(JSON.stringify({
     method: method,
     data: data
   }), provider_origin || this.app.provider_origin);
 };
 
+Messenger.prototype.connect = function (callback) {
+  var self = this;
+  window.addEventListener('message', handshake);
+  this.post('call', null, '*');
+  function handshake (event) {
+    var message = JSON.parse(event.data);
+    if (message.method === 'response' && config.provider_list[event.origin]) {
+      self.app.provider_origin = event.origin;
+      self.app.provider = config.provider_list[event.origin];
+      self.app.uniqid = message.data.uniqid;
+
+      if (message.data.version !== config.version) {
+        self.app.setCurrentModal('update-modal');
+      }
+
+      window.removeEventListener('message', handshake);
+      window.addEventListener('message', self.listen.bind(self));
+      callback();
+    }
+  }
+};
+
 Messenger.prototype.listen = function (event) {
   console.log('iframe receives', event);
 
-  if (config.provider_list[event.origin]) { // Check if it's legit
+  if (event.origin === this.app.provider_origin) { // Check if it's legit
     this.app.provider_origin = event.origin;
     this.app.provider = config.provider_list[event.origin];
 
     var message = JSON.parse(event.data);
 
     switch (message.method) {
-      case 'response':
-        if (message.data.version !== config.version) {
-          this.app.setCurrentModal('update-modal');
-        }
-        this.app.uniqid = message.data.uniqid;
-        break;
       case 'create_tip':
         this.app.setCurrentModal('create-tip-modal', message.data);
         break;
@@ -137,8 +150,19 @@ Vue.component('update-modal', {
   template: '#update-modal'
 });
 
-Vue.component('login-modal', {
-  template: '#login-modal'
+Vue.component('dogewand-login-modal', {
+  template: '#dogewand-login-modal'
+});
+
+Vue.component('provider-login-modal', {
+  template: '#provider-login-modal',
+  afterDestroy: function () {
+    this.$parent.destroy();
+  }
+});
+
+Vue.component('account-link-modal', {
+  template: '#account-link-modal'
 });
 
 Vue.component('deposit-modal', {
@@ -266,8 +290,21 @@ var app = new Vue({
   },
   ready: function () {
     var self = this;
-    this.messenger = new Messenger(self);
-    this.userInfo();
+    self.messenger = new Messenger(self);
+    self.messenger.connect(function () {
+      http('GET', '/api/v1/user', null, function (err, response) {
+        if (err) return modalErrorHandler(err, response);
+        self.user = response.data;
+
+        if (!self.uniqid) return self.setCurrentModal('provider-login-modal');
+
+        var matching = self.user.accounts.some(function (item) {
+          return item.uniqid === self.uniqid;
+        });
+
+        if (!matching) return self.setCurrentModal('account-link-modal');
+      });
+    });
 
     self.$on('fullsize', function (bool) {
       self.resize(bool);
@@ -280,15 +317,6 @@ var app = new Vue({
       self.currentModal = name;
       Vue.nextTick(function () {
         if (self.$.modal.init) return self.$.modal.init(data);
-      });
-    },
-    userInfo: function () {
-      var self = this;
-      http('GET', '/api/v1/user', null, function (err, response) {
-        if (err) return modalErrorHandler(err, response);
-        else {
-          self.user = response.data;
-        }
       });
     },
     tipping: function () {

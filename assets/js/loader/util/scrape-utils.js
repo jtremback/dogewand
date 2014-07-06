@@ -75,7 +75,9 @@ var scrape_utils = {
     },
 
     Reddit: function () {
-      return $_('#header-bottom-right > .user > a')[0].innerText;
+      var name = $_('#header-bottom-right > .user > a')[0].innerText;
+      if (name !== 'login or register')
+      return name;
     }
   }
 };
