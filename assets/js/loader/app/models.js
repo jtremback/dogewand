@@ -6,13 +6,6 @@ function App () {
   var self = riot.observable(this);
   self.provider = null;
 
-  self.version = function (version) {
-    iframe.source.postMessage(JSON.stringify({
-      method: 'version',
-      data: VERSION
-    }), URL);
-  };
-
   self.createTip = function (user_info) {
     iframe.source.postMessage(JSON.stringify({
       method: 'create_tip',
@@ -20,7 +13,7 @@ function App () {
         uniqid: user_info.uniqid,
         display_name: user_info.display_name
       }
-    }), URL);
+    }), config.url);
   };
 }
 
@@ -28,9 +21,9 @@ function App () {
 function Iframe () {
   var self = riot.observable(this);
 
-  window.addEventListener('message', function (event) { // signals from iframe
+  self.listen = function (event) {
     console.log('loader receives', event)
-    if (event.origin === URL) { // Check if it's even legit
+    if (event.origin === config.url) { // Check if it's even legit
       var message = JSON.parse(event.data);
 
       switch (message.method) {
@@ -39,10 +32,10 @@ function Iframe () {
           iframe.source.postMessage(JSON.stringify({
             method: 'response',
             data: {
-              version: VERSION,
+              version: config.version,
               uniqid: scrape_utils.account_finders[app.provider]()
             }
-          }), URL);
+          }), config.url);
           break;
         case 'size':
           self.trigger('size', message.data);
@@ -55,5 +48,5 @@ function Iframe () {
           break;
       }
     }
-  }, false);
+  }
 }

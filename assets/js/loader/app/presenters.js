@@ -6,6 +6,8 @@ function _app (container) {
   _iframe(container);
   var links;
 
+  window.addEventListener('message', iframe.listen, false);
+
   app.on('tipping', function (bool) {
     if (bool) enterTipping();
     else exitTipping();
@@ -45,6 +47,8 @@ function _app (container) {
 
     var dgw_styles = $('#dgw-styles');
     if (dgw_styles) dgw_styles.remove();
+
+    window.removeEventListener('message', iframe.listen);
   });
 
 }

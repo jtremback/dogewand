@@ -37,7 +37,9 @@
   var VERSION = '<%= version %>'; // If this is not consistent with the server's version, the user will get an update modal!
 
   var dgw_frame = $('#dgw-frame');
-  if (dgw_frame) dgw_frame.remove(); // remove app if exists
+  if (dgw_frame) {
+    dgw_frame.remove(); // remove app if exists
+  }
 
   append('<style id="dgw-styles">' + style_css + '</style>', $('body')); // add style to head
 
