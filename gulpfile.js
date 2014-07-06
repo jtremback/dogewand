@@ -48,6 +48,13 @@ var lazyLess = lazypipe() // dry
   .pipe(gulpMinifyCss);
 
 
+// SHARED
+gulp.task('shared-js', function () {
+  return gulp.src(['assets/js/shared/**/*'])
+    .pipe(gulpTemplate({url: config.url, version: config.bookmarklet_version}))
+    .pipe(gulp.dest('incremental/shared'));
+});
+
 
 // IFRAME LOADER
 gulp.task('loader-js', function () {
@@ -90,9 +97,8 @@ gulp.task('iframe-styles', function () {
 });
 
 gulp.task('iframe-js', function () {
-  return gulp.src(['assets/js/iframe/vendor/lodash.custom.js', 'assets/js/iframe/vendor/vue.0.10.4.js', 'assets/js/iframe/app.js'])
+  return gulp.src(['incremental/shared/config.js', 'assets/js/iframe/vendor/lodash.custom.js', 'assets/js/iframe/vendor/vue.0.10.4.js', 'assets/js/iframe/app.js'])
     .pipe(gulpConcat('iframe.js'))
-    // .pipe(gulpTemplate({url: config.url, version: config.bookmarklet_version})) // Add magic numbers like url etc.
     .pipe(gulp.dest('public'))
     .pipe(gulpNotify({ message: 'iframe-js task complete' }));
 });
@@ -101,7 +107,7 @@ gulp.task('iframe-js', function () {
 gulp.task('watch', function () {
   // gulp.watch('assets/templates/iframe/**', ['iframe-html']);
   gulp.watch('assets/less/**', ['iframe-styles', 'loader-styles']);
-  gulp.watch('assets/js/**', ['iframe-js', 'loader-js']);
+  gulp.watch('assets/js/**', ['shared-js', 'iframe-js', 'loader-js']);
   gulp.watch('assets/images/**', ['iframe-images']);
 
   gulp.watch('incremental/loader/**', ['loader-incremental']);
@@ -109,6 +115,7 @@ gulp.task('watch', function () {
 
 // BUILD
 gulp.task('build', [
+  'shared-js',
   'iframe-js',
   // 'iframe-html',
   'iframe-styles',

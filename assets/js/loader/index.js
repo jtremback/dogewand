@@ -22,6 +22,8 @@
 
   // = include('style.css')
 
+  // = include('config.js')
+
   // = include('vendor/riot.1.0.1.js')
   // = include('vendor/classList.js')
 
