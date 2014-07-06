@@ -7,7 +7,14 @@ still to do:
 // Get reddit scraping working right
 // Get bookmarklet versioning working rights
 fix dropdown and modal issues
-figure out which way to go with account linking
+// figure out which way to go with account linking
+
+
+## Sign in checking plan
+* Try to retreive user info from server
+* If not signed in pop login modal - need to make it choose the right provider
+* If user account and signed in account do not match, pop modal with list of accounts and merge link
+
 
 
 ## signed into site, signed into extension with correct user
