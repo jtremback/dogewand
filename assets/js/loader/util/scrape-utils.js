@@ -56,6 +56,27 @@ var scrape_utils = {
         display_name: display_name
       };
     }
+  },
+
+  account_finders: {
+    Facebook: function () {
+      var tinyman = $_('a').filter(function (el) {
+        var href = el.getAttribute('href');
+        if (href && href.match(/\?ref\=tn\_tnmn/)) {
+          if (el.children[1] && el.children[1].className === 'headerTinymanName') {
+            return true;
+          }
+          return false;
+        }
+        return false;
+      });
+
+      return tinyman[0].getAttribute('href').match(/.*\/([^?]*)/)[1];
+    },
+
+    Reddit: function () {
+      return $_('#header-bottom-right > .user > a')[0].innerText;
+    }
   }
 };
 
