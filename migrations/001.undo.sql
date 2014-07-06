@@ -1,4 +1,4 @@
-DROP TABLE "session"
+DROP TABLE "session";
 
 DROP TABLE withdrawals;
 

@@ -51,7 +51,7 @@ Messenger.prototype.post = function (method, data, provider_origin) {
 
 Messenger.prototype.connect = function (callback) {
   var self = this;
-  window.addEventListener('message', handshake);
+  window.addEventListener('message', handshake, false);
   this.post('call', null, '*');
   function handshake (event) {
     var message = JSON.parse(event.data);
@@ -65,7 +65,7 @@ Messenger.prototype.connect = function (callback) {
       }
 
       window.removeEventListener('message', handshake);
-      window.addEventListener('message', self.listen.bind(self));
+      window.addEventListener('message', self.listen.bind(self), false);
       callback();
     }
   }
