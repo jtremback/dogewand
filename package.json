@@ -46,7 +46,6 @@
     "gulp-rename": "^1.2.0",
     "gulp-uglify": "^0.2.1",
     "gulp-notify": "~0.4.0",
-    "gulp-clean": "~0.2.4",
     "gulp-minify-css": "~0.3.0",
     "tape": "^2.10.0",
     "gulp-wrap": "^0.3.0",

@@ -56,6 +56,14 @@ gulp.task('shared-js', function () {
 });
 
 
+// CHROME BOILERPLATE
+gulp.task('chrome-js', function () {
+  return gulp.src(['assets/js/chrome/**/*'])
+    .pipe(gulpTemplate({url: config.url, version: config.bookmarklet_version}))
+    .pipe(gulp.dest('loader/chrome'));
+});
+
+
 // IFRAME LOADER
 gulp.task('loader-js', function () {
   return gulp.src(['assets/js/loader/**/*.js', 'assets/js/shared/**/*.js'])
@@ -92,22 +100,21 @@ gulp.task('iframe-styles', function () {
   return gulp.src('assets/less/iframe.less')
     .pipe(lazyLess())
     .pipe(gulpRename('iframe.css'))
-    .pipe(gulp.dest('public')) // Put into public folder for good caching
+    .pipe(gulp.dest('public/dist'))
     .pipe(gulpNotify({ message: 'iframe-styles task complete' }));
 });
 
 gulp.task('iframe-js', function () {
   return gulp.src(['incremental/shared/config.js', 'assets/js/iframe/vendor/lodash.custom.js', 'assets/js/iframe/vendor/vue.0.10.4.js', 'assets/js/iframe/app.js'])
     .pipe(gulpConcat('iframe.js'))
-    .pipe(gulp.dest('public'))
+    .pipe(gulp.dest('public/dist'))
     .pipe(gulpNotify({ message: 'iframe-js task complete' }));
 });
 
 //// WATCH
 gulp.task('watch', function () {
-  // gulp.watch('assets/templates/iframe/**', ['iframe-html']);
   gulp.watch('assets/less/**', ['iframe-styles', 'loader-styles']);
-  gulp.watch('assets/js/**', ['shared-js', 'iframe-js', 'loader-js']);
+  gulp.watch('assets/js/**', ['chrome-js', 'shared-js', 'iframe-js', 'loader-js']);
   gulp.watch('assets/images/**', ['iframe-images']);
 
   gulp.watch('incremental/loader/**', ['loader-incremental']);
@@ -116,10 +123,10 @@ gulp.task('watch', function () {
 // BUILD
 gulp.task('build', [
   'shared-js',
+  'chrome-js',
   'iframe-js',
-  // 'iframe-html',
   'iframe-styles',
-  // 'iframe-images',
   'loader-styles',
-  'loader-js'
+  'loader-incremental',
+  'loader-js',
 ]);
