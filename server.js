@@ -13,7 +13,7 @@ var options = {
 
 // Start the app by listening on <port>
 var port = config.port;
-// Load functions into postgres
+// Load functions into postgres - wierd spot to put this, but it works
 db.insertPgFunctions(function () {
   https.createServer(options, app).listen(port);
 });
