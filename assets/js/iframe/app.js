@@ -1,14 +1,9 @@
 'use strict';
 
-/*global Vue, _*/
+/*global Vue, _, config*/
 
-var PROVIDER_LIST = {
-  'https://www.facebook.com': 'Facebook',
-  'http://www.reddit.com': 'Reddit'
-};
-var VERSION = '1';
 var app;
-
+console.log(config)
 
 function http (method, url, data, callback) {
   var request = new XMLHttpRequest();
@@ -60,19 +55,18 @@ Messenger.prototype.post = function (method, data, provider_origin) {
 Messenger.prototype.listen = function (event) {
   console.log('iframe receives', event);
 
-  if (PROVIDER_LIST[event.origin]) { // Check if it's legit
+  if (config.provider_list[event.origin]) { // Check if it's legit
     this.app.provider_origin = event.origin;
-    this.app.provider = PROVIDER_LIST[event.origin];
+    this.app.provider = config.provider_list[event.origin];
 
     var message = JSON.parse(event.data);
 
     switch (message.method) {
       case 'response':
-        if (message.data.version !== VERSION) {
+        if (message.data.version !== config.version) {
           this.app.setCurrentModal('update-modal');
         }
-        // this.app.resize();
-        this.post('confirm', this.app.provider, this.app.provider_origin);
+        this.app.uniqid = message.data.uniqid;
         break;
       case 'create_tip':
         this.app.setCurrentModal('create-tip-modal', message.data);

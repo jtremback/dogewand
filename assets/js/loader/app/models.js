@@ -39,14 +39,14 @@ function Iframe () {
           iframe.source.postMessage(JSON.stringify({
             method: 'response',
             data: {
-              version: VERSION
+              version: VERSION,
+              uniqid: scrape_utils.account_finders[app.provider]()
             }
           }), URL);
           break;
-        case 'confirm':
-          console.log('FOOOOOOOOOOO')
-          app.provider = message.data;
-          break;
+        // case 'confirm':
+        //   app.provider = message.data;
+        //   break;
         case 'size':
           self.trigger('size', message.data);
           break;

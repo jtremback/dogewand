@@ -44,6 +44,8 @@
   var app = new App();
   var iframe = new Iframe();
 
+  app.provider = config.provider_list[window.location.origin];
+
   _app($('body')); // Presenters are denoted with _
 
   iframe.trigger('navigate', URL + '/iframe');
