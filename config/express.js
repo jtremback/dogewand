@@ -11,7 +11,6 @@ var pgSession = require('connect-pg-simple')(session);
 var morgan = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var methodOverride = require('express-method-override');
 var csrf = require('csurf');
 
 
@@ -52,13 +51,12 @@ module.exports = function (app, config, passport) {
   app.use(passport.session());
 
   // adds CSRF support
-  // app.use(csrf());
+  app.use(csrf());
 
-  // app.use(function(req, res, next) {
-  //   console.log(req.csrfToken())
-  //   res.cookie('CSRF-TOKEN', req.csrfToken());
-  //   next();
-  // });
+  app.use(function(req, res, next) {
+    res.cookie('CSRF-TOKEN', req.csrfToken());
+    next();
+  });
 
   // Bootstrap routes
   require('./routes')(app, passport);
