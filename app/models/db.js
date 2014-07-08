@@ -25,7 +25,7 @@ exports.getUser = function (user_id, callback) {
 
     var user = {
       user_id: result.rows[0].user_id,
-      balance: parseInt(result.rows[0].balance, 10)
+      balance: Math.floor(result.rows[0].balance)
     };
 
     var accounts = result.rows.map(function (item) {
@@ -46,7 +46,7 @@ exports.createTip = function (user_id, account_id, opts, callback) {
 
     client.query([ // Get or insert account for tippee
       'SELECT * FROM accountInsertOrSelect($1, $2, $3)',
-      'AS (account_id int, user_id int, uniqid text, provider text, display_name text)'
+      'AS (account_id int, user_id int, uniqid text[], provider text, display_name text)'
     ].join('\n'), [ opts.uniqid, opts.provider, opts.display_name ], function (err, result) {
       if (err || !result.rows[0]) return callback(err, null);
       return insertTip(result.rows[0].account_id);
@@ -69,7 +69,7 @@ exports.createTip = function (user_id, account_id, opts, callback) {
         'WHERE user_id = $2 RETURNING *'
       ].join('\n'), [ opts.amount, user_id ], function (err, result) {
         if (err || !result.rows[0]) return callback(err, null);
-        return done(null, parseInt(result.rows[0].balance, 10), tip_id);
+        return done(null, Math.floor(result.rows[0].balance), tip_id);
       });
     }
   }, callback);
@@ -101,7 +101,7 @@ exports.resolveTip = function (user_id, tip_id, callback) {
         'RETURNING balance;'
       ].join('\n'), [ amount, user_id ], function (err, result) {
         if (err || !result.rows[0]) return callback(err, null);
-        return done(null, parseInt(result.rows[0].balance, 10));
+        return done(null, Math.floor(result.rows[0].balance));
       });
     }
   }, callback);
@@ -122,7 +122,7 @@ exports.getTip = function (tip_id, callback) {
     var tippee = tipper ? 0 : 1;
 
     var tip = {
-      amount: result.rows[0].amount,
+      amount: Math.floor(result.rows[0].amount),
       state: result.rows[0].state,
       tip_id: result.rows[0].tip_id,
       tipper: {
@@ -182,7 +182,7 @@ exports.withdraw = function (user_id, opts, callback) {
       'RETURNING balance'
     ].join('\n'), [ user_id, opts.amount ], function (err, result) {
       if (err || !result.rows[0]) return callback(err, null);
-      new_balance = parseInt(result.rows[0].balance, 10);
+      new_balance = Math.floor(result.rows[0].balance);
       return sendFunds();
     });
 
@@ -200,7 +200,7 @@ exports.withdraw = function (user_id, opts, callback) {
         'RETURNING *;'
       ].join('\n'), [ txid, opts.amount, user_id ], function (err, result) {
         if (err || !result.rows[0]) return callback(err, null);
-        result.rows[0].amount = parseInt(result.rows[0].amount, 10);
+        result.rows[0].amount = Math.floor(result.rows[0].amount);
         return done(null, new_balance, result.rows[0]);
       });
     }
@@ -213,7 +213,7 @@ exports.auth = function (opts, callback) {
 
     client.query([
       'SELECT * FROM accountInsertOrUpdate($1, $2, $3)',
-      'AS (account_id int, user_id int, uniqid text, provider text, display_name text)'
+      'AS (account_id int, user_id int, uniqid text[], provider text, display_name text)'
     ].join('\n'), [ opts.uniqid, opts.provider, opts.display_name ], function (err, result) {
       if (err || !result.rows[0]) return callback(err, null);
       var user = result.rows[0];

@@ -49,9 +49,9 @@ test('---------------------------------------- db.js', function (t) {
       'INSERT INTO users (balance)',
       'VALUES (1000);',
       'INSERT INTO accounts (user_id, uniqid, provider, display_name)',
-      'VALUES (1, \'arya.stark\', \'farcebook\', \'Arya Stark\');',
+      'VALUES (1, \'{"arya.stark"}\', \'farcebook\', \'Arya Stark\');',
       'INSERT INTO accounts (user_id, uniqid, provider, display_name)',
-      'VALUES (1, \'@aryastark\', \'twetter\', \'Arya Stark\');'
+      'VALUES (1, \'{"@aryastark"}\', \'twetter\', \'Arya Stark\');'
     ].join('\n'), function (err) {
       t.error(err, 'setup db');
 
@@ -63,12 +63,12 @@ test('---------------------------------------- db.js', function (t) {
           balance: 1000,
           accounts: [
             {
-              uniqid: 'arya.stark',
+              uniqid: ['arya.stark'],
               provider: 'farcebook',
               display_name: 'Arya Stark',
               account_id: 1
             }, {
-              uniqid: '@aryastark',
+              uniqid: ['@aryastark'],
               provider: 'twetter',
               display_name: 'Arya Stark',
               account_id: 2
@@ -79,46 +79,6 @@ test('---------------------------------------- db.js', function (t) {
         t.end();
       });
     });
-  });
-
-  t.test('getTip', function (t) {
-    setupDb([
-      'INSERT INTO users (balance)',
-      'VALUES (1000);',
-      'INSERT INTO accounts (user_id, uniqid, provider, display_name)',
-      'VALUES (1, \'arya.stark\', \'farcebook\', \'Arya Stark\');'
-    ].join('\n'), function (err) {
-      t.error(err, 'db setup');
-      db.createTip(1, 1, {
-        uniqid: 'the.hound',
-        provider: 'farcebook',
-        display_name: 'The Hound',
-        amount: 500
-      }, function (err, balance, tip_id) {
-        db.getTip(tip_id, checkResult);
-      });
-    });
-
-    function checkResult (err, tip) {
-      t.error(err, 'getTip');
-
-      t.deepEqual(tip, {
-        amount: '500',
-        state: 'created',
-        tipper: {
-          uniqid: 'arya.stark',
-          provider: 'farcebook',
-          display_name: 'Arya Stark'
-        },
-        tippee: {
-          uniqid: 'the.hound',
-          provider: 'farcebook',
-          display_name: 'The Hound'
-        }
-      }, 'tip is correct');
-
-      t.end();
-    }
   });
 
   function testCreateTip (t, setup_string) {
@@ -161,9 +121,9 @@ test('---------------------------------------- db.js', function (t) {
       'INSERT INTO users (balance)',
       'VALUES (0);',
       'INSERT INTO accounts (user_id, uniqid, provider, display_name)',
-      'VALUES (1, \'arya.stark\', \'farcebook\', \'Arya Stark\');',
+      'VALUES (1, \'{"arya.stark"}\', \'farcebook\', \'Arya Stark\');',
       'INSERT INTO accounts (user_id, uniqid, provider, display_name)',
-      'VALUES (2, \'the.hound\', \'farcebook\', \'The Hound\');'
+      'VALUES (2, \'{"the.hound"}\', \'farcebook\', \'The Hound\');'
     ].join('\n'));
   });
 
@@ -172,9 +132,57 @@ test('---------------------------------------- db.js', function (t) {
       'INSERT INTO users (balance)',
       'VALUES (1000);',
       'INSERT INTO accounts (user_id, uniqid, provider, display_name)',
-      'VALUES (1, \'arya.stark\', \'farcebook\', \'Arya Stark\');'
+      'VALUES (1, \'{"arya.stark"}\', \'farcebook\', \'Arya Stark\');'
     ].join('\n'));
   });
+
+
+
+  t.test('getTip', function (t) {
+    setupDb([
+      'INSERT INTO users (balance)',
+      'VALUES (1000);',
+      'INSERT INTO accounts (user_id, uniqid, provider, display_name)',
+      'VALUES (1, \'{"arya.stark"}\', \'farcebook\', \'Arya Stark\');'
+    ].join('\n'), function (err) {
+      t.error(err, 'db setup');
+      db.createTip(1, 1, {
+        uniqid: 'the.hound',
+        provider: 'farcebook',
+        display_name: 'The Hound',
+        amount: 500
+      }, function (err, balance, tip_id) {
+        db.getTip(tip_id, function (err, tip) {
+          checkResult(err, tip, tip_id);
+        });
+      });
+    });
+
+    function checkResult (err, tip, tip_id) {
+      t.error(err, 'getTip');
+
+      t.deepEqual(tip, {
+        amount: 500,
+        state: 'created',
+        tip_id: tip_id,
+        tipper: {
+          account_id: 1,
+          uniqid: ['arya.stark'],
+          provider: 'farcebook',
+          display_name: 'Arya Stark'
+        },
+        tippee: {
+          account_id: 2,
+          uniqid: ['the.hound'],
+          provider: 'farcebook',
+          display_name: 'The Hound'
+        }
+      }, 'tip is correct');
+
+      t.end();
+    }
+  });
+
 
   function testResolveTip (t, user_id) {
     setupDb([
@@ -183,9 +191,9 @@ test('---------------------------------------- db.js', function (t) {
       'INSERT INTO users (balance)',
       'VALUES (0);',
       'INSERT INTO accounts (user_id, uniqid, provider, display_name)',
-      'VALUES (1, \'arya.stark\', \'farcebook\', \'Arya Stark\');',
+      'VALUES (1, \'{"arya.stark"}\', \'farcebook\', \'Arya Stark\');',
       'INSERT INTO accounts (user_id, uniqid, provider, display_name)',
-      'VALUES (2, \'the.hound\', \'farcebook\', \'The Hound\');'
+      'VALUES (2, \'{"the.hound"}\', \'farcebook\', \'The Hound\');'
     ].join('\n'), function (err) {
       t.error(err, 'db setup');
       db.createTip(1, 1, {
@@ -195,7 +203,7 @@ test('---------------------------------------- db.js', function (t) {
         amount: 500
       }, function (err, balance, tip_id) {
         t.error(err, 'db.createTip');
-        db.resolveTip(tip_id, user_id, function (err, new_balance) {
+        db.resolveTip(user_id, tip_id, function (err, new_balance) {
           t.error(err, 'db.resolveTip');
           checkResult(new_balance, tip_id);
         });
@@ -301,7 +309,7 @@ test('---------------------------------------- db.js', function (t) {
           balance: 0,
           accounts: [
             {
-              uniqid: 'arya.stark',
+              uniqid: ['arya.stark'],
               provider: 'farcebook',
               display_name: 'Arya Stark',
               account_id: 1
@@ -319,14 +327,14 @@ test('---------------------------------------- db.js', function (t) {
       'INSERT INTO users (balance)',
       'VALUES (0);',
       'INSERT INTO accounts (user_id, uniqid, provider, display_name)',
-      'VALUES (1, \'arya.stark\', \'farcebook\', \'fooham\');'
+      'VALUES (1, \'{"arya.stark"}\', \'farcebook\', \'fooham\');'
     ].join('\n'));
   });
 
   t.test('auth existing account, nonexistant user', function (t) {
     testAuth(t, [
       'INSERT INTO accounts (uniqid, provider, display_name)',
-      'VALUES (\'arya.stark\', \'farcebook\', \'fooham\');'
+      'VALUES (\'{"arya.stark"}\', \'farcebook\', \'fooham\');'
     ].join('\n'));
   });
 
@@ -341,9 +349,9 @@ test('---------------------------------------- db.js', function (t) {
       'INSERT INTO users (balance)',
       'VALUES (500);',
       'INSERT INTO accounts (user_id, uniqid, provider, display_name)',
-      'VALUES (1, \'arya.stark\', \'farcebook\', \'Arya Stark\');',
+      'VALUES (1, \'{"arya.stark"}\', \'farcebook\', \'Arya Stark\');',
       'INSERT INTO accounts (user_id, uniqid, provider, display_name)',
-      'VALUES (2, \'the.hound\', \'farcebook\', \'The Hound\');',
+      'VALUES (2, \'{"the.hound"}\', \'farcebook\', \'The Hound\');',
       'INSERT INTO user_addresses (user_id, address)',
       'VALUES (1, \'DJDBE9JqeMAvwKMofE9yVZaTBkERbx6GW6\');',
       'INSERT INTO user_addresses (user_id, address)',
@@ -360,12 +368,12 @@ test('---------------------------------------- db.js', function (t) {
             balance: 1500,
             accounts: [{
               account_id: 1,
-              uniqid: 'arya.stark',
+              uniqid: ['arya.stark'],
               provider: 'farcebook',
               display_name: 'Arya Stark'
             }, {
               account_id: 2,
-              uniqid: 'the.hound',
+              uniqid: ['the.hound'],
               provider: 'farcebook',
               display_name: 'The Hound'
             }]

@@ -8,7 +8,7 @@ CREATE TABLE users (
 CREATE TABLE accounts (
   account_id serial PRIMARY KEY,
   user_id int REFERENCES users,
-  uniqid text NOT NULL,
+  uniqid text[] NOT NULL,
   provider text NOT NULL,
   display_name text NOT NULL,
   UNIQUE (uniqid, provider)
