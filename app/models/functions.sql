@@ -6,14 +6,14 @@ DECLARE result RECORD;
 BEGIN
 LOOP
   SELECT * INTO result FROM accounts
-  WHERE $1 = ANY (uniqid)
+  WHERE uniqid = $1
   AND provider = $2;
   IF found THEN
     RETURN result;
   END IF;
   BEGIN
     INSERT INTO accounts (uniqid, provider, display_name)
-    VALUES (ARRAY[$1], $2, $3)
+    VALUES ($1, $2, $3)
     RETURNING * INTO result;
     RETURN result;
   EXCEPTION WHEN unique_violation THEN
@@ -32,7 +32,7 @@ BEGIN
 LOOP
   UPDATE accounts
   SET display_name = $3
-  WHERE $1 = ANY (uniqid)
+  WHERE uniqid = $1
   AND provider = $2
   RETURNING * INTO result;
   IF found THEN
@@ -40,7 +40,7 @@ LOOP
   END IF;
   BEGIN
     INSERT INTO accounts (uniqid, provider, display_name)
-    VALUES (ARRAY[$1], $2, $3)
+    VALUES ($1, $2, $3)
     RETURNING * INTO result;
     RETURN result;
   EXCEPTION WHEN unique_violation THEN
