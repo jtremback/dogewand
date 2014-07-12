@@ -15,15 +15,16 @@ block content
         else if role
           p
             form(action="#{tip_path}", method="POST")
-              input(type="hidden", name="_csrf", value="#{csrf_token}")
+              input(type="hidden", name="_csrf", value=csrf_token)
               input(type="hidden", name="tip_id", value="#{tip.tip_id}")
+
               if role === 'tippee'
                 button.btn.btn-lg.btn-success(type="submit") Claim them!
 
               if role === 'tipper'
                 button.btn.btn-lg.btn-danger(type="submit") Cancel this tip.
+
         else
-          p If this is you, <a href="/auth/facebook?redirect_to=tips/#{tip_path}">sign in with facebook</a> to claim your tip.
-
-
-
+          p If this is you,
+          a.btn.btn-lg(class="btn-{{provider}}") Sign in with {{provider}}
+          | to claim your tip.

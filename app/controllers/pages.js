@@ -46,6 +46,7 @@ exports.tip = function (req, res, next) {
       user: req.user,
       role: role,
       tip: tip,
+      csrf_token: req.csrfToken(),
       tip_path: tip_path
     });
   });
@@ -64,7 +65,8 @@ exports.profile = function (req, res) {
   return res.render('profile.jade', {
     user: req.user,
     bookmarklet: require('../../loader/bookmarklet/bookmarklet.js'),
-    version: config.bookmarklet_version
+    version: config.bookmarklet_version,
+    csrf_token: req.csrfToken()
   });
 };
 

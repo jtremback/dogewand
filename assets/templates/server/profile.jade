@@ -7,15 +7,18 @@ block content
         span Your balance is&nbsp;
         .btn.balance-screen <span class="currency-mark">Ð</span>&nbsp;#{user.balance}
 
+        span.pull-right Account # #{user.user_id}
+
       hr.hr-small
       .row.panel-body
         .col-md-6
           p To give your friends some doge, drag this bookmarklet to your bookmarks bar:
           .text-center
             a(alt="Dogewand V#{version}" href="javascript:#{bookmarklet}" class="bookmarklet" onclick="alert('Drag me to the bookmarks bar')" title="Drag me to the bookmarks bar") Dogewand V#{version}
+
         .col-md-6
           form(action="/withdraw", method="POST")
-            input(type="hidden", name="_csrf", value=csrftoken)
+            input(type="hidden", name="_csrf", value=csrf_token)
 
             p
               |Withdraw&nbsp;
@@ -31,7 +34,7 @@ block content
 
       hr.hr-small
       .panel-body
-        p Dogewand is currently linked to:
+        p Dogewand account # #{user.user_id} is currently linked to:
         ul.linked-accounts
           for account in user.accounts
             li.account-tab
