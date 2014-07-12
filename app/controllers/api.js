@@ -30,7 +30,7 @@ exports.user = function (req, res) {
 
 exports.createTip = function (req, res, next) {
   var opts = {
-    uniqid: req.param('uniqid'),
+    uniqid: [req.param('uniqid')],
     provider: req.param('provider'),
     display_name: req.param('display_name'),
     amount: Math.floor(req.param('amount')) // Coerce to int
