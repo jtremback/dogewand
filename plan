@@ -17,18 +17,13 @@ fix dropdown and modal issues
 
 
 
-## signed into site, signed into extension with correct user
+## signed into both
 * straight up auth
 
 ## signed into site, not signed into extension
 * straight up auth
 
-
-## signed into site with incorrect user, signed into extension
-* ask if they want to link the current site account to the currently signed in dogewand user (list of accounts)
-* merge users
-
-## not signed into site, signed into extension
+## extension and site users do not match
 * ask if they want to link the current site account to the currently signed in dogewand user (list of accounts)
 * merge users
 

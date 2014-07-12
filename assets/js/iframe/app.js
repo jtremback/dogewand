@@ -298,8 +298,11 @@ var app = new Vue({
 
         if (!self.uniqid) return self.setCurrentModal('provider-login-modal');
 
+        // Check if user is signed into provider with same account as dogewand
         var matching = self.user.accounts.some(function (item) {
-          return item.uniqid === self.uniqid;
+          return item.uniqid.some(function (item) {
+            return item === self.uniqid;
+          });
         });
 
         if (!matching) return self.setCurrentModal('account-link-modal');

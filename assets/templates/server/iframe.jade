@@ -57,10 +57,13 @@ html(lang="en")
     script#account-link-modal(type="x-template")
       bs-modal
         .modal-body
-          p Would you like to link your {{provider}} account to dogewand?
-          p Currently linked:
-          ul.linked-accounts(v-repeat="user.accounts")
-            li.account-tab {{display_name}} on {{provider}}
+          p Would you like to link your {{provider}} to dogewand account # {{user.user_id}}? (also linked to&nbsp;
+            span(v-repeat="user.accounts")
+              span {{display_name}} on {{provider}},&nbsp;
+            |)
+          hr
+          div
+            a.btn.btn-lg(class="btn-{{provider}}" href="/auth/{{provider}}/?merge=true" target="blank") Sign in with {{provider}}
 
 
     script#withdraw-modal(type="x-template")

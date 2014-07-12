@@ -1,5 +1,10 @@
 @import 'bootstrap/bootstrap';
 
+@Facebook-color: #46639E;
+@Youtube-color: #CD201F;
+@Reddit-color: #CEE3F8;
+
+
 .toolbar {
   position: absolute;
   bottom: 0;
@@ -134,4 +139,26 @@ button {
 .tip-logo {
   float: left;
   margin-right: 50px;
+}
+
+
+.btn-provider(@provider-color, @provider-text) {
+  background: @provider-color;
+  color: @provider-text;
+  &:hover, &:active {
+    background: darken(@provider-color, 5%);
+    color: @provider-text;
+  }
+}
+
+.btn-Facebook {
+  .btn-provider(@Facebook-color, inherit)
+}
+
+.btn-Reddit {
+  .btn-provider(@Reddit-color, #4a4a4a)
+}
+
+.btn-Youtube {
+  .btn-provider(@Youtube-color, inherit)
 }

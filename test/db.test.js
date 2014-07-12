@@ -290,7 +290,8 @@ test('---------------------------------------- db.js', function (t) {
     setupDb(setup_string, function (err) {
       t.error(err, 'setup db');
       db.auth({
-        uniqid: 'arya.stark',
+        // uniqid: '{\"arya.stark\",\"334455\"}',
+        uniqid: ['arya.stark','334455'],
         provider: 'farcebook',
         display_name: 'Arya Stark'
       }, function (err, user_id) {
@@ -309,7 +310,7 @@ test('---------------------------------------- db.js', function (t) {
           balance: 0,
           accounts: [
             {
-              uniqid: ['arya.stark'],
+              uniqid: ['arya.stark', '334455'],
               provider: 'farcebook',
               display_name: 'Arya Stark',
               account_id: 1
@@ -334,7 +335,7 @@ test('---------------------------------------- db.js', function (t) {
   t.test('auth existing account, nonexistant user', function (t) {
     testAuth(t, [
       'INSERT INTO accounts (uniqid, provider, display_name)',
-      'VALUES (\'{"arya.stark"}\', \'farcebook\', \'fooham\');'
+      'VALUES (\'{"334455"}\', \'farcebook\', \'fooham\');'
     ].join('\n'));
   });
 

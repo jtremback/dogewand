@@ -28,9 +28,9 @@ module.exports = function (app, passport) {
 
   app.get('/iframe', pages.iframe);
 
-  app.get('/auth/facebook', preserveParam('redirect_to'), preserveParam('merge'), passport.authenticate('facebook'));
-  app.get('/auth/youtube', preserveParam('redirect_to'), preserveParam('merge'), passport.authenticate('youtube'));
-  app.get('/auth/reddit', preserveParam('redirect_to'), preserveParam('merge'), passport.authenticate('reddit', { state: 'what' }));
+  app.get('/auth/Facebook', preserveParam('redirect_to'), preserveParam('merge'), passport.authenticate('facebook'));
+  app.get('/auth/Youtube', preserveParam('redirect_to'), preserveParam('merge'), passport.authenticate('youtube'));
+  app.get('/auth/Reddit', preserveParam('redirect_to'), preserveParam('merge'), passport.authenticate('reddit', { state: 'what' }));
 
 
   function preserveParam (name) {

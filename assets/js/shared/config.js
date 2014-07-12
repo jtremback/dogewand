@@ -1,4 +1,4 @@
-
+// This stuff originates from the main config file
 var config = {
   provider_list: {
     'https://www.facebook.com': 'Facebook',
