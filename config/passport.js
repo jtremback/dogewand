@@ -14,7 +14,6 @@ module.exports = function (passport, config) {
 
   passport.deserializeUser(function(id, done) {
     db.getUser(id, function (err, user) {
-    console.log('err, user ' , err, user);
       return done(err, user);
     });
   });
@@ -25,23 +24,13 @@ module.exports = function (passport, config) {
       if (err) return done(err);
       db.getUser(user_id, function (err, auth_user) {
         if (err) return done(err);
-        // Here, auth_user basically represents an account on the provider that the user has just clicked on.
-        // so 'mergeFrom' gets the account info from the clicked provider and merges into the currently signed in acct.
-        // user stays signed into current account
+
         if (req.user && req.session.merge) {
-          db.mergeUsers(req.user.user_id, auth_user.user_id, function () {
+          db.mergeUsers(auth_user.user_id, req.user.user_id, function () {
             if (err) return done(err);
-            return done(err, req.user);
+            return done(err, auth_user);
           });
         }
-        // // mergeTo gets the acct. info from the currently signed in user and merges it into the clicked acct.
-        // // user becomes signed into clicked acct. (Do we really want this?????)
-        // if (req.user && req.session.merge === 'to') {
-        //   db.mergeUsers(auth_user.user_id, req.user.user_id, function () {
-        //     if (err) return done(err);
-        //     return done(err, auth_user);
-        //   });
-        // }
         // Just auth normally
         else {
           return done(err, auth_user);
@@ -58,7 +47,7 @@ module.exports = function (passport, config) {
     passReqToCallback: true
     }, function (req, accessToken, refreshToken, profile, done) {
       mergeOrAuth(req, {
-        uniqid: profile.id,
+        uniqid: [ profile.id, profile.username ],
         provider: 'Facebook',
         display_name: profile.displayName
       }, done);
@@ -78,7 +67,7 @@ module.exports = function (passport, config) {
       mergeOrAuth(req, {
         provider: 'Youtube',
         display_name: profile._json.items[0].snippet.title,
-        uniqid: profile._json.items[0].id
+        uniqid: [ profile._json.items[0].id ]
       }, done);
     }
   ));
@@ -94,7 +83,7 @@ module.exports = function (passport, config) {
     function (req, accessToken, refreshToken, profile, done) {
       console.log('PROFILE', JSON.stringify(profile));
       mergeOrAuth(req, {
-        uniqid: profile.name,
+        uniqid: [ profile.name ],
         provider: 'Reddit',
         display_name: profile.name
       }, done);
