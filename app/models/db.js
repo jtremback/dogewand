@@ -35,7 +35,6 @@ exports.getUser = function (user_id, callback) {
     });
 
     user.accounts = accounts;
-
     return callback(null, user);
   });
 };
@@ -209,6 +208,7 @@ exports.withdraw = function (user_id, opts, callback) {
 
 
 exports.auth = function (opts, callback) {
+  console.log('auth')
   pgutils.transaction(function (client, done) {
 
     client.query([
@@ -217,6 +217,7 @@ exports.auth = function (opts, callback) {
     ].join('\n'), [ opts.uniqid, opts.provider, opts.display_name ], function (err, result) {
       if (err || !result.rows[0]) return callback(err, null);
       var user = result.rows[0];
+      console.log('authuser', user)
       if (!user.user_id) return insertUser(user.account_id); // If the account does not have a user make one
       return done(null, user.user_id);
     });
@@ -268,6 +269,17 @@ exports.mergeUsers = function (new_user, old_user, callback) {
     function updateAddresses () {
       client.query([
         'UPDATE user_addresses',
+        'SET user_id = $1',
+        'WHERE user_id = $2'
+      ].join('\n'), [ new_user, old_user ], function (err) {
+        if (err) return done(err);
+        return updateWithdrawals();
+      });
+    }
+
+    function updateWithdrawals () {
+      client.query([
+        'UPDATE withdrawals',
         'SET user_id = $1',
         'WHERE user_id = $2'
       ].join('\n'), [ new_user, old_user ], function (err) {
