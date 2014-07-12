@@ -60,25 +60,20 @@ var scrape_utils = {
 
   account_finders: {
     Facebook: function () {
-      var tinyman = $_('a').filter(function (el) {
-        var href = el.getAttribute('href');
-        if (href && href.match(/\?ref\=tn\_tnmn/)) {
-          if (el.children[1] && el.children[1].className === 'headerTinymanName') {
-            return true;
-          }
-          return false;
-        }
-        return false;
-      });
-
-      return tinyman[0].getAttribute('href').match(/.*\/([^?]*)/)[1];
+      return selectAttrRegex('a.fbxWelcomeBoxName', 'href', '.*?id=(.*?)(\&|$)') ||
+        selectAttrRegex('a.navLink[title="Timeline"]', 'href', '^.*[^?]\/(.*)');
     },
 
     Reddit: function () {
-      var name = $_('#header-bottom-right > .user > a')[0].innerText;
-      if (name !== 'login or register')
-      return name;
+      return selectAttrRegex('span.user [href*="reddit.com/user"]', 'href', 'user\/(.*?)(\W|\/|$)');
     }
   }
 };
 
+function selectAttrRegex (select, attr, regex) {
+  var selected = document.querySelector(select)  || document.body;
+  var attributed = selected.getAttribute(attr) || '';
+  var regexed = attributed.match(new RegExp(regex)) || [null, null];
+
+  return regexed[1];
+}
