@@ -61,17 +61,21 @@ test('---------------------------------------- db.js', function (t) {
         t.deepEqual(user, {
           user_id: 1,
           balance: 1000,
+          username: null,
+          created_at: user.created_at,
           accounts: [
             {
               uniqid: ['arya.stark'],
               provider: 'farcebook',
               display_name: 'Arya Stark',
-              account_id: 1
+              account_id: 1,
+              created_at: user.accounts[0].created_at
             }, {
               uniqid: ['@aryastark'],
               provider: 'twetter',
               display_name: 'Arya Stark',
-              account_id: 2
+              account_id: 2,
+              created_at: user.accounts[1].created_at
             }
           ]
         }, 'returned user correct');
@@ -85,7 +89,7 @@ test('---------------------------------------- db.js', function (t) {
     setupDb(setup_string, function (err) {
       t.error(err, 'db setup');
       db.createTip(1, 1, {
-        uniqid: 'the.hound',
+        uniqid: ['the.hound'],
         provider: 'farcebook',
         display_name: 'The Hound',
         amount: 500
@@ -104,10 +108,11 @@ test('---------------------------------------- db.js', function (t) {
         var tip = result.rows[0];
         t.deepEqual(tip, {
           tip_id: tip_id,
-          tipper_id: 1,
-          tippee_id: 2,
+          tipper_account_id: 1,
+          tippee_account_id: 2,
           amount: '500',
-          state: 'created'
+          state: 'created',
+          created_at: tip.created_at
         }, 'return tip correct');
         t.end();
       });
@@ -147,7 +152,7 @@ test('---------------------------------------- db.js', function (t) {
     ].join('\n'), function (err) {
       t.error(err, 'db setup');
       db.createTip(1, 1, {
-        uniqid: 'the.hound',
+        uniqid: ['the.hound'],
         provider: 'farcebook',
         display_name: 'The Hound',
         amount: 500
@@ -165,6 +170,7 @@ test('---------------------------------------- db.js', function (t) {
         amount: 500,
         state: 'created',
         tip_id: tip_id,
+        created_at: tip.created_at,
         tipper: {
           account_id: 1,
           uniqid: ['arya.stark'],
@@ -197,7 +203,7 @@ test('---------------------------------------- db.js', function (t) {
     ].join('\n'), function (err) {
       t.error(err, 'db setup');
       db.createTip(1, 1, {
-        uniqid: 'the.hound',
+        uniqid: ['the.hound'],
         provider: 'farcebook',
         display_name: 'The Hound',
         amount: 500
@@ -223,10 +229,11 @@ test('---------------------------------------- db.js', function (t) {
 
         t.deepEqual(tip, {
           tip_id: tip_id,
-          tipper_id: 1,
-          tippee_id: 2,
+          tipper_account_id: 1,
+          tippee_account_id: 2,
           amount: '500',
-          state: states[ user_id - 1 ] // Selectes correct state depending on user_id
+          state: states[ user_id - 1 ], // Selectes correct state depending on user_id
+          created_at: tip.created_at
         }, 'return tip correct');
         t.end();
       });
@@ -270,10 +277,13 @@ test('---------------------------------------- db.js', function (t) {
               deposit: {
                 txid: txid,
                 address: address,
-                amount: 500
+                amount: 500,
+                created_at: result.deposit.created_at
               }, user: {
                 user_id: 2,
-                balance: 1500
+                balance: 1500,
+                created_at: result.deposit.created_at,
+                username: null
               }
             });
 
@@ -308,12 +318,15 @@ test('---------------------------------------- db.js', function (t) {
         t.deepEqual(user, {
           user_id: 1,
           balance: 0,
+          username: null,
+          created_at: user.created_at,
           accounts: [
             {
               uniqid: ['arya.stark', '334455'],
               provider: 'farcebook',
               display_name: 'Arya Stark',
-              account_id: 1
+              account_id: 1,
+              created_at: user.accounts[0].created_at
             }
           ]
         }, 'returned user correct');
@@ -367,16 +380,20 @@ test('---------------------------------------- db.js', function (t) {
           t.deepEqual(user, {
             user_id: 1,
             balance: 1500,
+            username: null,
+            created_at: user.created_at,
             accounts: [{
               account_id: 1,
               uniqid: ['arya.stark'],
               provider: 'farcebook',
-              display_name: 'Arya Stark'
+              display_name: 'Arya Stark',
+              created_at: user.accounts[0].created_at
             }, {
               account_id: 2,
               uniqid: ['the.hound'],
               provider: 'farcebook',
-              display_name: 'The Hound'
+              display_name: 'The Hound',
+              created_at: user.accounts[1].created_at
             }]
           }, 'returned user correct');
 
@@ -387,10 +404,12 @@ test('---------------------------------------- db.js', function (t) {
             t.error(err, 'get addresses');
             t.deepEqual(result.rows, [{
               address: 'DJDBE9JqeMAvwKMofE9yVZaTBkERbx6GW6',
-              user_id: 1
+              user_id: 1,
+              created_at: result.rows[0].created_at
             }, {
               address: 'DKYHBsn3m6VHi24gwc9sXU1sFRihok4G3T',
-              user_id: 1
+              user_id: 1,
+              created_at: result.rows[1].created_at
             }], 'addresses correct');
             t.end();
           });

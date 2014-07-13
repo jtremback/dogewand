@@ -17,21 +17,37 @@ exports.insertPgFunctions = function (callback) {
 
 exports.getUser = function (user_id, callback) {
   pgutils.query([
-    'SELECT * FROM users',
+    'SELECT',
+      'users.user_id,',
+      'users.balance,',
+      'users.username,',
+      'users.created_at,',
+      'accounts.account_id,',
+      'accounts.provider account_provider,',
+      'accounts.uniqid account_uniqid,',
+      'accounts.display_name account_display_name,',
+      'accounts.created_at account_created_at',
+    'FROM users',
     'INNER JOIN accounts ON accounts.user_id = users.user_id',
-    'WHERE users.user_id = $1'
+    'WHERE users.user_id = $1',
   ].join('\n'), [ user_id ], function (err, result) {
     if (err || !result.rows[0]) return callback(err, null);
 
     var user = {
       user_id: result.rows[0].user_id,
-      balance: Math.floor(result.rows[0].balance)
+      balance: Math.floor(result.rows[0].balance),
+      username: result.rows[0].username,
+      created_at: result.rows[0].created_at
     };
 
     var accounts = result.rows.map(function (item) {
-      delete item.user_id;
-      delete item.balance;
-      return item;
+      return {
+        account_id: item.account_id,
+        uniqid: item.account_uniqid,
+        provider: item.account_provider,
+        display_name: item.account_display_name,
+        created_at: item.account_created_at
+      }
     });
 
     user.accounts = accounts;
@@ -45,18 +61,18 @@ exports.createTip = function (user_id, account_id, opts, callback) {
 
     client.query([ // Get or insert account for tippee
       'SELECT * FROM accountInsertOrSelect($1, $2, $3)',
-      'AS (account_id int, user_id int, uniqid text[], provider text, display_name text)'
+      'AS (account_id int, user_id int, uniqid text[], provider text, display_name text, created_at timestamp)'
     ].join('\n'), [ opts.uniqid, opts.provider, opts.display_name ], function (err, result) {
       if (err || !result.rows[0]) return callback(err, null);
       return insertTip(result.rows[0].account_id);
     });
 
-    function insertTip (tippee_id) {
+    function insertTip (tippee_account_id) {
       client.query([
-        'INSERT INTO tips (tipper_id, tippee_id, amount)',
+        'INSERT INTO tips (tipper_account_id, tippee_account_id, amount)',
         'VALUES ($1, $2, $3)',
         'RETURNING *;'
-      ].join('\n'), [ account_id, tippee_id, opts.amount ], function (err, result) {
+      ].join('\n'), [ account_id, tippee_account_id, opts.amount ], function (err, result) {
         if (err || !result.rows[0]) return callback(err, null);
         return updateBalance(result.rows[0].tip_id);
       });
@@ -79,13 +95,14 @@ exports.resolveTip = function (user_id, tip_id, callback) {
   pgutils.transaction(function (client, done) {
     client.query([
       'UPDATE tips t',
-      'SET state = CASE WHEN t.tippee_id = a.account_id THEN \'claimed\'::tip_state',
-                      'WHEN t.tipper_id = a.account_id THEN \'canceled\'::tip_state',
+      'SET state = CASE WHEN t.tippee_account_id = a.account_id THEN \'claimed\'::tip_state',
+                      'WHEN t.tipper_account_id = a.account_id THEN \'canceled\'::tip_state',
                       'END',
       'FROM accounts a WHERE user_id = $1 AND tip_id = $2 AND state = \'created\'::tip_state',
-      'AND (t.tippee_id = a.account_id OR t.tipper_id = a.account_id)',
+      'AND (t.tippee_account_id = a.account_id OR t.tipper_account_id = a.account_id)',
       'RETURNING *;'
     ].join('\n'), [ user_id, tip_id ], function (err, result) {
+      console.log('resolveTip db', user_id, tip_id, err, result);
       if (err || !result.rows[0]) return callback(err, null);
       if (!result.rowCount) return done(new Error('Resolve Error'));
       return updateBalance(result.rows[0].amount);
@@ -107,40 +124,78 @@ exports.resolveTip = function (user_id, tip_id, callback) {
 };
 
 
+var tip_aliases =
+ ['tipper.display_name tipper_display_name,',
+  'tippee.display_name tippee_display_name,',
+  'tipper.provider tipper_provider,',
+  'tippee.provider tippee_provider,',
+  'tipper.uniqid tipper_uniqid,',
+  'tippee.uniqid tippee_uniqid,',
+  'tipper.user_id tipper_user_id,',
+  'tippee.user_id tippee_user_id,',
+  'tips.tippee_account_id,',
+  'tips.tipper_account_id,',
+  'tips.state,',
+  'tips.amount,',
+  'tips.created_at,',
+  'tips.tip_id'].join('\n');
+
+
+function tipObject (rows) {
+  return rows.map(function (item) {
+    return {
+      amount: Math.floor(item.amount),
+      state: item.state,
+      tip_id: item.tip_id,
+      created_at: item.created_at,
+      tipper: {
+        uniqid: item.tipper_uniqid,
+        provider: item.tipper_provider,
+        display_name: item.tipper_display_name,
+        account_id: item.tipper_account_id
+      },
+      tippee: {
+        uniqid: item.tippee_uniqid,
+        provider: item.tippee_provider,
+        display_name: item.tippee_display_name,
+        account_id: item.tippee_account_id
+      }
+    };
+  });
+}
+
+
 exports.getTip = function (tip_id, callback) {
   pgutils.query([
-    'SELECT * FROM tips',
-    'INNER JOIN accounts',
-    'ON accounts.account_id = tips.tipper_id',
-    'OR accounts.account_id = tips.tippee_id',
-    'WHERE tip_id = $1',
+    'SELECT',
+      tip_aliases,
+    'FROM tips',
+    'INNER JOIN accounts tipper ON tipper.account_id = tips.tipper_account_id',
+    'INNER JOIN accounts tippee ON tippee.account_id = tips.tippee_account_id',
+    'WHERE tip_id = $1'
   ].join('\n'), [ tip_id ], function (err, result) {
     if (err || !result.rows[0]) return callback(err, null);
 
-    var tipper = (result.rows[0].account_id === result.rows[0].tipper_id) ? 0 : 1;
-    var tippee = tipper ? 0 : 1;
-
-    var tip = {
-      amount: Math.floor(result.rows[0].amount),
-      state: result.rows[0].state,
-      tip_id: result.rows[0].tip_id,
-      tipper: {
-        uniqid: result.rows[tipper].uniqid,
-        provider: result.rows[tipper].provider,
-        display_name: result.rows[tipper].display_name,
-        account_id: result.rows[tipper].account_id
-      },
-      tippee: {
-        uniqid: result.rows[tippee].uniqid,
-        provider: result.rows[tippee].provider,
-        display_name: result.rows[tippee].display_name,
-        account_id: result.rows[tippee].account_id
-      }
-    };
-
-    return callback(null, tip);
+    return callback(null, tipObject(result.rows)[0]);
   });
 };
+
+
+exports.getUserTips = function (user_id, callback) {
+  pgutils.query([
+    'SELECT',
+      tip_aliases,
+    'FROM tips',
+    'INNER JOIN accounts tipper ON tipper.account_id = tips.tipper_account_id',
+    'INNER JOIN accounts tippee ON tippee.account_id = tips.tippee_account_id',
+    'WHERE tipper.user_id = $1 OR tippee.user_id = $1',
+    'ORDER BY tips.created_at DESC'
+  ].join('\n'), [ user_id ], function (err, result) {
+    if (err || !result.rows[0]) return callback(err, null);
+
+    return callback(null, tipObject(result.rows));
+  }, callback);
+}
 
 
 exports.getAddress = function (user_id, callback) {
@@ -213,7 +268,7 @@ exports.auth = function (opts, callback) {
 
     client.query([
       'SELECT * FROM accountInsertOrUpdate($1, $2, $3)',
-      'AS (account_id int, user_id int, uniqid text[], provider text, display_name text)'
+      'AS (account_id int, user_id int, uniqid text[], provider text, display_name text, created_at timestamp)'
     ].join('\n'), [ opts.uniqid, opts.provider, opts.display_name ], function (err, result) {
       if (err || !result.rows[0]) return callback(err, null);
       var user = result.rows[0];
