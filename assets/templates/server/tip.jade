@@ -1,16 +1,19 @@
 extend layout
 
+
 block content
+  - var resolved = tip.state === 'claimed' || tip.state === 'canceled';
   .container.container-main
     .panel.panel-default
       .panel-body
-        img.tip-logo(src="/images/dogecoin-300.png")
-        h2 <span class="accent-text">#{tip.amount}</span> dogecoins
+        img.tip-logo(src=resolved?"/images/dogecoin-grey-300.png":"/images/dogecoin-300.png")
+
+        h2 <span class=resolved?"accent-text":"">#{tip.amount}</span> dogecoins
         p from: #{tip.tipper.display_name} on #{tip.tipper.provider}
         p to: #{tip.tippee.display_name} on #{tip.tippee.provider}
 
-        if tip.state === 'claimed' || tip.state === 'canceled'
-          p this tip has been #{tip.state}
+        if resolved
+          h3 this tip has been #{tip.state}
 
         else if role
           p

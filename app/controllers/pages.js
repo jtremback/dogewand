@@ -53,7 +53,7 @@ exports.tip = function (req, res, next) {
 };
 
 exports.resolveTip = function (req, res, next) {
-  var tip_id = req.param(tip_id);
+  var tip_id = req.body.tip_id;
 
   db.resolveTip(req.user.user_id, tip_id, function (err) {
     if (err) return next(err);
