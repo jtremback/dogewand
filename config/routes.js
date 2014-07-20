@@ -16,9 +16,12 @@ module.exports = function (app, passport) {
 
   app.post('/api/v1/user/withdraw', ensureAuthenticated, api.withdraw);
 
+  app.get('/api/v1/accounts', api.getAccount);
+
   app.get('/', function (req, res) {
     return res.send('dogewand');
   });
+
 
   app.get('/tips/:tip', pages.tip);
   app.post('/tips/:tip', ensureAuthenticated, pages.resolveTip);

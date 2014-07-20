@@ -60,8 +60,10 @@ var scrape_utils = {
 
   account_finders: {
     Facebook: function () {
-      return selectAttrRegex('a.fbxWelcomeBoxName', 'href', '.*?id=(.*?)(\&|$)') ||
-        selectAttrRegex('a.navLink[title="Timeline"]', 'href', '^.*[^?]\/(.*)');
+      return selectAttrRegex('a.fbxWelcomeBoxName', 'href', '.*?id=(.*?)(?:\&|$)') ||
+             selectAttrRegex('a.fbxWelcomeBoxName', 'href', '^(?:.*)\/([^&?/]*)') ||
+             selectAttrRegex('a.navLink[title="Timeline"]', 'href', '.*?id=(.*?)(?:\&|$)') ||
+             selectAttrRegex('a.navLink[title="Timeline"]', 'href', '^(?:.*)\/([^&?/]*)');
     },
 
     Reddit: function () {

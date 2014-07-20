@@ -2,30 +2,23 @@
 
 var db = require('../models/db.js');
 var utils = require('../../utils.js');
-
-function SuccessResponse (data) {
-  return {
-    status: 200,
-    error: false,
-    data: data
-  };
-}
+var _ = require('lodash');
 
 exports.authRedirect = function (req, res) {
-  var redirect_to = req.session.redirect ? req.session.redirect : '/profile';
-  delete req.session.redirect;
+  var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/profile';
+  delete req.session.redirect_to;
   return res.redirect(redirect_to);
 };
 
 exports.address = function (req, res, next) {
   db.getAddress(req.user.user_id, function (err, address) {
     if (err) return next(err);
-    return res.json(new SuccessResponse(address));
+    return res.json(new utils.SuccessResponse(address));
   });
 };
 
 exports.user = function (req, res) {
-  return res.json(new SuccessResponse(req.user));
+  return res.json(new utils.SuccessResponse(req.user));
 };
 
 exports.createTip = function (req, res, next) {
@@ -42,7 +35,7 @@ exports.createTip = function (req, res, next) {
 
     db.getTip(tip_id, function (err, tip) {
       if (err) return next(err);
-      return res.json(new SuccessResponse({
+      return res.json(new utils.SuccessResponse({
         new_balance: new_balance,
         tip: tip
       }));
@@ -50,11 +43,28 @@ exports.createTip = function (req, res, next) {
   });
 };
 
+exports.getAccount = function (req, res, next) {
+  db.getAccount(req.query.uniqid, req.query.provider, function (err, result) {
+  console.log('err, result ' , err, result);
+    if (err) { return next(err); }
+    if (!result) return next(new utils.NamedError('Account not found.', 404));
+    return res.json(new utils.SuccessResponse(_.omit(result, 'user_id', 'account_id', 'created_at')));
+  });
+};
+
 exports.resolveTip = function (req, res, next) {
   db.resolveTip(req.param('tip_id'), req.user.user_id, function (err, new_balance) {
     if (err) return next(err);
 
-    return res.json(new SuccessResponse(new_balance));
+    return res.json(new utils.SuccessResponse(new_balance));
+  });
+};
+
+exports.checkUsername = function (req, res, next) {
+  db.checkUsername(req.param.username, function (err, taken) {
+    if (err) return next(err);
+
+    return res.send(taken);
   });
 };
 
@@ -64,7 +74,7 @@ exports.withdraw = function (req, res, next) {
     amount: Math.floor(req.param('amount'))
   }, function (err, new_balance) {
     if (err) return next(err);
-    return res.json(new SuccessResponse({
+    return res.json(new utils.SuccessResponse({
       new_balance: new_balance
     }));
   });

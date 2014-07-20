@@ -1,12 +1,16 @@
 plan
 
+
+
 still to do:
 
+put username into frontend modals
+check if username exists and get providers for username
 // Check that tips work
 // Withdraw in pages
 // Get reddit scraping working right
 // Get bookmarklet versioning working rights
-fix dropdown and modal issues
+//fix dropdown and modal issues
 // figure out which way to go with account linking
 
 
@@ -21,14 +25,95 @@ fix dropdown and modal issues
 * straight up auth
 
 ## signed into site, not signed into extension
-* straight up auth
+* ask if they want to sign up for dogewand or link this social media account to an existing dogewand account
+* if sign up- auth normally
+* if link- type in username, get list of providers linked to username, offer them for mergeuser.
 
 ## extension and site users do not match
-* ask if they want to link the current site account to the currently signed in dogewand user (list of accounts)
-* merge users
+* ask if they want to sign up for dogewand or link this social media account to an existing dogewand account
+* if sign up- auth normally
+* if link- type in username, get list of providers linked to username, offer them for mergeuser.
+
+
+- Not signed into site:
+  Pop modal informing a motherfucker, exit
+
+- Not signed into Dogewand
+  Sign in button with page provider
+  OR
+  Link to existing account button
+
+
+- Not signed into Dogewand
+  Sign in button with page provider
+  OR
+  Link to existing account button
 
 
 
+
+
+- Signed into Dogewand with wrong acct
+  Link to existing account button
+
+
+I have a Dogewand account linked to Twitter and Reddit. I am not logged into it.
+I log into Facebook and open the extension. I get a modal asking me if I want to make a new Dogewand
+account with my Facebook account or link it to another account.
+
+page.provider: Facebook
+page.uniqid: jehan.tremback
+user.provider: null
+user.uniqid: null
+
+
+I have a Dogewand account linked to Twitter and Facebook. I am not logged into it.
+I log into Facebook and open the extension. I get a modal asking me if I want to log into Dogewand
+with my Facebook account.
+
+page.provider: Facebook
+page.uniqid: jehan.tremback
+user.provider: null
+user.uniqid: null
+
+
+I do not have a Dogewand account. I am not logged into it (obviously).
+I log into Facebook and open the extension. I get a modal asking me if I want to make a new Dogewand
+account with my Facebook account.
+
+page.provider: Facebook
+page.uniqid: jehan.tremback
+user.provider: null
+user.uniqid: null
+
+
+I have a Dogewand account linked to Twitter and Reddit. It has a username. I am logged into it.
+I log into Facebook and open the extension. I get a modal asking me if I want to link my Facebook
+account to Dogewand.
+
+page.provider: Facebook
+page.uniqid: jehan.tremback
+user.provider: Facebook
+user.uniqid: jehan.tremback
+
+
+if (page is logged in)
+  if (dogewand is logged in)
+    if (page creds match user creds)
+      go!
+    else
+      if (user a exists with page creds)
+        message: do you want to link logged in user with user a
+      else
+        message: do you want to link logged in user with provider
+  else
+    if (user a exists with page creds)
+      message: do you want to log in with user a
+    else
+      message: do you want to make account with provider
+
+else
+  message: please log in to provider
 
 
 

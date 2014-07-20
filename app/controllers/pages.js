@@ -14,6 +14,7 @@ exports.tip = function (req, res, next) {
   var tip_id = path_matched[2];
 
   db.getTip(tip_id, function (err, tip) {
+  console.log('tip ' , tip);
     if (err) return next(err);
     if (!tip) {
       return res.send('Tip not found.');

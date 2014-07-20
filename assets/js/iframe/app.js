@@ -46,7 +46,7 @@ Messenger.prototype.post = function (method, data, provider_origin) {
   parent.postMessage(JSON.stringify({
     method: method,
     data: data
-  }), provider_origin || this.app.provider_origin);
+  }), provider_origin || this.app.page.origin);
 };
 
 Messenger.prototype.connect = function (callback) {
@@ -54,19 +54,21 @@ Messenger.prototype.connect = function (callback) {
   window.addEventListener('message', handshake, false);
   this.post('call', null, '*');
   function handshake (event) {
+    console.log('iframe receives', event.source.location.href);
     var message = JSON.parse(event.data);
     if (message.method === 'response' && config.provider_list[event.origin]) {
-      self.app.provider_origin = event.origin;
-      self.app.provider = config.provider_list[event.origin];
-      self.app.uniqid = message.data.uniqid;
+      self.app.page.provider = config.provider_list[event.origin];
+      self.app.page.origin = event.origin;
+      self.app.page.href = event.source.location.href;
+      self.app.page.uniqid = message.data.uniqid;
 
       if (message.data.version !== config.version) {
-        self.app.setCurrentModal('update-modal');
+        self.setCurrentModal('update-modal');
       }
 
       window.removeEventListener('message', handshake);
       window.addEventListener('message', self.listen.bind(self), false);
-      callback();
+      callback(message);
     }
   }
 };
@@ -74,9 +76,9 @@ Messenger.prototype.connect = function (callback) {
 Messenger.prototype.listen = function (event) {
   console.log('iframe receives', event);
 
-  if (event.origin === this.app.provider_origin) { // Check if it's legit
-    this.app.provider_origin = event.origin;
-    this.app.provider = config.provider_list[event.origin];
+  if (event.origin === this.app.page.origin) { // Check if it's legit
+    this.app.page.origin = event.origin;
+    this.app.page.provider = config.provider_list[event.origin];
 
     var message = JSON.parse(event.data);
 
@@ -129,7 +131,7 @@ Vue.component('bs-dropdown', {
   },
   ready: function () {
     var self = this;
-    self.$watch('fullsize', function (bool) {
+    self.$watch('show', function (bool) {
       self.$dispatch('fullsize', bool);
     });
   }
@@ -150,9 +152,7 @@ Vue.component('update-modal', {
   template: '#update-modal'
 });
 
-Vue.component('dogewand-login-modal', {
-  template: '#dogewand-login-modal'
-});
+
 
 Vue.component('provider-login-modal', {
   template: '#provider-login-modal',
@@ -161,9 +161,26 @@ Vue.component('provider-login-modal', {
   }
 });
 
-Vue.component('account-link-modal', {
-  template: '#account-link-modal'
+Vue.component('login-modal', {
+  template: '#login-modal'
 });
+
+Vue.component('switch-or-merge-modal', {
+  template: '#switch-or-merge-modal'
+});
+
+Vue.component('add-provider-modal', {
+  template: '#add-provider-modal'
+});
+
+Vue.component('login-modal', {
+  template: '#login-modal'
+});
+
+Vue.component('new-or-link-modal', {
+  template: '#new-or-link-modal'
+});
+
 
 Vue.component('deposit-modal', {
   template: '#deposit-modal',
@@ -253,7 +270,7 @@ Vue.component('create-tip-modal', {
   methods: {
     submit: function () {
       this.$data.account_id = app.current_account.account_id;
-      this.$data.provider = app.provider;
+      this.$data.provider = app.page.provider;
       http('POST', '/api/v1/tips/create', this.$data, function (err, response) {
         if (err) return modalErrorHandler(err, response);
         else {
@@ -265,7 +282,7 @@ Vue.component('create-tip-modal', {
     init: function (data) {
       this.display_name = data.display_name;
       this.uniqid = data.uniqid;
-      this.provider = app.provider;
+      this.provider = app.page.provider;
       this.amount = '';
     }
   }
@@ -276,37 +293,67 @@ var app = new Vue({
   data: {
     currentModal: false,
     dropdown: false,
-    user: {},
-    provider: null,
-    provider_origin: null
+    page: {
+      uniqid: null,
+      provider: null,
+      provider_origin: null,
+      display_name: null
+    }
   },
   computed: {
     current_account: {
-      // the getter should return the desired value
       $get: function () {
-        return _.find(this.user.accounts, { provider: 'Facebook' });
+        return _.find(this.user.accounts, { provider: this.page.provider });
       }
     }
   },
+
   ready: function () {
     var self = this;
     self.messenger = new Messenger(self);
-    self.messenger.connect(function () {
+    self.messenger.connect(function (message) {
+
+      if (!self.page.uniqid) return self.setCurrentModal('provider-login-modal');
+
       http('GET', '/api/v1/user', null, function (err, response) {
-        if (err) return modalErrorHandler(err, response);
-        self.user = response.data;
+        if (response.status === 200) self.user = response.data;
 
-        if (!self.uniqid) return self.setCurrentModal('provider-login-modal');
 
-        // Check if user is signed into provider with same account as dogewand
-        var matching = self.user.accounts.some(function (item) {
-          return item.uniqid.some(function (item) {
-            return item === self.uniqid;
-          });
+        http('GET', '/api/v1/accounts?provider=' + self.page.provider + '&uniqid=' + self.page.uniqid, null, function (err, response) {
+          if (response.status === 200) {
+            self.page.display_name = response.data.display_name;
+            self.page.siblings = response.data.siblings;
+          }
+
+          if (JSON.stringify(self.user) !== '{}') {
+            var creds_match = self.user.accounts.some(function (account) {
+              return account.provider === self.page.provider && account.uniqid.some(function (uniqid) {
+                return uniqid === self.page.uniqid;
+              });
+            });
+            if (creds_match) {
+              // It's go time
+              self.resize(false);
+              // if (!self.user.username) return self.setCurrentModal('username-modal');
+            } else {
+              if (self.page.display_name) {
+                self.setCurrentModal('switch-or-merge-modal');
+              } else {
+                self.setCurrentModal('add-provider-modal');
+              }
+            }
+          } else {
+            if (self.page.display_name) {
+              self.setCurrentModal('login-modal');
+            } else {
+              self.setCurrentModal('new-or-link-modal');
+            }
+          }
         });
-
-        if (!matching) return self.setCurrentModal('account-link-modal');
       });
+
+
+
     });
 
     self.$on('fullsize', function (bool) {
@@ -342,6 +389,13 @@ var app = new Vue({
         else {
           self.user.balance = response.data.balance;
         }
+      });
+    },
+    logOut: function () {
+      if (JSON.stringify(this.user) === '{}') return this.messenger.post('destroy');
+      http('GET', '/api/v1/user/address', null, function (err, response) {
+        if (err) return modalErrorHandler(err, response);
+        return this.messenger.post('destroy');
       });
     },
     destroy: function () {

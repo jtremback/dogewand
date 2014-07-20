@@ -19,7 +19,7 @@ html(lang="en")
             li
               a(href="#" v-on="click: currentModal = 'deposit-modal'") Deposit
             li
-              a(href="#") Log Out
+              a(href="#" v-on="click: logOut") Log Out
         div.btn.balance-screen(v-on="click: getBalance") <span class="currency-mark">Ð</span>&nbsp;{{user.balance}}
         div.btn.btn-default.btn-wand(v-on="click: tipping()") Give!
       div(v-view="currentModal" v-ref="modal" v-with="show: currentModal")
@@ -33,15 +33,54 @@ html(lang="en")
           p
             a(alt="Dogewand V#{version}" href="javascript:#{bookmarklet}" class="bookmarklet" onclick="alert('Drag me to the bookmarks bar')" title="Drag me to the bookmarks bar") Dogewand V#{version}
 
-    script#dogewand-login-modal(type="x-template")
-      bs-modal
-        .modal-body
-          p Please <a href="/auth/{{provider}}/">log in to dogewand</a>.
 
     script#provider-login-modal(type="x-template")
       bs-modal
         .modal-body
-          p Please log in to {{provider}} to use Dogewand.
+          p Please log in to {{page.provider}} to use Dogewand.
+
+
+    script#switch-or-merge-modal(type="x-template")
+      bs-modal
+        .modal-body
+          p You're signed into Dogewand as {{user.user_id}}.
+          p
+            |{{page.display_name}} on {{page.provider}} is linked to a different Dogewand account.
+            | To switch accounts:
+          p
+            a.btn.btn-lg(class="btn-{{page.provider}}" href="/auth/{{page.provider}}?redirect_to={{page.href}}" target="blank") Sign in with {{page.provider}}
+          p
+            |To merge accounts, head to your&nbsp;
+            a(href="/profile/" target="blank") profile
+
+    script#add-provider-modal(type="x-template")
+      bs-modal
+        .modal-body
+          p You're signed into Dogewand as {{user.user_id}}.
+          p Would you like to link {{user.user_id}} to {{page.provider}}?
+          a.btn.btn-lg(class="btn-{{page.provider}}" href="/auth/{{page.provider}}?redirect_to={{page.href}}" target="blank") Link with {{page.provider}}
+
+    script#username-modal(type="x-template")
+      bs-modal
+        .modal-body
+          p Please choose a username.
+
+
+    script#login-modal(type="x-template")
+      bs-modal
+        .modal-body
+          p Sign into Dogewand as {{page.display_name}} on {{page.provider}}.
+          a.btn.btn-lg(class="btn-{{page.provider}}" href="/auth/{{page.provider}}?redirect_to={{page.href}}" target="blank") Sign in with {{page.provider}}
+
+    script#new-or-link-modal(type="x-template")
+      bs-modal
+        .modal-body
+          p Create a new Dogewand account with {{page.provider}}.
+          hr
+          p Or, link {{page.provider}} to an existing Dogewand account.
+          p
+            input.form-control.inline-control(type="text" v-model="amount" placeholder="username")
+
 
     script#deposit-modal(type="x-template")
       bs-modal
@@ -54,16 +93,16 @@ html(lang="en")
         .modal-body
           p {{message}}
 
-    script#account-link-modal(type="x-template")
-      bs-modal
-        .modal-body
-          p Would you like to link your {{provider}} to dogewand account # {{user.user_id}}? (also linked to&nbsp;
-            span(v-repeat="user.accounts")
-              span {{display_name}} on {{provider}},&nbsp;
-            |)
-          hr
-          div
-            a.btn.btn-lg(class="btn-{{provider}}" href="/auth/{{provider}}/?merge=true" target="blank") Sign in with {{provider}}
+    //- script#account-link-modal(type="x-template")
+    //-   bs-modal
+    //-     .modal-body
+    //-       p Would you like to link your {{provider}} to dogewand account # {{user.user_id}}? (also linked to&nbsp;
+    //-         span(v-repeat="user.accounts")
+    //-           span {{display_name}} on {{provider}},&nbsp;
+    //-         |)
+    //-       hr
+    //-       div
+    //-         a.btn.btn-lg(class="btn-{{page.provider}}" href="/auth/{{page.provider}}/?merge=true" target="blank") Sign in with {{provider}}
 
 
     script#withdraw-modal(type="x-template")

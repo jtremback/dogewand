@@ -5,6 +5,7 @@ var pgutils = require('./pg-utils')(config.db);
 var rpc = require('./rpc')(config.rpc);
 var pg = require('pg');
 var fs = require('fs');
+var _ = require('lodash');
 
 exports.insertPgFunctions = function (callback) {
   pg.connect(config.db, function (err, client, done) {
@@ -47,12 +48,68 @@ exports.getUser = function (user_id, callback) {
         provider: item.account_provider,
         display_name: item.account_display_name,
         created_at: item.account_created_at
-      }
+      };
     });
 
     user.accounts = accounts;
     return callback(null, user);
   });
+};
+
+
+// exports.getProvidersByUsername = function () {
+
+// }
+
+exports.checkUsername = function (username, callback) {
+  pgutils.query([
+    'SELECT',
+    'FROM users',
+    'WHERE username = $1'
+  ].join('\n'), [ username ], function (err, result) {
+    if (err || !result.rows[0]) return callback(err, null);
+    return callback(null, true);
+  });
+};
+
+
+exports.addUsername = function (username, user_id, callback) {
+  pgutils.query([
+    'UPDATE users',
+    'SET username = $1',
+    'WHERE user_id = $2'
+  ].join('\n'), [ username, user_id ], function (err, result) {
+    if (err || !result.rows[0]) return callback(err, null);
+    return callback(null, true);
+  });
+};
+
+
+exports.getAccount = function (uniqid, provider, callback) {
+  pgutils.transaction(function (client, done) {
+    var account = {};
+
+    client.query([
+      'SELECT * from accounts',
+      'WHERE uniqid && $1',
+      'AND provider = $2'
+    ].join('\n'), [ [ uniqid ], provider ], function (err, result) {
+      if (err || !result.rows[0]) return done(err, null);
+      account = result.rows[0];
+      return countSiblings(result.rows[0].user_id);
+    });
+
+    function countSiblings (user_id) {
+      client.query([
+        'SELECT count(true) from accounts',
+        'WHERE user_id = $1'
+      ].join('\n'), [ user_id ], function (err, result) {
+        if (err || !result.rows[0]) return done(err, null);
+        account.siblings = Math.floor(result.rows[0].count) > 2;
+        return done(null, account);
+      });
+    }
+  }, callback);
 };
 
 
@@ -63,7 +120,7 @@ exports.createTip = function (user_id, account_id, opts, callback) {
       'SELECT * FROM accountInsertOrSelect($1, $2, $3)',
       'AS (account_id int, user_id int, uniqid text[], provider text, display_name text, created_at timestamp)'
     ].join('\n'), [ opts.uniqid, opts.provider, opts.display_name ], function (err, result) {
-      if (err || !result.rows[0]) return callback(err, null);
+      if (err || !result.rows[0]) return done(err, null);
       return insertTip(result.rows[0].account_id);
     });
 
@@ -73,7 +130,7 @@ exports.createTip = function (user_id, account_id, opts, callback) {
         'VALUES ($1, $2, $3)',
         'RETURNING *;'
       ].join('\n'), [ account_id, tippee_account_id, opts.amount ], function (err, result) {
-        if (err || !result.rows[0]) return callback(err, null);
+        if (err || !result.rows[0]) return done(err, null);
         return updateBalance(result.rows[0].tip_id);
       });
     }
@@ -83,7 +140,7 @@ exports.createTip = function (user_id, account_id, opts, callback) {
         'UPDATE users SET balance = balance - $1',
         'WHERE user_id = $2 RETURNING *'
       ].join('\n'), [ opts.amount, user_id ], function (err, result) {
-        if (err || !result.rows[0]) return callback(err, null);
+        if (err || !result.rows[0]) return done(err, null);
         return done(null, Math.floor(result.rows[0].balance), tip_id);
       });
     }
@@ -102,8 +159,7 @@ exports.resolveTip = function (user_id, tip_id, callback) {
       'AND (t.tippee_account_id = a.account_id OR t.tipper_account_id = a.account_id)',
       'RETURNING *;'
     ].join('\n'), [ user_id, tip_id ], function (err, result) {
-      console.log('resolveTip db', user_id, tip_id, err, result);
-      if (err || !result.rows[0]) return callback(err, null);
+      if (err || !result.rows[0]) return done(err, null);
       if (!result.rowCount) return done(new Error('Resolve Error'));
       return updateBalance(result.rows[0].amount);
     });
@@ -116,7 +172,7 @@ exports.resolveTip = function (user_id, tip_id, callback) {
         'WHERE user_id = $2',
         'RETURNING balance;'
       ].join('\n'), [ amount, user_id ], function (err, result) {
-        if (err || !result.rows[0]) return callback(err, null);
+        if (err || !result.rows[0]) return done(err, null);
         return done(null, Math.floor(result.rows[0].balance));
       });
     }
@@ -195,7 +251,7 @@ exports.getUserTips = function (user_id, callback) {
 
     return callback(null, tipObject(result.rows));
   }, callback);
-}
+};
 
 
 exports.getAddress = function (user_id, callback) {
@@ -204,7 +260,7 @@ exports.getAddress = function (user_id, callback) {
       'SELECT * FROM user_addresses',
       'WHERE user_id = $1;'
     ].join('\n'), [ user_id ], function (err, result) {
-      if (err) return callback(err, null);
+      if (err) return done(err, null);
       if (result.rows[0] && result.rows[0].address) return done(null, result.rows[0].address);
       return newAddress();
     });
@@ -235,7 +291,7 @@ exports.withdraw = function (user_id, opts, callback) {
       'WHERE user_id = $1',
       'RETURNING balance'
     ].join('\n'), [ user_id, opts.amount ], function (err, result) {
-      if (err || !result.rows[0]) return callback(err, null);
+      if (err || !result.rows[0]) return done(err, null);
       new_balance = Math.floor(result.rows[0].balance);
       return sendFunds();
     });
@@ -253,7 +309,7 @@ exports.withdraw = function (user_id, opts, callback) {
         'VALUES ($1, $2, $3)',
         'RETURNING *;'
       ].join('\n'), [ txid, opts.amount, user_id ], function (err, result) {
-        if (err || !result.rows[0]) return callback(err, null);
+        if (err || !result.rows[0]) return done(err, null);
         result.rows[0].amount = Math.floor(result.rows[0].amount);
         return done(null, new_balance, result.rows[0]);
       });
@@ -263,16 +319,14 @@ exports.withdraw = function (user_id, opts, callback) {
 
 
 exports.auth = function (opts, callback) {
-  console.log('auth')
   pgutils.transaction(function (client, done) {
 
     client.query([
       'SELECT * FROM accountInsertOrUpdate($1, $2, $3)',
       'AS (account_id int, user_id int, uniqid text[], provider text, display_name text, created_at timestamp)'
     ].join('\n'), [ opts.uniqid, opts.provider, opts.display_name ], function (err, result) {
-      if (err || !result.rows[0]) return callback(err, null);
+      if (err || !result.rows[0]) return done(err, null);
       var user = result.rows[0];
-      console.log('authuser', user)
       if (!user.user_id) return insertUser(user.account_id); // If the account does not have a user make one
       return done(null, user.user_id);
     });
@@ -288,7 +342,7 @@ exports.auth = function (opts, callback) {
         'WHERE account_id = $1',
         'RETURNING user_id'
       ].join('\n'), [ account_id ], function (err, result) {
-        if (err || !result.rows[0]) return callback(err, null);
+        if (err || !result.rows[0]) return done(err, null);
         return done(null, result.rows[0].user_id);
       });
     }

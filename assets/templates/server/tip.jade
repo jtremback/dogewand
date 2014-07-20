@@ -29,5 +29,6 @@ block content
 
         else
           p If this is you,
-          a.btn.btn-lg(class="btn-{{provider}}") Sign in with {{provider}}
-          | to claim your tip.
+          p
+            a.btn.btn-lg(class="btn-#{tip.tippee.provider}" href="/auth/#{tip.tippee.provider}?redirect_to=/#{tip_path}") Sign in with #{tip.tippee.provider}
+          p to claim your tip.
