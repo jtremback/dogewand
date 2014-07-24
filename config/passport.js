@@ -54,26 +54,6 @@ module.exports = function (passport, config) {
     }
   ));
 
-
-
-  passport.use(new YoutubeV3Strategy({
-    clientID: config.youtube.clientID,
-    clientSecret: config.youtube.clientSecret,
-    callbackURL: config.url +  '/auth/youtube/callback',
-    scope: ['https://www.googleapis.com/auth/youtube.readonly'],
-    passReqToCallback: true
-    },
-    function (req, accessToken, refreshToken, profile, done) {
-      mergeOrAuth(req, {
-        provider: 'Youtube',
-        display_name: profile._json.items[0].snippet.title,
-        uniqid: [ profile._json.items[0].id ]
-      }, done);
-    }
-  ));
-
-
-
   passport.use(new RedditStrategy({
       clientID: config.reddit.clientID,
       clientSecret: config.reddit.clientSecret,

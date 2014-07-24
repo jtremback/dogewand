@@ -1,4 +1,3 @@
-CREATE EXTENSION "uuid-ossp";
 
 CREATE TABLE users (
   user_id serial PRIMARY KEY,
