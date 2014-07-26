@@ -84,7 +84,7 @@ gulp.task('loader-styles', function () {
 gulp.task('loader-incremental', function () {
   return gulp.src(['incremental/loader/index.js'])
     .pipe(gulpInclude('// = '))
-    // .pipe(gulpUglify())
+    .pipe(gulpUglify())
     .pipe(gulpRename('content_script.js'))
     .pipe(gulp.dest('loader/chrome'))
     .pipe(gulpRename('bookmarklet.js'))
