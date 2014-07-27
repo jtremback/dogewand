@@ -1,0 +1,34 @@
+---
+- hosts: production
+  user: root
+  vars_prompt:
+    - name: ssl_password
+      prompt: "Enter SSL certificate password"
+      private: yes
+  vars:
+    postgres:
+      name: dogewand
+      user: dogewand
+      password: scoop
+    ssl:
+      vhost:
+        hostname: dogewand.org
+        port: 3700
+        certificate: /etc/ssl/certs/dogewand.org.crt
+        key: /etc/ssl/private/dogewand.org.key
+      cert:
+        certificate_src: dogewand.org.crt
+        key_src: dogewand.org.protected.key
+        certificate_dest: /etc/ssl/certs/dogewand.org.crt
+        key_dest: /etc/ssl/private/dogewand.org.protected.key
+        key_stripped: /etc/ssl/private/dogewand.org.key
+        key_password: "{{ssl_password}}"
+    app:
+      user:
+        name: dogewanduser
+        home_folder: /home/dogewanduser
+      name: dogewand
+  roles:
+    - app
+    - postgres
+    - ssl

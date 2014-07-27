@@ -1,0 +1,17 @@
+[remote:children]
+production
+staging
+
+[servers:children]
+production
+staging
+local
+
+[production]
+dogewand.org nickname=production
+
+[staging]
+staging.dogewand.org nickname=staging
+
+[local]
+local.dogewand.org nickname=local

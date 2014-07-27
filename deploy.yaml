@@ -1,0 +1,30 @@
+---
+- hosts: servers
+  vars_files:
+    - vars.yml
+  gather_facts: false
+  sudo: true
+  sudo_user: myproject
+
+  tasks:
+  - name: Pull sources from the repository.
+    git: repo={{ project_repo }} dest={{ project_root }}/code/ version={{ branch }}
+    only_if: "$vm == 0"
+    notify:
+      - restart web frontend
+
+  - name: Upload configuration.
+    copy: src=webapp_settings/local_settings.{{ nickname }}.py dest={{ project_root }}/code/webapp/local_settings.py
+    only_if: "$vm == 0"
+
+  - name: Upgrade the virtualenv.
+    pip: requirements={{ project_root }}/code/requirements.txt virtualenv={{ project_root }}/env/
+
+  - name: Sync Django database.
+    shell: {{ project_root }}/env/bin/python {{ project_root }}/code/webapp/manage.py syncdb --migrate --noinput
+
+  - name: Generate Django media.
+    shell: {{ project_root }}/env/bin/python {{ project_root }}/code/webapp/manage.py generatemedia
+
+  handlers:
+    - include: handlers.yml

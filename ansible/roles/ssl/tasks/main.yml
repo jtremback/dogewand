@@ -1,0 +1,67 @@
+---
+- name: ssl-certs group
+  group:
+    name: ssl-cert
+    state: present
+  sudo: yes
+
+- name: Make sure nginx user is in ssl-cert
+  user:
+    name: nginx
+    groups: www-data,ssl-cert
+  sudo: yes
+
+- name: ssl certs dir
+  file:
+    path: /etc/ssl/certs
+    mode: 755
+    state: directory
+    owner: root
+  sudo: yes
+
+- name: ssl private dir
+  file:
+    path: /etc/ssl/private
+    mode: 700
+    state: directory
+    owner: root
+  sudo: yes
+
+- name: copy the certificate
+  copy:
+    src: "{{ssl.cert.certificate_src}}"
+    dest: "{{ssl.cert.certificate_dest}}"
+    mode: 644
+    group: ssl-cert
+  sudo: yes
+  notify: restart nginx
+
+- name: copy the key
+  copy:
+    src: "{{ssl.cert.key_src}}"
+    dest: "{{ssl.cert.key_dest}}"
+    mode: 640
+    group: ssl-cert
+  sudo: yes
+
+- name: strip ssl keys
+  command: openssl rsa -in {{ssl.cert.key_dest}} -out {{ssl.cert.key_stripped}} -passin pass:{{ssl.cert.key_password}} creates={{ssl.cert.key_stripped}}
+  sudo: yes
+  notify: restart nginx
+
+
+- name: add SSL virtual hosts
+  template:
+    src: nginx-template.conf
+    dest: /etc/nginx/sites-available/"{{ssl.vhost.hostname}}"_ssl
+  sudo: yes
+  notify: restart nginx
+
+- name: enable SSL virtual hosts
+  file:
+    state: link
+    src: /etc/nginx/sites-available/"{{ssl.vhost.hostname}}"_ssl
+    path: /etc/nginx/sites-enabled/"{{ssl.vhost.hostname}}"_ssl
+    owner: nginx
+  sudo: yes
+  notify: restart nginx
