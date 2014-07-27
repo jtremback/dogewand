@@ -1,19 +1,27 @@
 ---
 - name: user
-  user: home={{ app.user.home_folder }} name={{ app.user.name }} state=present
-
-# wtf?
-# - name: Create the project directory.
-#   file: state=directory path={{ app.user.home_folder }}/{{ app.name }}
+  user:
+    home: "{{ app.user.home_folder }}"
+    name: "{{ app.user.name }}"
+    state: "present"
 
 - name: user directory
-  file: group={{ app.user.name }} owner={{ app.user.name }} mode=755 state=directory path={{ app.user.home_folder }}/{{ app.name }}
+  file:
+    group: "{{ app.user.name }}"
+    owner: "{{ app.user.name }}"
+    mode: 755
+    state: "directory"
+    path: "{{ app.user.home_folder }}/{{ app.name }}"
 
-- name: chown user dir
-  shell: chown -R {{ app.user.name }}:{{ app.user.name }} {{ app.user.home_folder }}
+- name: "synchronize source"
+  synchronize:
+    src: "../../"
+    dest: "{{ app.user.home_folder }}/{{ app.name }}"
 
-- name: synchronize source
-  synchronize: src=../../ dest={{ app.user.home_folder }}/{{ app.name }}
+- name: "chown user dir"
+  shell: "chown -R {{ app.user.name }}:{{ app.user.name }} {{ app.user.home_folder }}"
 
-- name: forever
-  npm: name=forever global=yes state=latest
+- name: "upstart script"
+  template:
+    src: "{{ app.name }}.tmpl.conf"
+    dest: "/etc/init/{{ app.name }}.conf"

@@ -1,0 +1,28 @@
+---
+- name: user
+  user:
+    home: "{{ dogecoin.user.home_folder }}"
+    name: "{{ dogecoin.user.name }}"
+    state: "present"
+
+- name: "user directory"
+  file:
+    group: "{{ dogecoin.user.name }}"
+    owner: "{{ dogecoin.user.name }}"
+    mode: 755
+    state: "directory"
+    path: "{{ dogecoin.user.home_folder }}"
+
+- name: "copy binary"
+  copy:
+    src: "{{ dogecoin.binary_src }}"
+    dest: "{{ dogecoin.user.home_folder }}"
+    mode: 755
+
+- name: "chown user dir"
+  shell: "chown -R {{ dogecoin.user.name }}:{{ dogecoin.user.name }} {{ dogecoin.user.home_folder }}"
+
+- name: "upstart script"
+  template:
+    src: "{{ app.name }}.tmpl.conf"
+    dest: "/etc/init/{{ app.name }}.conf"
