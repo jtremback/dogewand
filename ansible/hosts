@@ -1,2 +1,5 @@
 [production]
 dogewand.org
+
+[dev]
+107.170.219.36

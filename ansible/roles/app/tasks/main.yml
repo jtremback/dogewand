@@ -5,23 +5,24 @@
     name: "{{ app.user.name }}"
     state: "present"
 
-- name: user directory
-  file:
-    group: "{{ app.user.name }}"
-    owner: "{{ app.user.name }}"
-    mode: 755
-    state: "directory"
-    path: "{{ app.user.home_folder }}/{{ app.name }}"
-
 - name: "synchronize source"
   synchronize:
-    src: "../../"
+    src: "../../../../" # get source dir
     dest: "{{ app.user.home_folder }}/{{ app.name }}"
 
 - name: "chown user dir"
   shell: "chown -R {{ app.user.name }}:{{ app.user.name }} {{ app.user.home_folder }}"
 
+- name: "chmod user dir"
+  shell: "chmod -R 700 {{ app.user.home_folder }}"
+
 - name: "upstart script"
   template:
     src: "{{ app.name }}.tmpl.conf"
     dest: "/etc/init/{{ app.name }}.conf"
+
+- name: "start upstart"
+  service:
+    name: "{{ app.name }}"
+    state: "started"
+    enabled: "yes"

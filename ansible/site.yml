@@ -1,16 +1,21 @@
 ---
-- hosts: production
+- hosts: dev
   user: root
   vars_prompt:
     - name: ssl_password
       prompt: "Enter SSL certificate password"
       private: yes
+    - name: pg_password
+      prompt: "Enter postgres password"
+      private: yes
+    - name: dogecoind_password
+      prompt: "Enter dogecoind rpc password"
+      private: yes
   vars:
 
     postgres:
       name: dogewand
-      user: dogewand
-      password: scoop
+      password: poopen
 
     ssl:
       vhost:
@@ -24,16 +29,19 @@
         certificate_dest: /etc/ssl/certs/dogewand.org.crt
         key_dest: /etc/ssl/private/dogewand.org.protected.key
         key_stripped: /etc/ssl/private/dogewand.org.key
-        key_password: "{{ssl_password}}"
+        key_password: "{{ ssl_password }}"
 
     app:
+      name: dogewand
+      logs: /var/log/dogewand/sys.log
       user:
         name: dogewanduser
         home_folder: /home/dogewanduser
-      name: dogewand
 
     dogecoin:
       binary_src: dogecoind
+      rpc_password: dogecoind_password
+      logs: /var/log/dogecoind/sys.log
       user:
         name: dogecoinuser
         home_folder: /home/dogecoinuser
@@ -42,3 +50,4 @@
     - app
     - postgres
     - ssl
+    - dogecoin
