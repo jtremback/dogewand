@@ -1,0 +1,5 @@
+---
+# Set aliases for role variables to keep consistent variable scheme
+postgres_db: postgres.name
+postgres_username: postgres.name
+postgres_password: postgres.password

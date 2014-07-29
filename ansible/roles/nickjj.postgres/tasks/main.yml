@@ -1,0 +1,35 @@
+---
+- name: ensure ansible's apt_repository dependency is installed
+  apt: pkg=python-apt state=latest update_cache=true cache_valid_time={{ apt_cache_valid_time }}
+
+- name: ensure postgres dependencies are installed
+  apt: pkg=python-psycopg2 state=latest update_cache=true cache_valid_time={{ apt_cache_valid_time }}
+
+- name: ensure postgres apt key exists
+  apt_key: url=http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc
+
+- name: ensure postgres apt repository exists
+  apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_lsb.codename }}-pgdg main'
+
+- name: ensure postgres is installed
+  apt: pkg=postgresql-9.3 state=latest update_cache=true cache_valid_time={{ apt_cache_valid_time }}
+  notify:
+    - restart postgres
+
+- name: ensure postgres' pg_hba is configured
+  template: src=pg_hba.conf.j2 dest=/etc/postgresql/9.3/main/pg_hba.conf
+  notify:
+    - restart postgres
+
+- name: ensure postgres is configured
+  template: src=postgresql.conf.j2 dest=/etc/postgresql/9.3/main/postgresql.conf
+  notify:
+    - restart postgres
+
+- name: ensure a postgres user is created
+  postgresql_user: name={{ postgres_username }} password={{ postgres_password }} role_attr_flags=CREATEDB
+  sudo: yes
+  sudo_user: postgres
+
+- name: ensure postgres starts on a fresh reboot
+  service: name=postgresql state=started enabled=yes

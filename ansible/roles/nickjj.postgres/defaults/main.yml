@@ -1,0 +1,14 @@
+---
+postgres_listen_addresses:
+  - 0.0.0.0
+postgres_port: 5432
+postgres_username: deploy
+postgres_password: pleasedonthackme
+
+postgres_log_destination: stderr
+postgres_syslog_facility: LOCAL0
+postgres_syslog_ident: postgres
+
+postgres_allowed_hosts: []
+
+apt_cache_valid_time: 86400

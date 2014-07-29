@@ -1,0 +1,14 @@
+# {{ ansible_managed }}
+# manual customization of this file is not recommended
+
+local        all        postgres        peer
+host         all        all             127.0.0.1/32              md5
+host         all        all             ::1/128                   md5
+
+{% if postgres_allowed_hosts and postgres_allowed_hosts is iterable %}
+{% for item in postgres_allowed_hosts %}
+{% for host in item.hosts %}
+{{ item.type | default('host') }}         {{ item.database | default('all') }}        {{ item.user | default('all') }}             {{ hostvars[host]['ansible_' + item.interface | default('eth0')]['ipv4']['address'] }}/32            {{ item.auth | default('md5') }}
+{% endfor %}
+{% endfor %}
+{% endif %}
