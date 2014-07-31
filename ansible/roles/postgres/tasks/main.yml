@@ -6,14 +6,33 @@
 - name: check database
   sudo: yes
   sudo_user: postgres
-  postgresql_db: name={{ postgres.name }}
+  postgresql_db:
+    name: '{{ secrets.postgres.name }}'
+
+- name: make sure the postgres contrib extensions are installed
+  apt:
+    name: "postgresql-contrib-9.3"
+    state: present
+  notify:
+    - restart postgres
+
+- name: add uuid-ossp to the database
+  sudo: yes
+  sudo_user: postgres
+  shell: "psql {{ secrets.postgres.name }} -c 'CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";'"
 
 - name: check access
   sudo: yes
   sudo_user: postgres
-  postgresql_user: db={{ postgres.name }} name={{ postgres.name }} password={{ postgres.password }} priv=ALL
+  postgresql_user:
+    db: '{{ secrets.postgres.name }}'
+    name: '{{ secrets.postgres.name }}'
+    password: '{{ secrets.postgres.password }}'
+    priv: ALL
 
 - name: check privilege
   sudo: yes
   sudo_user: postgres
-  postgresql_user: name={{ postgres.name }} role_attr_flags=NOSUPERUSER,NOCREATEDB
+  postgresql_user:
+    name: '{{ secrets.postgres.name }}'
+    role_attr_flags: 'NOSUPERUSER,NOCREATEDB'

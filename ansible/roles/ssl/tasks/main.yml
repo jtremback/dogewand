@@ -45,7 +45,7 @@
   sudo: yes
 
 - name: strip ssl keys
-  command: openssl rsa -in {{ssl.cert.key_dest}} -out {{ssl.cert.key_stripped}} -passin pass:{{ssl.cert.key_password}} creates={{ssl.cert.key_stripped}}
+  command: openssl rsa -in {{ssl.cert.key_dest}} -out {{ssl.cert.key_stripped}} -passin pass:{{secrets.ssl_key_password}} creates={{ssl.cert.key_stripped}}
   sudo: yes
   notify: restart nginx
 

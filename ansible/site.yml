@@ -1,53 +1,12 @@
 ---
-- hosts: dev
+- hosts: production
   user: root
-  vars_prompt:
-    - name: ssl_password
-      prompt: "Enter SSL certificate password"
-      private: yes
-    - name: pg_password
-      prompt: "Enter postgres password"
-      private: yes
-    - name: dogecoind_password
-      prompt: "Enter dogecoind rpc password"
-      private: yes
-  vars:
-
-    postgres:
-      name: dogewand
-      password: poopen
-
-    ssl:
-      vhost:
-        hostname: dogewand.org
-        port: 3700
-        certificate: /etc/ssl/certs/dogewand.org.crt
-        key: /etc/ssl/private/dogewand.org.key
-      cert:
-        certificate_src: dogewand.org.crt
-        key_src: dogewand.org.protected.key
-        certificate_dest: /etc/ssl/certs/dogewand.org.crt
-        key_dest: /etc/ssl/private/dogewand.org.protected.key
-        key_stripped: /etc/ssl/private/dogewand.org.key
-        key_password: "{{ ssl_password }}"
-
-    app:
-      name: dogewand
-      logs: /var/log/dogewand/sys.log
-      user:
-        name: dogewanduser
-        home_folder: /home/dogewanduser
-
-    dogecoin:
-      binary_src: dogecoind
-      rpc_password: dogecoind_password
-      logs: /var/log/dogecoind/sys.log
-      user:
-        name: dogecoinuser
-        home_folder: /home/dogecoinuser
+  vars_files:
+    - secrets.yml
+    - vars.yml
 
   roles:
-    - app
     - postgres
-    - ssl
     - dogecoin
+    - ssl
+    - app

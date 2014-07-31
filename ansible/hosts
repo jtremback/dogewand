@@ -1,5 +1,5 @@
 [production]
-dogewand.org
+dogewand.org url=https://dogewand.org
 
 [dev]
-107.170.219.36
+107.170.219.36 url=https://107.170.219.36

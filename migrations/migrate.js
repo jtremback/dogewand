@@ -4,7 +4,7 @@ var postgrator = require('postgrator');
 var config = require('../config/config')();
 
 postgrator.config.set({
-  migrationDirectory: './migrations/',
+  migrationDirectory: config.root + '/migrations/',
   driver: 'pg',
   connectionString: config.db
 });
