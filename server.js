@@ -19,7 +19,9 @@ db.insertPgFunctions(function () {
     };
     https.createServer(options, app).listen(port);
   }
-  http.createServer(app).listen(port);
+  else {
+    http.createServer(app).listen(port);
+  }
 });
 
 console.log('Express app started on port ' + port);

@@ -4,6 +4,8 @@
 
 var app;
 
+Vue.config('debug', true);
+
 function http (method, url, data, callback) {
   var request = new XMLHttpRequest();
   request.onreadystatechange = function () {
@@ -173,13 +175,38 @@ Vue.component('add-provider-modal', {
   template: '#add-provider-modal'
 });
 
-Vue.component('login-modal', {
-  template: '#login-modal'
-});
-
 Vue.component('new-or-link-modal', {
   template: '#new-or-link-modal'
 });
+
+Vue.component('profile-modal', {
+  template: '#profile-modal'
+});
+
+
+// Vue.component('username-modal', {
+//   template: '#username-modal',
+//   data: {
+//     new_username: '',
+//     unavailable: false
+//   },
+//   methods: {
+//     setUsername: function () {
+//       var self = this;
+//       http('POST', '/api/v1/user/username', { username: self.new_username}, function (err, response) {
+//         if (err) return modalErrorHandler(err, response);
+//         else {
+//           if (response.data === 'success') {
+//             app.setCurrentModal(false);
+//           }
+//           else if (response.data === 'taken') {
+//             this.unavailable = true;
+//           }
+//         }
+//       });
+//     }
+//   }
+// });
 
 
 Vue.component('deposit-modal', {
@@ -325,25 +352,25 @@ var app = new Vue({
             self.page.siblings = response.data.siblings;
           }
 
-          if (JSON.stringify(self.user) !== '{}') {
+          if (JSON.stringify(self.user) !== '{}') {  // If the account is signed in
             var creds_match = self.user.accounts.some(function (account) {
               return account.provider === self.page.provider && account.uniqid.some(function (uniqid) {
                 return uniqid === self.page.uniqid;
               });
             });
-            if (creds_match) {
+            if (creds_match) { // Account is signed in on dogewand and page
               // It's go time
               self.resize(false);
               // if (!self.user.username) return self.setCurrentModal('username-modal');
             } else {
-              if (self.page.display_name) {
+              if (self.page.display_name) { // If the account exists in our system
                 self.setCurrentModal('switch-or-merge-modal');
               } else {
                 self.setCurrentModal('add-provider-modal');
               }
             }
-          } else {
-            if (self.page.display_name) {
+          } else { // The account is not signed in
+            if (self.page.display_name) { // If the account exists in our system
               self.setCurrentModal('login-modal');
             } else {
               self.setCurrentModal('new-or-link-modal');
@@ -351,9 +378,6 @@ var app = new Vue({
           }
         });
       });
-
-
-
     });
 
     self.$on('fullsize', function (bool) {
@@ -377,8 +401,8 @@ var app = new Vue({
       var toolbar = this.$el.querySelector('.toolbar');
       Vue.nextTick(function () {
         self.messenger.post('size', {
-          width: full ? '100%' : toolbar.scrollWidth + 'px',
-          height: full ? '100%' : toolbar.scrollHeight + 'px'
+          width: full ? '100%' : toolbar.scrollWidth + 10 + 'px',
+          height: full ? '100%' : toolbar.scrollHeight + 10 + 'px'
         });
       });
     },
@@ -392,10 +416,11 @@ var app = new Vue({
       });
     },
     logOut: function () {
+      var self = this;
       if (JSON.stringify(this.user) === '{}') return this.messenger.post('destroy');
-      http('GET', '/api/v1/user/address', null, function (err, response) {
+      http('GET', '/logout', null, function (err, response) {
         if (err) return modalErrorHandler(err, response);
-        return this.messenger.post('destroy');
+        return self.messenger.post('destroy');
       });
     },
     destroy: function () {

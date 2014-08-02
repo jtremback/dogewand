@@ -16,6 +16,10 @@ module.exports = function (app, passport) {
 
   app.post('/api/v1/user/withdraw', ensureAuthenticated, api.withdraw);
 
+  app.get('/api/v1/user/username', ensureAuthenticated, api.checkUsername);
+
+  app.post('/api/v1/user/username', ensureAuthenticated, api.setUsername);
+
   app.get('/api/v1/accounts', api.getAccount);
 
   app.get('/', function (req, res) {
@@ -50,7 +54,7 @@ module.exports = function (app, passport) {
 
   app.get('/logout', function(req, res){
     req.logout();
-    res.redirect('/');
+    res.send(new utils.SuccessResponse());
   });
 };
 

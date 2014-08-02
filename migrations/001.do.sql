@@ -2,7 +2,7 @@
 CREATE TABLE users (
   user_id serial PRIMARY KEY,
   balance bigint NOT NULL DEFAULT 0 CHECK (balance >= 0),
-  username text UNIQUE,
+  -- username text UNIQUE,
   created_at timestamp DEFAULT CURRENT_TIMESTAMP
 );
 

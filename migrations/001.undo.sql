@@ -13,5 +13,3 @@ DROP TYPE tip_state;
 DROP TABLE accounts;
 
 DROP TABLE users;
-
-DROP EXTENSION "uuid-ossp";

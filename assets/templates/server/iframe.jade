@@ -17,6 +17,8 @@ html(lang="en")
             li
               a(href="#" v-on="click: currentModal = 'withdraw-modal'") Withdraw
             li
+              a(href="#" v-on="click: currentModal = 'profile-modal'") Profile
+            li
               a(href="#" v-on="click: currentModal = 'deposit-modal'") Deposit
             li
               a(href="#" v-on="click: logOut") Log Out
@@ -25,6 +27,16 @@ html(lang="en")
       div(v-view="currentModal" v-ref="modal" v-with="show: currentModal")
       div.modal-backdrop.in(v-if="currentModal" v-on='click: currentModal = false')
       div.modal-backdrop.dropdown-backdrop(v-if="dropdown" v-on='click: dropdown = false')
+
+
+
+    script#bs-modal(type="x-template")
+      .modal(v-only="click: show = false")
+        .modal-dialog.modal-md
+          .modal-content
+            content(select=".modal-body")
+
+
 
     script#update-modal(type="x-template")
       bs-modal
@@ -60,10 +72,14 @@ html(lang="en")
           p Would you like to link {{user.user_id}} to {{page.provider}}?
           a.btn.btn-lg(class="btn-{{page.provider}}" href="/auth/{{page.provider}}?redirect_to={{page.href}}" target="blank") Link with {{page.provider}}
 
-    script#username-modal(type="x-template")
-      bs-modal
-        .modal-body
-          p Please choose a username.
+    //- script#username-modal(type="x-template")
+    //-   bs-modal
+    //-     .modal-body
+    //-       p Please choose a username. {{new_username}}{{username_taken}}
+    //-       p
+    //-         input.form-control.inline-control(type="text" v-model="new_username" v-class="valid: available, invalid: unavailable" placeholder="username")
+    //-         div.btn.btn-default(v-on="click: setUsername()") Submit
+
 
 
     script#login-modal(type="x-template")
@@ -143,13 +159,22 @@ html(lang="en")
           hr.hr-invis
           button.btn.btn-lg.btn-primary(type='button' v-on="click: submit") Give!
 
+    script#profile-modal(type="x-template")
+      bs-modal
+        .modal-body
+          p Dogewand is currently linked to:
+          ul.linked-accounts(v-repeat="user.accounts")
+            li.account-tab
+              div {{display_name}}
+              div on {{provider}}
+          hr
+          span(v-if="!page.siblings")
+            p Link with {{page.display_name}} on {{page.provider}}.
+            a.btn.btn-lg(class="btn-{{page.provider}}" href="/auth/{{page.provider}}?redirect_to={{page.href}}" target="blank") Sign in with {{page.provider}}
 
-    script#bs-modal(type="x-template")
-      .modal(v-only="click: show = false")
-        .modal-dialog.modal-md
-          .modal-content
-            content(select=".modal-body")
-
+          span(v-if="page.siblings")
+            p Merge with {{page.display_name}} on {{page.provider}} and {{page.siblings}} linked accounts.
+            a.btn.btn-lg(class="btn-{{page.provider}}" href="/auth/{{page.provider}}?redirect_to={{page.href}}" target="blank") Sign in with {{page.provider}}
 
     script(src="/dist/iframe.js")
 

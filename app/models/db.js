@@ -61,28 +61,29 @@ exports.getUser = function (user_id, callback) {
 
 // }
 
-exports.checkUsername = function (username, callback) {
-  pgutils.query([
-    'SELECT',
-    'FROM users',
-    'WHERE username = $1'
-  ].join('\n'), [ username ], function (err, result) {
-    if (err || !result.rows[0]) return callback(err, null);
-    return callback(null, true);
-  });
-};
+// exports.checkUsername = function (username, callback) {
+//   pgutils.query([
+//     'SELECT username',
+//     'FROM users',
+//     'WHERE username = $1'
+//   ].join('\n'), [ username ], function (err, result) {
+//     if (err || !result.rows[0]) return callback(err, null);
+//     return callback(null, true);
+//   });
+// };
 
 
-exports.addUsername = function (username, user_id, callback) {
-  pgutils.query([
-    'UPDATE users',
-    'SET username = $1',
-    'WHERE user_id = $2'
-  ].join('\n'), [ username, user_id ], function (err, result) {
-    if (err || !result.rows[0]) return callback(err, null);
-    return callback(null, true);
-  });
-};
+// exports.setUsername = function (user_id, username, callback) {
+//   pgutils.query([
+//     'UPDATE users',
+//     'SET username = $1',
+//     'WHERE user_id = $2',
+//     'RETURNING username;'
+//   ].join('\n'), [ username, user_id ], function (err, result) {
+//     if (err || !result.rows[0]) return callback(err, null);
+//     return callback(null, true);
+//   });
+// };
 
 
 exports.getAccount = function (uniqid, provider, callback) {
@@ -105,7 +106,7 @@ exports.getAccount = function (uniqid, provider, callback) {
         'WHERE user_id = $1'
       ].join('\n'), [ user_id ], function (err, result) {
         if (err || !result.rows[0]) return done(err, null);
-        account.siblings = Math.floor(result.rows[0].count) > 2;
+        account.siblings = Math.floor(result.rows[0].count) - 1;
         return done(null, account);
       });
     }

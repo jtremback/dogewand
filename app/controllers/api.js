@@ -61,10 +61,20 @@ exports.resolveTip = function (req, res, next) {
 };
 
 exports.checkUsername = function (req, res, next) {
-  db.checkUsername(req.param.username, function (err, taken) {
+  db.checkUsername(req.query.username, function (err, taken) {
     if (err) return next(err);
+    if (taken) {
+      return res.send(new utils.SuccessResponse('taken'));
+    } else {
+      return res.send(new utils.SuccessResponse());
+    }
+  });
+};
 
-    return res.send(taken);
+exports.setUsername = function (req, res, next) {
+  db.setUsername(req.user.user_id, req.param.username, function (err, username) {
+    if (err) return next(err);
+    return res.send(new utils.SuccessResponse(username));
   });
 };
 
