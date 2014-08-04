@@ -9,6 +9,7 @@ var gulpAutoprefixer = require('gulp-autoprefixer');
 var gulpMinifyCss = require('gulp-minify-css');
 var gulpUglify = require('gulp-uglify');
 var gulpLess = require('gulp-less');
+var gulpJade = require('gulp-jade');
 var gulpDataUri = require('gulp-data-uri');
 var gulpTemplate = require('gulp-template');
 var gulpConcat = require('gulp-concat');
@@ -53,6 +54,14 @@ gulp.task('shared-js', function () {
   return gulp.src(['assets/js/shared/**/*'])
     .pipe(gulpTemplate({url: config.url, version: config.bookmarklet_version}))
     .pipe(gulp.dest('incremental/shared'));
+});
+
+
+// STATIC PAGES
+gulp.task('static-html', function () {
+  return gulp.src(['assets/templates/static/*.jade'])
+    .pipe(gulpJade())
+    .pipe(gulp.dest('public'));
 });
 
 
@@ -116,6 +125,7 @@ gulp.task('watch', function () {
   gulp.watch('assets/less/**', ['iframe-styles', 'loader-styles']);
   gulp.watch('assets/js/**', ['chrome-js', 'shared-js', 'iframe-js', 'loader-js']);
   gulp.watch('assets/images/**', ['iframe-images']);
+  gulp.watch('assets/templates/static/**', ['static-html']);
 
   gulp.watch('incremental/loader/**', ['loader-incremental']);
 });
@@ -129,4 +139,5 @@ gulp.task('build', [
   'loader-styles',
   'loader-incremental',
   'loader-js',
+  'static-html'
 ]);
