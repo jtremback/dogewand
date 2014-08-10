@@ -2,7 +2,7 @@
 
 var gulp = require('gulp');
 var gulpRename = require('gulp-rename');
-var gulpNotify = require('gulp-notify');
+// var gulpNotify = require('gulp-notify');
 var gulpInclude = require('gulp-file-include');
 var gulpTap = require('gulp-tap');
 var gulpAutoprefixer = require('gulp-autoprefixer');
@@ -65,6 +65,17 @@ gulp.task('static-html', function () {
 });
 
 
+// DEMO JS
+gulp.task('demo-js', function () {
+  return gulp.src('assets/js/demo/index.js')
+    .pipe(gulpInclude('// = '))
+    // .pipe(gulpUglify())
+    .pipe(gulpRename('demo.js'))
+    .pipe(gulp.dest('public/dist'))
+    // .pipe(gulpNotify({ message: 'demo-js task complete' }));
+});
+
+
 // CHROME BOILERPLATE
 gulp.task('chrome-js', function () {
   return gulp.src(['assets/js/chrome/**/*'])
@@ -78,7 +89,7 @@ gulp.task('loader-js', function () {
   return gulp.src(['assets/js/loader/**/*.js', 'assets/js/shared/**/*.js'])
     .pipe(gulpTemplate({url: config.url, version: config.bookmarklet_version})) // Add magic numbers like url etc.
     .pipe(gulp.dest('incremental/loader'))
-    .pipe(gulpNotify({ message: 'loader-js task complete' }));
+    // .pipe(gulpNotify({ message: 'loader-js task complete' }));
 });
 
 gulp.task('loader-styles', function () {
@@ -87,7 +98,7 @@ gulp.task('loader-styles', function () {
     .pipe(gulpRename('style.css'))
     .pipe(gulpTap(varWrap))
     .pipe(gulp.dest('incremental/loader'))
-    .pipe(gulpNotify({ message: 'loader-styles task complete' }));
+    // .pipe(gulpNotify({ message: 'loader-styles task complete' }));
 });
 
 gulp.task('loader-incremental', function () {
@@ -99,7 +110,7 @@ gulp.task('loader-incremental', function () {
     .pipe(gulpRename('bookmarklet.js'))
     .pipe(gulpTap(moduleWrap))
     .pipe(gulp.dest('loader/bookmarklet'))
-    .pipe(gulpNotify({ message: 'loader-incremental task complete' }));
+    // .pipe(gulpNotify({ message: 'loader-incremental task complete' }));
 });
 
 
@@ -110,14 +121,14 @@ gulp.task('iframe-styles', function () {
     .pipe(lazyLess())
     .pipe(gulpRename('iframe.css'))
     .pipe(gulp.dest('public/dist'))
-    .pipe(gulpNotify({ message: 'iframe-styles task complete' }));
+    // .pipe(gulpNotify({ message: 'iframe-styles task complete' }));
 });
 
 gulp.task('iframe-js', function () {
   return gulp.src(['incremental/shared/config.js', 'assets/js/iframe/vendor/lodash.custom.js', 'assets/js/iframe/vendor/vue.0.10.4.js', 'assets/js/iframe/app.js'])
     .pipe(gulpConcat('iframe.js'))
     .pipe(gulp.dest('public/dist'))
-    .pipe(gulpNotify({ message: 'iframe-js task complete' }));
+    // .pipe(gulpNotify({ message: 'iframe-js task complete' }));
 });
 
 //// WATCH
@@ -126,6 +137,7 @@ gulp.task('watch', function () {
   gulp.watch('assets/js/**', ['chrome-js', 'shared-js', 'iframe-js', 'loader-js']);
   gulp.watch('assets/images/**', ['iframe-images']);
   gulp.watch('assets/templates/static/**', ['static-html']);
+  gulp.watch('assets/js/demo/**', ['demo-js']);
 
   gulp.watch('incremental/loader/**', ['loader-incremental']);
 });
@@ -133,6 +145,7 @@ gulp.task('watch', function () {
 // BUILD
 gulp.task('build', [
   'shared-js',
+  'demo-js',
   'chrome-js',
   'iframe-js',
   'iframe-styles',

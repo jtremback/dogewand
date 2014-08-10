@@ -6,7 +6,9 @@ block content
       img.Media-figure.Image(src="//philipwalton.github.io/solved-by-flexbox/images/kitten.jpg", alt="Kitten")
       .Media-body
         .Media-comment
-          .Media-username Kabuso
+          .Media-username.kabosu.Demo-cursor-parent
+            | Kabuso
+            .Demo-cursor.Demo-cursor--wand
           | Such shake, many speare. Much favorite:
           .Media-quote
             | What light. So breaks. Such east. Very sun. Wow, Juliet.
@@ -24,3 +26,30 @@ block content
             .Media-body
               .Media-username Doge Di Venizia
               textarea.Demo-form-control.form-control(placeholder="Such comment...")
+
+  .Demo-modal.Demo-tip-modal.modal
+    .modal-dialog.modal-md
+      .modal-content
+        .modal-body
+          p Give <span class="accent-text">Kabosu</span> on <span class="accent-text">The Social Network</span>
+          p
+            input.form-control.inline-control.Demo-amount-input(type="number" v-model="amount" placeholder="so many")
+            | &nbsp;dogecoins
+          hr.hr-invis
+          button.btn.btn-lg.btn-primary.Demo-tip-modal-button(type='button')
+            |Give!
+
+  .Demo-modal.Demo-conf-modal.modal
+    .modal-dialog.modal-md
+      .modal-content
+        .modal-body
+          p You gave <span class="accent-text">Kabosu</span> on <span class="accent-text">The Social Network</span>
+          p 3000 dogecoins
+          p They can redeem their dogecoins here:
+          p
+            textarea.form-control.text-center https://dogewand.org/tips/3000doge-7a46fef0aab741aa95e00b9f2641242a
+
+
+  .Demo-modal-backdrop.modal-backdrop
+
+  script(src="/dist/demo.js")
