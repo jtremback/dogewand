@@ -45,23 +45,28 @@
   sudo: yes
 
 - name: strip ssl keys
-  command: openssl rsa -in {{ssl.cert.key_dest}} -out {{ssl.cert.key_stripped}} -passin pass:{{secrets.ssl_key_password}} creates={{ssl.cert.key_stripped}}
+  command: 'openssl rsa -in {{ssl.cert.key_dest}} -out {{ssl.cert.key_stripped}} -passin pass:{{secrets.ssl_key_password}} creates={{ssl.cert.key_stripped}}'
   sudo: yes
   notify: restart nginx
 
+- name: 'copy static files'
+  copy:
+    src: '../../../../static/'
+    dest: '/home/www-data/'
+    mode: 644
 
 - name: add SSL virtual hosts
   template:
     src: nginx-template.conf
-    dest: /etc/nginx/sites-available/"{{ssl.vhost.hostname}}"_ssl
+    dest: '/etc/nginx/sites-available/"{{ssl.vhost.hostname}}"_ssl'
   sudo: yes
   notify: restart nginx
 
 - name: enable SSL virtual hosts
   file:
     state: link
-    src: /etc/nginx/sites-available/"{{ssl.vhost.hostname}}"_ssl
-    path: /etc/nginx/sites-enabled/"{{ssl.vhost.hostname}}"_ssl
+    src: '/etc/nginx/sites-available/"{{ssl.vhost.hostname}}"_ssl'
+    path: '/etc/nginx/sites-enabled/"{{ssl.vhost.hostname}}"_ssl'
     owner: nginx
   sudo: yes
   notify: restart nginx

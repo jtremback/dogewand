@@ -3,5 +3,5 @@
 .DS_Store
 /incremental/
 /loader/
-/public/dist
+/static/dist
 /ssl/

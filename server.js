@@ -25,7 +25,7 @@ db.insertPgFunctions(function () {
 });
 
 
-var daemon = require('app/models/daemon.js')(6, 20000);
+var daemon = require('./app/models/daemon.js')(6, 20000);
 
 daemon.on('deposit', log);
 daemon.on('error', log);

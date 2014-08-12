@@ -19,7 +19,6 @@ app:
 
 dogecoin:
   binary_src: dogecoind
-  rpc_password: dogecoind_password
   logs: /var/log/dogecoind/sys.log
   user:
     name: dogecoinuser

@@ -19,7 +19,9 @@ module.exports = function (app, config, passport) {
 
   app.set('showStackError', true);
 
-  app.use(express.static('./public'));
+  if (process.env.NODE_ENV === 'dev') {
+    app.use(express.static('./static'));
+  }
 
   app.use(morgan('dev')); // LOGGING
 

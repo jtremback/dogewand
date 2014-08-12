@@ -61,7 +61,7 @@ gulp.task('shared-js', function () {
 gulp.task('static-html', function () {
   return gulp.src(['assets/templates/static/*.jade'])
     .pipe(gulpJade())
-    .pipe(gulp.dest('public'));
+    .pipe(gulp.dest('static'));
 });
 
 
@@ -71,7 +71,7 @@ gulp.task('demo-js', function () {
     .pipe(gulpInclude('// = '))
     // .pipe(gulpUglify())
     .pipe(gulpRename('demo.js'))
-    .pipe(gulp.dest('public/dist'))
+    .pipe(gulp.dest('static/dist'))
     // .pipe(gulpNotify({ message: 'demo-js task complete' }));
 });
 
@@ -120,14 +120,14 @@ gulp.task('iframe-styles', function () {
   return gulp.src('assets/less/iframe.less')
     .pipe(lazyLess())
     .pipe(gulpRename('iframe.css'))
-    .pipe(gulp.dest('public/dist'))
+    .pipe(gulp.dest('static/dist'))
     // .pipe(gulpNotify({ message: 'iframe-styles task complete' }));
 });
 
 gulp.task('iframe-js', function () {
   return gulp.src(['incremental/shared/config.js', 'assets/js/iframe/vendor/lodash.custom.js', 'assets/js/iframe/vendor/vue.0.10.4.js', 'assets/js/iframe/app.js'])
     .pipe(gulpConcat('iframe.js'))
-    .pipe(gulp.dest('public/dist'))
+    .pipe(gulp.dest('static/dist'))
     // .pipe(gulpNotify({ message: 'iframe-js task complete' }));
 });
 

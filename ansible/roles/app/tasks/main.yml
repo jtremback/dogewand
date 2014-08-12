@@ -18,24 +18,17 @@
 - name: "chown user dir"
   shell: "chown -R {{ app.user.name }}:{{ app.user.name }} {{ app.user.home_folder }}"
 
-- name: "chmod user dir"
-  shell: "chmod -R 700 {{ app.user.home_folder }}"
 
 - name: "migrate db"
   shell: "node {{ app.user.home_folder }}/{{ app.name }}/migrations/migrate.js 001 >> /log_file 2>&1"
-
-# - name: "install gulp"
-#   npm:
-#     name: "gulp"
-#     path: "{{ app.user.home_folder }}/{{ app.name }}"
-
-# - name: "build frontend"
-#   shell: "node_modules/.bin/gulp build"
 
 - name: "build frontend"
   command: >
     node_modules/.bin/gulp build
     chdir={{ app.user.home_folder }}/{{ app.name }}
+
+- name: "chmod user dir"
+  shell: "chmod -R 500 {{ app.user.home_folder }}"
 
 - name: "upstart script"
   template:
