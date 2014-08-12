@@ -1,5 +1,5 @@
 ---
-- hosts: dev
+- hosts: production
   user: root
   vars_files:
     - secrets.yml

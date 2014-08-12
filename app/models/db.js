@@ -21,7 +21,7 @@ exports.getUser = function (user_id, callback) {
     'SELECT',
       'users.user_id,',
       'users.balance,',
-      'users.username,',
+      // 'users.username,',
       'users.created_at,',
       'accounts.account_id,',
       'accounts.provider account_provider,',
@@ -37,7 +37,7 @@ exports.getUser = function (user_id, callback) {
     var user = {
       user_id: result.rows[0].user_id,
       balance: Math.floor(result.rows[0].balance),
-      username: result.rows[0].username,
+      // username: result.rows[0].username,
       created_at: result.rows[0].created_at
     };
 
