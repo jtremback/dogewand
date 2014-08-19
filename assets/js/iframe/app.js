@@ -231,7 +231,7 @@ Vue.component('confirm-tip-modal', {
     tippee: '',
     amount: '',
     tip_id: '',
-    url: 'https://localhost:3700'
+    url: '<%= url %>'
   },
   methods: {
     init: function (data) {

@@ -1,0 +1,7 @@
+- /.git/
+- /config/config.js
+- .DS_Store
+- /incremental/
+- /loader/
+- /static/dist
+- /dev_ssl/

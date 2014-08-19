@@ -49,24 +49,18 @@
   sudo: yes
   notify: restart nginx
 
-- name: 'copy static files'
-  copy:
-    src: '../../../../static/'
-    dest: '/home/www-data/'
-    mode: 644
-
 - name: add SSL virtual hosts
   template:
     src: nginx-template.conf
-    dest: '/etc/nginx/sites-available/"{{ssl.vhost.hostname}}"_ssl'
+    dest: '/etc/nginx/sites-available/{{ssl.vhost.hostname}}_ssl'
   sudo: yes
   notify: restart nginx
 
 - name: enable SSL virtual hosts
   file:
     state: link
-    src: '/etc/nginx/sites-available/"{{ssl.vhost.hostname}}"_ssl'
-    path: '/etc/nginx/sites-enabled/"{{ssl.vhost.hostname}}"_ssl'
+    src: '/etc/nginx/sites-available/{{ssl.vhost.hostname}}_ssl'
+    path: '/etc/nginx/sites-enabled/{{ssl.vhost.hostname}}_ssl'
     owner: nginx
   sudo: yes
   notify: restart nginx

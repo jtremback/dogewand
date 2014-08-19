@@ -150,7 +150,7 @@ gulp.task('build', [
   'iframe-js',
   'iframe-styles',
   'loader-styles',
-  'loader-incremental',
   'loader-js',
+  'loader-incremental',
   'static-html'
 ]);
