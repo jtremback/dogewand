@@ -2,7 +2,7 @@
 
 var express = require('express');
 var passport = require('passport');
-var config = require('./config/config')();
+var config = require('./config/config');
 
 
 // bootstrap passport config

@@ -17,7 +17,7 @@ var jsStringEscape = require('js-string-escape');
 
 
 var lazypipe = require('lazypipe');
-var config = require('./config/config')();
+var config = require('./config/config');
 
 // Wrap file in js var named after filename
 function varWrap (file) {

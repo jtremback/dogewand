@@ -1,6 +1,6 @@
 'use strict';
 
-var config = require('../../config/config')();
+var config = require('../../config/config');
 var BlockIo = require('block_io');
 var events = require('events');
 var pgutils = require('./pg-utils')(config.db);

@@ -1,7 +1,7 @@
 'use strict';
 
 var postgrator = require('postgrator');
-var config = require('../config/config')();
+var config = require('../config/config');
 
 postgrator.config.set({
   migrationDirectory: config.root + '/migrations/',
