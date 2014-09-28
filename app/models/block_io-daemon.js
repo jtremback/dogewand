@@ -16,9 +16,9 @@ module.exports = function (confirmations, timeout) {
 
       result.data.addresses.forEach(function (address) {
         blockIo.get_address_received({'address': address.address}, function (err, result) {
-          if (err || result.status !== 'success') return done(err, null);
+          if (err) console.log('blockio daemon error: `', err);
           updateBalance(result.data.address, result.data.confirmed_received, function (err, result) {
-            if (err) { console.log(err, result); };
+            if (err) { console.log(err, result); }
           });
         });
       });
@@ -32,11 +32,6 @@ module.exports = function (confirmations, timeout) {
 
 function updateBalance (address, new_recieved, callback) {
   new_recieved = parseInt(new_recieved);
-
-  // if (isNaN(label)) { // Check if it is an integer
-  //   console.log(label);
-  //   return callback('Must be integer.');
-  // }
 
   pgutils.transaction(function (client, done) {
     client.query([
@@ -53,6 +48,8 @@ function updateBalance (address, new_recieved, callback) {
 
       if (change > 0) {
         updateBalance(change);
+      } else {
+        console.log('blockio daemon error: Invalid balance change: ', change);
       }
     }
 
@@ -68,9 +65,6 @@ function updateBalance (address, new_recieved, callback) {
         if (err || !result.rows[0]) return done(err, null);
         console.log('updateBalanceResult', result.rows);
         return updateAddress();
-        // result.rows[0].balance = parseInt(result.rows[0].balance, 10);
-        // ret.user = result.rows[0];
-        // return done(null, ret);
       });
     }
 

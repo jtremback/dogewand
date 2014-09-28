@@ -1,4 +1,0 @@
----
-postgres_db: "{{ secrets.postgres.name }}"
-postgres_username: "{{ secrets.postgres.name }}"
-postgres_password: "{{ secrets.postgres.password }}"
