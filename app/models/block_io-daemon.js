@@ -48,8 +48,6 @@ function updateBalance (address, new_recieved, callback) {
 
       if (change > 0) {
         updateBalance(change);
-      } else {
-        console.log('blockio daemon error: Invalid balance change: ', change);
       }
     }
 

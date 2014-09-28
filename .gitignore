@@ -5,3 +5,4 @@
 /static/dist
 /dev_ssl/
 secret
+.env

@@ -4,7 +4,7 @@ var express = require('express');
 var passport = require('passport');
 var config = require('./config/config');
 
-
+console.log(config)
 // bootstrap passport config
 require('./config/passport')(passport, config);
 

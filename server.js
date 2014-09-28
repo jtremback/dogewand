@@ -4,7 +4,7 @@ var https = require('https');
 var http = require('http');
 var fs = require('fs');
 var app = require('./app.js');
-var config = require('./config/config.js')();
+var config = require('./config/config.js');
 var db = require('./app/models/db.js');
 
 
