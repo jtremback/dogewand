@@ -2,10 +2,13 @@
 
 var config = require('../../config/config')();
 var pgutils = require('./pg-utils')(config.db);
-var rpc = require('./rpc')(config.rpc);
+// var rpc = require('./rpc')(config.rpc);
 var pg = require('pg');
 var fs = require('fs');
 var _ = require('lodash');
+var BlockIo = require('block_io');
+var block_io = new BlockIo('42c9-b458-7867-0e2e');
+
 
 exports.insertPgFunctions = function (callback) {
   pg.connect(config.db, function (err, client, done) {
@@ -255,6 +258,32 @@ exports.getUserTips = function (user_id, callback) {
 };
 
 
+// exports.getAddress = function (user_id, callback) {
+//   pgutils.transaction(function (client, done) {
+//     client.query([
+//       'SELECT * FROM user_addresses',
+//       'WHERE user_id = $1;'
+//     ].join('\n'), [ user_id ], function (err, result) {
+//       if (err) return done(err, null);
+//       if (result.rows[0] && result.rows[0].address) return done(null, result.rows[0].address);
+//       return newAddress();
+//     });
+
+//     function newAddress () {
+//       rpc('getnewaddress', [], function (err, address) {
+//         if (err || !address) return done(err, null);
+//         client.query([
+//           'INSERT INTO user_addresses (address, user_id)',
+//           'VALUES ($1, $2);'
+//         ].join('\n'), [ address, user_id ], function (err) {
+//           return done(err, address);
+//         });
+//       });
+//     }
+//   }, callback);
+// };
+
+
 exports.getAddress = function (user_id, callback) {
   pgutils.transaction(function (client, done) {
     client.query([
@@ -267,8 +296,11 @@ exports.getAddress = function (user_id, callback) {
     });
 
     function newAddress () {
-      rpc('getnewaddress', [], function (err, address) {
-        if (err || !address) return done(err, null);
+      block_io.get_new_address({ label: user_id }, function (err, result) {
+        if (err || result.status !== 'success') return done(err, null);
+
+        var address = result.data.address;
+
         client.query([
           'INSERT INTO user_addresses (address, user_id)',
           'VALUES ($1, $2);'
@@ -280,6 +312,7 @@ exports.getAddress = function (user_id, callback) {
   }, callback);
 };
 
+exports.getAddress(1, function () {});
 
 exports.withdraw = function (user_id, opts, callback) {
   pgutils.transaction(function (client, done) {
@@ -298,8 +331,8 @@ exports.withdraw = function (user_id, opts, callback) {
     });
 
     function sendFunds () {
-      rpc('sendtoaddress', [ opts.address, opts.amount ], function (err, result) {
-        if (err) return done(err);
+      block_io.withdraw({amount: opts.amount, payment_address: opts.address, pin: 'SECRET PIN'}, function (err, result) {
+        if (err || result.status !== 'success') return done(err, null);
         return insertWithdrawal(result);
       });
     }
@@ -317,6 +350,44 @@ exports.withdraw = function (user_id, opts, callback) {
     }
   }, callback);
 };
+
+
+// exports.withdraw = function (user_id, opts, callback) {
+//   pgutils.transaction(function (client, done) {
+
+//     var new_balance;
+
+//     client.query([
+//       'UPDATE users',
+//       'SET balance = balance - $2',
+//       'WHERE user_id = $1',
+//       'RETURNING balance'
+//     ].join('\n'), [ user_id, opts.amount ], function (err, result) {
+//       if (err || !result.rows[0]) return done(err, null);
+//       new_balance = Math.floor(result.rows[0].balance);
+//       return sendFunds();
+//     });
+
+//     function sendFunds () {
+//       rpc('sendtoaddress', [ opts.address, opts.amount ], function (err, result) {
+//         if (err) return done(err);
+//         return insertWithdrawal(result);
+//       });
+//     }
+
+//     function insertWithdrawal (txid) {
+//       client.query([
+//         'INSERT INTO withdrawals (txid, amount, user_id)',
+//         'VALUES ($1, $2, $3)',
+//         'RETURNING *;'
+//       ].join('\n'), [ txid, opts.amount, user_id ], function (err, result) {
+//         if (err || !result.rows[0]) return done(err, null);
+//         result.rows[0].amount = Math.floor(result.rows[0].amount);
+//         return done(null, new_balance, result.rows[0]);
+//       });
+//     }
+//   }, callback);
+// };
 
 
 exports.auth = function (opts, callback) {

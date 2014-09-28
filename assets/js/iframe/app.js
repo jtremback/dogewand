@@ -4,7 +4,9 @@
 
 var app;
 
-Vue.config('debug', true);
+// Vue.config('debug', true);
+
+document.domain = document.domain;
 
 function http (method, url, data, callback) {
   var request = new XMLHttpRequest();
@@ -45,6 +47,8 @@ function Messenger (app) {
 }
 
 Messenger.prototype.post = function (method, data, provider_origin) {
+  debugger
+
   parent.postMessage(JSON.stringify({
     method: method,
     data: data
@@ -56,7 +60,7 @@ Messenger.prototype.connect = function (callback) {
   window.addEventListener('message', handshake, false);
   this.post('call', null, '*');
   function handshake (event) {
-    console.log('iframe receives', event.source.location.href);
+    // console.log('iframe receives', event.source.location.href);
     var message = JSON.parse(event.data);
     if (message.method === 'response' && config.provider_list[event.origin]) {
       self.app.page.provider = config.provider_list[event.origin];

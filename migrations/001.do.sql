@@ -28,7 +28,8 @@ CREATE TABLE tips (
 CREATE TABLE user_addresses (
   address varchar(34) PRIMARY KEY,
   user_id int REFERENCES users,
-  created_at timestamp DEFAULT CURRENT_TIMESTAMP
+  created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+  recieved bigint NOT NULL DEFAULT 0 CHECK (recieved >= 0)
 );
 
 CREATE TABLE deposits (

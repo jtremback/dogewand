@@ -3,9 +3,9 @@
 var pg = require('pg');
 
 module.exports = function (connection_string) {
-  var ret = {};
+  var pgutils = {};
 
-  ret.transaction = function (queryLogic, callback) {
+  pgutils.transaction = function (queryLogic, callback) {
     pg.connect(connection_string, function (err, client, done) {
       if (err) return callback(err);
 
@@ -14,13 +14,13 @@ module.exports = function (connection_string) {
       function rollback (err) {
         console.log(err, callback);
         client.query('ROLLBACK', function(error) {
-          done(error || err);
+          done(error || err); // log error in rollback or error in commit
           return callback(error || err);
         });
       }
 
       var augmentedDone = function (err) {
-        if (err) return rollback(err);
+        if (err) return rollback(err); // Pass error in for logging later
         var _arguments = arguments;
         client.query(
           'COMMIT;',
@@ -41,7 +41,7 @@ module.exports = function (connection_string) {
     });
   };
 
-  ret.queries = function (queryLogic, callback) {
+  pgutils.queries = function (queryLogic, callback) {
     pg.connect(connection_string, function (err, client, done) {
       if (err) return callback(err);
 
@@ -57,7 +57,7 @@ module.exports = function (connection_string) {
     });
   };
 
-  ret.query = function () {
+  pgutils.query = function () {
     var args = Array.prototype.slice.call(arguments, 0);
     var callback = args.pop();
     pg.connect(connection_string, function (err, client, done) {
@@ -78,5 +78,5 @@ module.exports = function (connection_string) {
     });
   };
 
-  return ret;
+  return pgutils;
 };
