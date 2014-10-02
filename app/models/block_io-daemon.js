@@ -12,18 +12,20 @@ module.exports = function (confirmations, timeout) {
 
   (function daemon () {
     blockIo.get_my_addresses({}, function (err, result) {
-      if (err) eventEmitter.emit('error', err);
-
-      result.data.addresses.forEach(function (address) {
-        blockIo.get_address_received({'address': address.address}, function (err, result) {
-          if (err) console.log('blockio daemon error: `', err);
-          updateBalance(result.data.address, result.data.confirmed_received, function (err, result) {
-            if (err) { console.log(err, result); }
+      if (err) {
+        console.log('Block IO daemon error: ', err);
+      } else {
+        result.data.addresses.forEach(function (address) {
+          blockIo.get_address_received({'address': address.address}, function (err, result) {
+            if (err) console.log('blockio daemon error: `', err);
+            updateBalance(result.data.address, result.data.confirmed_received, function (err, result) {
+              if (err) { console.log(err, result); }
+            });
           });
         });
-      });
 
-      setTimeout(daemon, timeout);
+        setTimeout(daemon, timeout);
+      }
     });
   })();
 
