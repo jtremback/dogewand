@@ -25,7 +25,8 @@ module.exports = function (app, config, passport) {
 
   app.use(morgan('dev')); // LOGGING
 
-  // set views path, template engine and default layout
+  // set views path, template engine and default layout and static
+  app.use('/static/', express.static(path.join(__dirname, 'static')));
   app.set('views', config.root + '/assets/templates/server');
   app.set('view engine', 'jade');
   app.disable('view cache');

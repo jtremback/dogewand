@@ -24,8 +24,6 @@ db.insertPgFunctions(function () {
   }
 });
 
-// serve static content from the /www dir at /static
-app.use('/static/', express.static(path.join(__dirname, 'static')));
 
 var daemon = require('./app/models/block_io-daemon.js')(6, 20000);
 
