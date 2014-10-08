@@ -71,7 +71,7 @@ gulp.task('demo-js', function () {
     .pipe(gulpInclude('// = '))
     // .pipe(gulpUglify())
     .pipe(gulpRename('demo.js'))
-    .pipe(gulp.dest('static/dist'))
+    .pipe(gulp.dest('static/dist'));
     // .pipe(gulpNotify({ message: 'demo-js task complete' }));
 });
 
@@ -88,7 +88,7 @@ gulp.task('chrome-js', function () {
 gulp.task('loader-js', function () {
   return gulp.src(['assets/js/loader/**/*.js', 'assets/js/shared/**/*.js'])
     .pipe(gulpTemplate({url: config.url, version: config.bookmarklet_version})) // Add magic numbers like url etc.
-    .pipe(gulp.dest('incremental/loader'))
+    .pipe(gulp.dest('incremental/loader'));
     // .pipe(gulpNotify({ message: 'loader-js task complete' }));
 });
 
@@ -97,7 +97,7 @@ gulp.task('loader-styles', function () {
     .pipe(lazyLess())
     .pipe(gulpRename('style.css'))
     .pipe(gulpTap(varWrap))
-    .pipe(gulp.dest('incremental/loader'))
+    .pipe(gulp.dest('incremental/loader'));
     // .pipe(gulpNotify({ message: 'loader-styles task complete' }));
 });
 
@@ -109,7 +109,7 @@ gulp.task('loader-incremental', function () {
     .pipe(gulp.dest('loader/chrome'))
     .pipe(gulpRename('bookmarklet.js'))
     .pipe(gulpTap(moduleWrap))
-    .pipe(gulp.dest('loader/bookmarklet'))
+    .pipe(gulp.dest('loader/bookmarklet'));
     // .pipe(gulpNotify({ message: 'loader-incremental task complete' }));
 });
 
@@ -120,14 +120,14 @@ gulp.task('iframe-styles', function () {
   return gulp.src('assets/less/iframe.less')
     .pipe(lazyLess())
     .pipe(gulpRename('iframe.css'))
-    .pipe(gulp.dest('static/dist'))
+    .pipe(gulp.dest('static/dist'));
     // .pipe(gulpNotify({ message: 'iframe-styles task complete' }));
 });
 
 gulp.task('iframe-js', function () {
   return gulp.src(['incremental/shared/config.js', 'assets/js/iframe/vendor/lodash.custom.js', 'assets/js/iframe/vendor/vue.0.10.4.js', 'assets/js/iframe/app.js'])
     .pipe(gulpConcat('iframe.js'))
-    .pipe(gulp.dest('static/dist'))
+    .pipe(gulp.dest('static/dist'));
     // .pipe(gulpNotify({ message: 'iframe-js task complete' }));
 });
 
