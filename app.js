@@ -13,6 +13,8 @@ var app = express();
 
 // Serve static
 app.use('/dist/', express.static(path.join(__dirname, 'static/dist')));
+app.use('/images/', express.static(path.join(__dirname, 'static/images')));
+app.use('/comicsans/', express.static(path.join(__dirname, 'static/comicsans')));
 
 // express settings
 require('./config/express')(app, config, passport);
