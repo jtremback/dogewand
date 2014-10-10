@@ -9,7 +9,7 @@ module.exports = function (connection_string) {
     pg.connect(connection_string, function (err, client, done) {
       if (err) return callback(err);
 
-      var begin_time = Date.now();
+      // var begin_time = Date.now();
 
       function rollback (err) {
         console.log(err, callback);
@@ -27,7 +27,7 @@ module.exports = function (connection_string) {
         function (err) {
           if (err) return rollback(err);
           done();
-          console.log('transaction done', Date.now() - begin_time);
+          // console.log('transaction done', Date.now() - begin_time);
           return callback.apply(this, _arguments);
         });
       };
@@ -49,7 +49,7 @@ module.exports = function (connection_string) {
 
       var augmentedDone = function (err) {
         done(err);
-        console.log('query done', Date.now() - begin_time);
+        // console.log('query done', Date.now() - begin_time);
         return callback.apply(this, arguments);
       };
 
@@ -67,7 +67,7 @@ module.exports = function (connection_string) {
 
       var augmentedDone = function (err) {
         done(err);
-        console.log('query done', Date.now() - begin_time);
+        // console.log('query done', Date.now() - begin_time);
         return callback.apply(this, arguments);
       };
 

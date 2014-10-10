@@ -25,13 +25,13 @@ db.insertPgFunctions(function () {
 });
 
 
-var daemon = require('./app/models/block_io-daemon.js')(6, 20000);
+// var daemon = require('./app/models/block_io-daemon.js')(6, 20000);
 
-daemon.on('deposit', log);
-daemon.on('error', log);
+// daemon.on('deposit', log);
+// daemon.on('error', log);
 
-function log (stuff) {
-  console.log('deposit daemon: ', stuff);
-}
+// function log (stuff) {
+//   console.log('deposit daemon: ', stuff);
+// }
 
 console.log('Express app started on port ' + port);
